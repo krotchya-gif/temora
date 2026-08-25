@@ -7,9 +7,10 @@ import { getWhatsAppUrl, PRICING_TIERS } from "@/lib/constants";
 import { cn, formatIdr } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Harga",
+  // Category keyword BRAND.md §9 di title.
+  title: "Paket & Harga — Virtual Photobooth",
   description:
-    "Paket TEMORA virtual photobooth: mulai gratis, upgrade saat acara makin banyak.",
+    "Paket TEMORA virtual photobooth untuk wedding, birthday, dan corporate event: mulai gratis 100 foto, Basic Rp 99K, Pro Rp 299K tanpa kontrak.",
 };
 
 export default function PricingPage() {

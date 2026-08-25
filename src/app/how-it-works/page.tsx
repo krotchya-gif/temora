@@ -7,9 +7,10 @@ import { Card } from "@/components/ui/Card";
 import { getWhatsAppUrl, HOW_IT_WORKS_STEPS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Cara Kerja",
+  // Nama halaman BRAND.md §11 + intent keyword §9.
+  title: "How TEMORA Virtual Photobooth Works",
   description:
-    "Cara TEMORA virtual photobooth bekerja: tamu scan QR, ambil foto, vendor kelola galeri.",
+    "How TEMORA virtual photobooth works: tamu scan QR di meja, ambil momen di browser tanpa aplikasi, vendor kelola galeri dan unduh ZIP resolusi tinggi.",
 };
 
 const stepIcons = {
