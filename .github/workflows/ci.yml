@@ -1,0 +1,34 @@
+name: CI
+
+# Task 015: lint + typecheck + build tiap push/PR.
+# Gagal CI = blok merge ke main (branch protection di GitHub settings).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Build tanpa env runtime — semua kode server wajib tahan env kosong
+      # (pola yang sudah dipakai di proxy.ts & halaman photobooth).
+      - name: Build
+        run: npm run build
