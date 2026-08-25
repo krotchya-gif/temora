@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarDays,
   CreditCard,
@@ -30,10 +30,17 @@ type DashboardShellProps = {
 
 export function DashboardShell({
   children,
-  vendorName = "Vendor Demo",
+  vendorName = "Vendor",
 }: DashboardShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  }
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -76,9 +83,9 @@ export function DashboardShell({
       <div className="border-t border-border p-4">
         <p className="truncate text-sm font-medium text-text-primary">{vendorName}</p>
         <Button
-          href="/"
           variant="ghost"
           size="sm"
+          onClick={handleLogout}
           className="mt-2 w-full justify-start px-0 text-text-secondary"
         >
           <LogOut className="mr-2 h-4 w-4" aria-hidden />

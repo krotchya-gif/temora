@@ -126,7 +126,7 @@ src/
 │   ├── supabase/           # client.ts · server.ts · admin.ts (§2)
 │   ├── ai/                 # segmentation.ts, faceLandmark.ts (Phase 2)
 │   ├── xendit.ts · whatsapp.ts · validation/
-└── middleware.ts           # proteksi /dashboard/* (task 003)
+└── proxy.ts                # proteksi /dashboard/* (task 003; konvensi Next 16, ex-middleware.ts)
 
 supabase/
 ├── config.toml             # init task 001; migrasi task 002

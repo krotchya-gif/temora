@@ -115,13 +115,13 @@ Server component, tanpa interaktivitas. Cukup validasi token CSS: `bg-bg-base`, 
 
 ## 6. Acceptance Criteria
 
-- [ ] `npm run dev` + `npm run build` + `npm run lint` + `npm run typecheck` jalan tanpa error.
-- [ ] Landing stub menampilkan wordmark + tagline dengan token brand (bukan hex hardcode).
-- [ ] `GET /api/health` return 200 + indikasi Supabase terkonfigurasi.
-- [ ] Tiga file `src/lib/supabase/*` ada; `admin.ts` **tidak** di-import dari Client Component.
-- [ ] `.env.example` lengkap sesuai architecture.md §11.
-- [ ] Vercel preview deploy hijau, URL bisa diakses.
-- [ ] Tidak ada secret ter-commit ke git (`git grep` key = kosong).
+- [x] `npm run dev` + `npm run build` + `npm run lint` + `npm run typecheck` jalan tanpa error. *(terverifikasi 2026-08-26)*
+- [x] Landing stub menampilkan wordmark + tagline dengan token brand (bukan hex hardcode).
+- [ ] `GET /api/health` return 200 + indikasi Supabase terkonfigurasi. *(menunggu `.env.local`)*
+- [x] Tiga file `src/lib/supabase/*` ada; `admin.ts` **tidak** di-import dari Client Component.
+- [x] `.env.example` lengkap sesuai architecture.md §11.
+- [ ] Vercel preview deploy hijau, URL bisa diakses. *(repo GitHub siap di connect; menunggu aksi owner)*
+- [x] Tidak ada secret ter-commit ke git (`git grep` key = kosong).
 
 ## 7. Catatan
 

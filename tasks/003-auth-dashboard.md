@@ -1,8 +1,11 @@
 # Task 003 — Auth Vendor + Dashboard Shell
 
-*Status: Ready · Prioritas: High · Phase: MVP*
+*Status: In Progress — kode auth selesai (2026-08-26); uji e2e menunggu env Supabase · Prioritas: High · Phase: MVP*
 
 Depends on: 001, 002
+
+> Catatan implementasi: Next.js 16 mengganti konvensi middleware → `src/proxy.ts`
+> (lihat architecture.md §3.0). Zod dipasang untuk validasi form/API.
 
 ---
 

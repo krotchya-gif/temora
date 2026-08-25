@@ -1,6 +1,6 @@
 # Task 002 — Supabase Schema (Tabel + RLS + Storage)
 
-*Status: Ready · Prioritas: High · Phase: MVP*
+*Status: In Progress — 8 migrasi + seed selesai ditulis (2026-08-26); apply menunggu Docker lokal atau project remote · Prioritas: High · Phase: MVP*
 
 Depends on: 001 (supabase init + folder scaffold)
 
