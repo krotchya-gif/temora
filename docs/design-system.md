@@ -257,6 +257,13 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Setelah simpan/share sukses (tamu) | "Momen sekarang ada di HP-mu ✨" |
 | Field link kustom (form event) | Label "Link kustom (opsional)" · helper "Kosongkan untuk otomatis dari nama event." |
 | Event berakhir | "Acara ini sudah selesai. Terima kasih sudah jadi bagian dari momennya." |
+| Consent body (photobooth) | "Foto yang kamu ambil tersimpan ke galeri acara dan hanya bisa dilihat oleh penyelenggara. Foto otomatis terhapus paling lambat 30 hari setelah acara berakhir." |
+| Kamera ditolak | "Izin kamera belum aktif. Izinkan akses kamera lewat pengaturan browser-mu, lalu coba lagi ya." |
+| Kamera error umum | "Kamera belum bisa diakses. Tutup aplikasi lain yang memakai kamera, lalu coba lagi ya." |
+| Rate limit upload | "Semangat sekali! Tunggu sebentar ya, lalu lanjut ambil momen berikutnya." |
+| Kuota foto acara penuh | "Kuota momen acara ini sudah penuh. Terima kasih sudah jadi bagian dari momennya!" |
+| Tautan meja tidak valid | "Sepertinya tautan ini tidak tepat. Coba scan ulang QR di mejamu, ya." |
+| Status upload tertunda (offline/antre) | "Menyimpan…" |
 
 ---
 
