@@ -4,6 +4,7 @@ import {
   TIER_ACTIVE_EVENT_LIMITS,
   TIER_PHOTO_LIMITS,
 } from "@/lib/constants";
+import { enqueueWa } from "@/lib/whatsapp";
 import { SLUG_PATTERN, eventCreateSchema, firstIssueMessage } from "@/lib/validation/event";
 
 export const runtime = "nodejs";
@@ -210,9 +211,8 @@ export async function POST(request: Request) {
     );
   }
 
-  // Hook task-009: kirim WA "event_created" ke vendor di sini
-  // (enqueueWa(vendor.id, 'event_created', { eventName: input.name })).
-  void tier;
+  // WA "event_created" masuk antrean (dikirim worker task 009, quiet hours §4.4).
+  void enqueueWa(vendor.id, "event_created", { eventName: input.name });
 
   return NextResponse.json({ ok: true, eventId: created.id });
 }
