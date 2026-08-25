@@ -1,67 +1,62 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { WaSettingsForm } from "@/components/dashboard/WaSettingsForm";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Pengaturan",
 };
 
-export default function SettingsPage() {
+// Data per-sesi vendor — selalu render dinamis.
+export const dynamic = "force-dynamic";
+
+export default async function SettingsPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: vendor } = await supabase
+    .from("vendors")
+    .select("name, email, phone, wa_opt_in")
+    .eq("id", user?.id ?? "")
+    .single();
+
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div>
         <h1 className="font-display text-3xl text-text-primary">Pengaturan</h1>
         <p className="text-sm text-text-secondary">
-          Profil vendor & notifikasi WhatsApp.
+          Profil vendor &amp; notifikasi WhatsApp.
         </p>
       </div>
 
       <Card className="space-y-4 p-6">
         <h2 className="font-display text-lg text-text-primary">Profil</h2>
-        <Input label="Nama" name="name" placeholder="Nama kamu atau studio" />
+        <Input label="Nama" name="name" value={vendor?.name ?? ""} disabled />
         <Input
           label="Email"
           name="email"
           type="email"
-          placeholder="nama@contoh.com"
+          value={vendor?.email ?? ""}
           hint="Email login tidak bisa diubah di versi ini."
+          disabled
         />
       </Card>
 
       <Card className="space-y-4 p-6">
         <h2 className="font-display text-lg text-text-primary">Notifikasi WhatsApp</h2>
-        <Input
-          label="Nomor WhatsApp"
-          name="phone"
-          type="tel"
-          inputMode="numeric"
-          placeholder="6281234567890"
-          hint="Format E.164 (62…)"
+        <WaSettingsForm
+          phone={vendor?.phone ?? ""}
+          waOptIn={vendor?.wa_opt_in ?? true}
         />
-        <label className="flex items-start gap-3 text-sm text-text-secondary">
-          <input
-            type="checkbox"
-            name="wa_opt_in"
-            defaultChecked
-            className="mt-1 h-4 w-4 rounded border-border text-accent focus:ring-dusty-blue"
-          />
-          <span>
-            Terima notifikasi WhatsApp tentang event dan pembayaran.
-            <br />
-            <span className="text-xs">Maksimal 3 pesan per hari, tanpa kirim jam 22.00–07.00 WIB.</span>
-          </span>
-        </label>
-      </Card>
-
-      <div className="space-y-2">
-        <Button className="w-full" disabled>
-          Simpan Perubahan
-        </Button>
-        <p className="text-center text-xs text-text-secondary">
-          Menyimpan pengaturan aktif setelah koneksi database siap.
+        <p className="text-xs leading-relaxed text-text-secondary">
+          Maksimal 3 pesan per hari, tanpa kirim jam 22.00–07.00 WIB. Info
+          pembayaran tetap terkirim meski notifikasi dimatikan.
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

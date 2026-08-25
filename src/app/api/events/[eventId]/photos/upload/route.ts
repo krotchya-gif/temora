@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { allowRequest, getClientIp } from "@/lib/rate-limit";
+import { enqueueWa } from "@/lib/whatsapp";
 import { ulid } from "@/lib/ulid";
 import {
   MAX_UPLOAD_BYTES,
@@ -61,7 +62,7 @@ export async function POST(
 
   const { data: event } = await admin
     .from("events")
-    .select("id, is_active, expires_at, photo_limit")
+    .select("id, vendor_id, name, is_active, expires_at, photo_limit")
     .eq("id", eventId)
     .maybeSingle();
 
@@ -190,6 +191,20 @@ export async function POST(
     await admin.storage.from("photos").remove([photoPath]);
     if (storedThumbPath) await admin.storage.from("thumbs").remove([storedThumbPath]);
     return jsonError("Momen gagal tersimpan. Coba sekali lagi ya.", 500);
+  }
+
+  // Milestone 50/100 momen (task 009 — throttled by design).
+  const { count: totalPhotos } = await admin
+    .from("photos")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", event.id)
+    .eq("deleted_at", null);
+
+  if (totalPhotos === 50 || totalPhotos === 100) {
+    void enqueueWa(event.vendor_id, "photo_milestone", {
+      count: totalPhotos,
+      eventName: event.name,
+    });
   }
 
   return NextResponse.json({
