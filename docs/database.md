@@ -197,6 +197,11 @@ CREATE POLICY t_public_read ON tables FOR SELECT TO anon
                  WHERE e.id = event_id AND e.is_active
                    AND (e.expires_at IS NULL OR e.expires_at > NOW())));
 
+-- Vendor kelola meja milik eventnya (generate/hapus via dashboard; task 005)
+CREATE POLICY t_owner_all ON tables FOR ALL
+  USING (EXISTS (SELECT 1 FROM events e
+                 WHERE e.id = event_id AND e.vendor_id = auth.uid()));
+
 -- Tamu UPLOAD foto: guard cadangan (jalur utama = API service role, §2.7)
 CREATE POLICY p_guest_insert ON photos FOR INSERT TO anon
   WITH CHECK (

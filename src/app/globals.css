@@ -114,3 +114,72 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Kartu meja QR — layout cetak A4 2×4 per halaman (task 005 §4.1). */
+.qr-print-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 86mm);
+  grid-auto-rows: 62mm;
+  gap: 6mm;
+  justify-content: center;
+}
+
+.qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5mm;
+  border: 0.4mm dashed var(--color-border);
+  border-radius: 4mm;
+  padding: 3mm;
+  break-inside: avoid;
+  background: #ffffff;
+}
+
+.qr-card-image {
+  width: 38mm;
+  height: 38mm;
+}
+
+.qr-card-event {
+  font-size: 5.2mm;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+.qr-card-label {
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  font-size: 4.6mm;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.qr-card-tagline {
+  font-style: italic;
+  font-size: 3.4mm;
+  color: var(--color-text-secondary);
+}
+
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .qr-card {
+    border-color: var(--color-border);
+  }
+}
