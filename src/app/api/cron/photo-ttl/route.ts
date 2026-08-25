@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { removePrefix } from "@/lib/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -13,33 +14,6 @@ const GRACE_DAYS = 30;
 
 function unauthorized() {
   return NextResponse.json({ ok: false }, { status: 401 });
-}
-
-async function removePrefix(
-  admin: ReturnType<typeof createAdminClient>,
-  bucket: string,
-  prefix: string,
-): Promise<number> {
-  let removed = 0;
-  let offset = 0;
-  // storage.list paging 500 — loop sampai habis.
-  for (;;) {
-    const { data: objects, error } = await admin.storage
-      .from(bucket)
-      .list(prefix, { limit: 500, offset });
-    if (error || !objects || objects.length === 0) break;
-
-    const paths = objects
-      .filter((o) => o.name !== ".emptyFolderPlaceholder")
-      .map((o) => `${prefix}/${o.name}`);
-    if (paths.length > 0) {
-      const { error: rmError } = await admin.storage.from(bucket).remove(paths);
-      if (!rmError) removed += paths.length;
-    }
-    offset += objects.length;
-    if (objects.length < 500) break;
-  }
-  return removed;
 }
 
 export async function GET(request: Request) {

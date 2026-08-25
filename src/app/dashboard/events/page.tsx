@@ -1,14 +1,43 @@
 import type { Metadata } from "next";
-import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { DEMO_EVENT_ID } from "@/lib/demo";
+import { EventCard, type EventCardData } from "@/components/dashboard/EventCard";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Events",
 };
 
-export default function EventsPage() {
+// Data per-sesi vendor — selalu render dinamis, jangan diprerender.
+export const dynamic = "force-dynamic";
+
+export default async function EventsPage() {
+  const supabase = await createClient();
+
+  type EventRow = {
+    id: string;
+    name: string;
+    theme: string | null;
+    starts_at: string | null;
+    is_active: boolean;
+    photos: { count: number }[] | null;
+  };
+
+  // RLS e_owner: hanya event milik vendor.
+  const { data } = await supabase
+    .from("events")
+    .select("id, name, theme, starts_at, is_active, photos(count)")
+    .order("created_at", { ascending: false });
+
+  const events = ((data ?? []) as unknown as EventRow[]).map<EventCardData>((row) => ({
+    id: row.id,
+    name: row.name,
+    theme: row.theme,
+    startsAt: row.starts_at,
+    isActive: row.is_active,
+    photoCount: row.photos?.[0]?.count ?? 0,
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -19,39 +48,26 @@ export default function EventsPage() {
         <Button href="/dashboard/events/new">+ Event Baru</Button>
       </div>
 
-      <Card className="px-6 py-14 text-center sm:px-10">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-bg-warm">
-          <CalendarDays className="h-5 w-5 text-accent" aria-hidden />
-        </div>
-        <p className="mt-5 font-display text-2xl text-text-primary">
-          Belum ada momen yang terabadikan.
-        </p>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text-secondary">
-          Buat event pertama, upload frame kustom, dan bagikan QR code-nya ke
-          tamu.
-        </p>
-        <Button href="/dashboard/events/new" className="mt-6">
-          Buat Event Pertama
-        </Button>
-      </Card>
-
-      <Card className="flex flex-col items-center gap-4 px-6 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div>
-          <p className="font-display text-lg text-text-primary">
-            Ingin lihat dulu seperti apa jadinya?
+      {events.length === 0 ? (
+        <Card className="px-6 py-14 text-center sm:px-10">
+          <p className="font-display text-2xl text-text-primary">
+            Belum ada event.
           </p>
-          <p className="mt-1 text-sm text-text-secondary">
-            Buka contoh galeri event dengan data demo.
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text-secondary">
+            Buat event pertama, upload frame kustom, dan bagikan QR code-nya ke
+            tamu.
           </p>
+          <Button href="/dashboard/events/new" className="mt-6">
+            Buat Event Pertama
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((event) => (
+            <EventCard key={event.id} event={event} />
+          ))}
         </div>
-        <Button
-          href={`/dashboard/events/${DEMO_EVENT_ID}/gallery`}
-          variant="secondary"
-          size="sm"
-        >
-          Lihat Contoh Galeri
-        </Button>
-      </Card>
+      )}
     </div>
   );
 }

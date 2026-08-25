@@ -264,6 +264,9 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Kuota foto acara penuh | "Kuota momen acara ini sudah penuh. Terima kasih sudah jadi bagian dari momennya!" |
 | Tautan meja tidak valid | "Sepertinya tautan ini tidak tepat. Coba scan ulang QR di mejamu, ya." |
 | Status upload tertunda (offline/antre) | "Menyimpan…" |
+| Kuota event aktif penuh | "Paketmu mengizinkan {n} event aktif. Nonaktifkan salah satu dulu, atau upgrade paketnya ya." |
+| Link kustom sudah dipakai | "Link kustom itu sudah dipakai. Coba yang lain, ya." |
+| Frame tidak valid | "File harus PNG transparan, ukurannya maksimal 8 MB." |
 
 ---
 

@@ -1,6 +1,17 @@
 export const SITE_NAME = "TEMORA";
 export const SITE_TAGLINE = "Keep the moments close.";
 
+// Aturan tier terkunci — database.md §2.7.
+export const TIER_ACTIVE_EVENT_LIMITS: Record<
+  "free" | "basic" | "pro",
+  number | null
+> = { free: 1, basic: 3, pro: null };
+
+export const TIER_PHOTO_LIMITS: Record<
+  "free" | "basic" | "pro",
+  number | null
+> = { free: 100, basic: 500, pro: null };
+
 export const WA_ADMIN_NUMBER =
   process.env.NEXT_PUBLIC_WA_ADMIN_NUMBER ?? "6281234567890";
 

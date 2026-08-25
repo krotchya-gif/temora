@@ -1,0 +1,49 @@
+import { z } from "zod";
+
+// Format slug publik (database.md §2.2 constraint slug_format).
+export const SLUG_PATTERN = /^[a-z0-9-]{6,60}$/;
+
+const optionalIsoDate = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (v ? v : undefined))
+  .refine(
+    (v) => v === undefined || !Number.isNaN(Date.parse(v)),
+    "Tanggal tidak valid.",
+  );
+
+export const eventCreateSchema = z.object({
+  name: z.string().trim().min(3, "Nama event minimal 3 karakter.").max(80),
+  theme: z
+    .enum(["wedding", "birthday", "corporate", "community", "other"])
+    .optional(),
+  startsAt: optionalIsoDate,
+  endsAt: optionalIsoDate,
+  location: z.string().trim().max(120).optional(),
+  customSlug: z
+    .string()
+    .trim()
+    .regex(SLUG_PATTERN, "Pakai huruf kecil, angka, dan tanda hubung (6–60 karakter).")
+    .optional()
+    .or(z.literal("")),
+  isActive: z.boolean().optional().default(true),
+});
+
+export const eventUpdateSchema = z.object({
+  name: z.string().trim().min(3).max(80).optional(),
+  theme: z.enum(["wedding", "birthday", "corporate", "community", "other"]).optional(),
+  startsAt: optionalIsoDate,
+  endsAt: optionalIsoDate,
+  location: z.string().trim().max(120).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export type EventCreateInput = z.infer<typeof eventCreateSchema>;
+export type EventUpdateInput = z.infer<typeof eventUpdateSchema>;
+
+/** Pesan error pertama dalam bentuk ramah untuk ditampilkan di form. */
+export function firstIssueMessage(error: z.ZodError): string {
+  const issue = error.issues[0];
+  return issue?.message ?? "Data belum lengkap.";
+}
