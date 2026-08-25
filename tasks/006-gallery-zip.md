@@ -69,4 +69,4 @@ Job background wajib **resumable**: state/progress tersimpan persisten (metadata
 
 Jangan load full-size image di grid — selalu thumb_path. Full hanya di lightbox on-demand.
 
-Shell statis halaman galeri (`/dashboard/events/[eventId]/gallery` + `src/components/gallery/PhotoGrid.tsx`, data demo di `src/lib/demo.ts`) sudah dibuat 2026-08-26 mendahului task ini sebagai keputusan visual (lihat README §Urutan Kerja #5). Seluruh acceptance criteria di atas tetap wajib diverifikasi saat wiring backend.
+Shell statis awal dengan data demo (`src/lib/demo.ts`) sudah digantikan implementasi penuh saat task ini dikerjakan — file demo dihapus. Seluruh acceptance criteria diverifikasi sesuai status di `docs/qa-report.md`.

@@ -10,29 +10,52 @@ export function publicStorageUrl(path: string): string {
   return `${base}/storage/v1/object/public/${path}`;
 }
 
-/** Hapus semua objek di bawah prefix (dipakai purge event & cron TTL). */
+/**
+ * Hapus semua objek di bawah prefix — REKURSIF terhadap subfolder
+ * (entri folder dari list() punya id null). Dipakai purge event & cron TTL:
+ * tanpa rekursi, photos/{eventId}/{tableId}/*.jpg dan zips/{eventId}/…
+ * tertinggal sebagai orphan yang menggerus kuota Storage.
+ */
 export async function removePrefix(
   admin: Admin,
   bucket: string,
   prefix: string,
 ): Promise<number> {
   let removed = 0;
-  let offset = 0;
-  for (;;) {
-    const { data: objects, error } = await admin.storage
-      .from(bucket)
-      .list(prefix, { limit: 500, offset });
-    if (error || !objects || objects.length === 0) break;
 
-    const paths = objects
-      .filter((o) => o.name !== ".emptyFolderPlaceholder")
-      .map((o) => `${prefix}/${o.name}`);
-    if (paths.length > 0) {
-      const { error: rmError } = await admin.storage.from(bucket).remove(paths);
-      if (!rmError) removed += paths.length;
+  async function walk(dir: string): Promise<void> {
+    const filePaths: string[] = [];
+    const subDirs: string[] = [];
+
+    // Listing dirampungkan dulu sebelum delete agar offset pagination stabil.
+    for (let offset = 0; ; offset += 500) {
+      const { data: entries, error } = await admin.storage
+        .from(bucket)
+        .list(dir, { limit: 500, offset });
+      if (error || !entries || entries.length === 0) break;
+
+      for (const entry of entries) {
+        if (entry.id === null) {
+          subDirs.push(entry.name);
+          continue;
+        }
+        if (entry.name !== ".emptyFolderPlaceholder") {
+          filePaths.push(`${dir}/${entry.name}`);
+        }
+      }
+      if (entries.length < 500) break;
     }
-    offset += objects.length;
-    if (objects.length < 500) break;
+
+    if (filePaths.length > 0) {
+      const { error: rmError } = await admin.storage.from(bucket).remove(filePaths);
+      if (!rmError) removed += filePaths.length;
+    }
+
+    for (const sub of subDirs) {
+      await walk(`${dir}/${sub}`);
+    }
   }
+
+  await walk(prefix);
   return removed;
 }

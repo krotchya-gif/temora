@@ -235,6 +235,8 @@ CREATE POLICY w_owner ON whatsapp_logs FOR ALL
 
 **Catatan penting:** limit foto via subquery di policy adalah guard pertama; validasi kedua tetap dilakukan di API route (defense in depth). Service role bypass RLS — **hanya** boleh dipakai di server/API routes, never di client.
 
+> Catatan `p_guest_insert`: subquery kuota dievaluasi di bawah RLS si pemanggil (anon tak punya SELECT photos → count selalu 0), sehingga guard ini bersifat **advisory**. Validasi kuota otoritatif dilakukan API route service role (§2.7) sesuai prinsip defense in depth.
+
 > ⚠️ Anti-pattern yang sengaja TIDAK diambil dari draft lama: policy `FOR SELECT USING (true)` pada photos (membuat semua foto publik) dan `FOR UPDATE USING (true)` pada guests. Jangan pernah diterapkan.
 
 ## 5. Realtime Publication

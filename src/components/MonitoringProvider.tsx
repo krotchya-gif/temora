@@ -7,7 +7,9 @@ import { Analytics } from "@vercel/analytics/react";
 // web vitals. Keduanya no-op di luar produksi / tanpa key.
 export function MonitoringProvider() {
   useEffect(() => {
-    const dsn = process.env.SENTRY_DSN;
+    // NEXT_PUBLIC_* agar DSN ter-inline ke bundle browser (SENTRY_DSN polos
+    // tidak pernah sampai ke client).
+    const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
     if (!dsn) return;
     void import("@sentry/nextjs").then((Sentry) => {
       Sentry.init({

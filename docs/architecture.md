@@ -180,7 +180,12 @@ supabase/
 | `/api/events/[eventId]/tables/[tableId]/scan` | POST | Increment `scan_count` (max 1× per sesi via sessionStorage guard client) | No |
 | `/api/events/[eventId]/photos/zip` | POST | Generate ZIP download | Yes |
 | `/api/events/[eventId]/photos/[photoId]` | DELETE | Hapus foto | Yes |
-| `/api/events/[eventId]/frame` | PUT | Upload frame kustom | Yes |
+| `/api/events/[eventId]/frame` | POST | Upload frame kustom (multipart PNG) | Yes |
+| `/api/settings/wa` | PUT | Nomor WhatsApp + opt-in notifikasi | Yes |
+| `/api/health` | GET | Health check (probe CI/UptimeRobot) | No |
+| `/api/events/[eventId]/photos/[photoId]` | GET | Signed URL resolusi penuh (lightbox) | Yes |
+| `/api/events/[eventId]/photos/zip` | GET | Polling progres job ZIP (`?job=`) | Yes |
+| `/api/whatsapp/webhook` | GET | Handshake verifikasi Meta (`hub.verify_token`) | Verify token |
 | `/api/events/[eventId]/qr/[tableId]` | GET | Get QR code SVG/PNG | No |
 | `/api/billing/checkout` | POST | Create Xendit invoice | Yes |
 | `/api/billing/webhook` | POST | Xendit webhook handler | No (callback token verified) |
@@ -418,7 +423,7 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `WHATSAPP_PHONE_NUMBER_ID` | server | 009 | ID nomor WA Business |
 | `WHATSAPP_VERIFY_TOKEN` | server | 009 | Verifikasi webhook Meta |
 | `NEXT_PUBLIC_WA_ADMIN_NUMBER` | client | 009/017 | Nomor admin aktivasi (format 62…, tanpa +) |
-| `SENTRY_DSN` | client + server | 015 | Error tracking (opsional dev) |
+| `NEXT_PUBLIC_SENTRY_DSN` | client + server | 015 | Error tracking (fallback `SENTRY_DSN` server-only) |
 | `CRON_SECRET` | server | 015 | Bearer token proteksi Vercel Cron routes |
 
 Secret **tidak pernah** di-commit. Preview & production pakai nilai berbeda (task 015 §4.1).

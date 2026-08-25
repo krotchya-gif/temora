@@ -40,7 +40,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "id_ID",
     siteName: "TEMORA",
-    images: [{ url: "/og.svg", width: 1200, height: 630, alt: "TEMORA" }],
+    // PNG — scraper WA/FB/X tidak merender SVG.
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "TEMORA" }],
   },
 };
 
