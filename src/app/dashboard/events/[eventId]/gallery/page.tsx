@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { notFound } from "next/navigation";
 import { EventSubNav } from "@/components/dashboard/EventSubNav";
-import { PhotoGrid } from "@/components/gallery/PhotoGrid";
-import { demoEvent, demoPhotos, DEMO_EVENT_ID } from "@/lib/demo";
+import { GalleryClient } from "@/components/gallery/GalleryClient";
+import { publicStorageUrl } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Galeri Event",
@@ -16,7 +16,46 @@ type EventGalleryProps = {
 
 export default async function EventGalleryPage({ params }: EventGalleryProps) {
   const { eventId } = await params;
-  const isDemo = eventId === DEMO_EVENT_ID;
+
+  const supabase = await createClient();
+  const { data: event } = await supabase
+    .from("events")
+    .select("id, name")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  // RLS: event milik vendor lain tidak terlihat → 404.
+  if (!event) notFound();
+
+  // Halaman pertama diambil server-side (SSR cepat); sisanya via API.
+  // Embed to-one via FK table_id — bentuk runtime object, tipe SDK longgar.
+  type PhotoRow = {
+    id: string;
+    thumb_path: string | null;
+    width: number | null;
+    height: number | null;
+    taken_at: string;
+    tables: { label: string } | null;
+  };
+
+  const { data: rows, count } = await supabase
+    .from("photos")
+    .select("id, thumb_path, width, height, taken_at, tables(label)", {
+      count: "exact",
+    })
+    .eq("event_id", eventId)
+    .eq("deleted_at", null)
+    .order("taken_at", { ascending: false })
+    .range(0, 19);
+
+  const initialPhotos = ((rows ?? []) as unknown as PhotoRow[]).map((row) => ({
+    id: row.id,
+    thumbUrl: row.thumb_path ? publicStorageUrl(row.thumb_path) : null,
+    width: row.width,
+    height: row.height,
+    tableLabel: row.tables?.label ?? null,
+    takenAt: row.taken_at,
+  }));
 
   return (
     <div className="space-y-6">
@@ -27,56 +66,20 @@ export default async function EventGalleryPage({ params }: EventGalleryProps) {
         ← Semua event
       </Link>
 
-      {!isDemo ? (
-        <>
-          <div className="space-y-1.5">
-            <h1 className="font-display text-3xl leading-tight text-text-primary">
-              Galeri event
-            </h1>
-            <p className="text-sm text-text-secondary">
-              Foto tamu milikmu akan terkumpul di sini setelah koneksi database
-              siap.
-            </p>
-          </div>
-          <EventSubNav eventId={eventId} />
-          <PhotoGrid photos={[]} />
-        </>
-      ) : (
-        <>
-          <div className="space-y-1.5">
-            <h1 className="font-display text-3xl leading-tight text-text-primary">
-              {demoEvent.name}
-            </h1>
-            <p className="text-sm text-text-secondary">Galeri momen tamu</p>
-          </div>
+      <div className="space-y-1.5">
+        <h1 className="font-display text-3xl leading-tight text-text-primary">
+          Galeri momen
+        </h1>
+        <p className="text-sm text-text-secondary">{event.name}</p>
+      </div>
 
-          <EventSubNav eventId={eventId} />
+      <EventSubNav eventId={eventId} />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-text-secondary">
-              <span className="font-mono font-medium text-text-primary">
-                {demoEvent.photoCount}
-              </span>{" "}
-              momen terkumpul
-            </p>
-            <Button size="sm" disabled>
-              <Download className="mr-2 h-4 w-4" aria-hidden />
-              Simpan Semua Momen
-            </Button>
-          </div>
-
-          <PhotoGrid photos={demoPhotos} />
-
-          <p className="text-center text-xs text-text-secondary">
-            Unduh ZIP, lightbox, dan pengelolaan foto aktif setelah integrasi
-            storage.
-          </p>
-        </>
-      )}
+      <GalleryClient
+        eventId={eventId}
+        initialPhotos={initialPhotos}
+        total={count ?? initialPhotos.length}
+      />
     </div>
   );
-}
-
-export function generateStaticParams() {
-  return [{ eventId: DEMO_EVENT_ID }];
 }

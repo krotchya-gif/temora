@@ -8,9 +8,9 @@ export const runtime = "nodejs";
 // Auth via cookie session vendor; RLS t_owner_all menjamin kepemilikan.
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ eventId: string }> },
 ) {
-  const { id: eventId } = await params;
+  const { eventId } = await params;
 
   const body = await request.json().catch(() => null);
   const parsed = tablesGenerateSchema.safeParse(body);

@@ -172,16 +172,16 @@ supabase/
 | `/api/auth/logout` | POST | Logout | Yes |
 | `/api/events` | GET | List event vendor | Yes |
 | `/api/events` | POST | Buat event baru | Yes |
-| `/api/events/[id]` | GET/PUT/DELETE | Detail/update/hapus event | Yes |
-| `/api/events/[id]/tables` | POST | Generate tabel + QR | Yes |
-| `/api/events/[id]/photos` | GET | List foto (paginated) | Yes |
-| `/api/events/[id]/photos/upload` | POST | Upload foto tamu (service role, rate-limited, dedup `client_upload_id`) | No (event+table validated) |
-| `/api/events/[id]/photos/[photoId]/saved` | POST | Set `guest_saved_at` (validasi `capture_token`) | No |
-| `/api/events/[id]/tables/[tableId]/scan` | POST | Increment `scan_count` (max 1× per sesi via sessionStorage guard client) | No |
-| `/api/events/[id]/photos/zip` | POST | Generate ZIP download | Yes |
-| `/api/events/[id]/photos/[photoId]` | DELETE | Hapus foto | Yes |
-| `/api/events/[id]/frame` | PUT | Upload frame kustom | Yes |
-| `/api/events/[id]/qr/[tableId]` | GET | Get QR code SVG/PNG | No |
+| `/api/events/[eventId]` | GET/PUT/DELETE | Detail/update/hapus event | Yes |
+| `/api/events/[eventId]/tables` | POST | Generate tabel + QR | Yes |
+| `/api/events/[eventId]/photos` | GET | List foto (paginated) | Yes |
+| `/api/events/[eventId]/photos/upload` | POST | Upload foto tamu (service role, rate-limited, dedup `client_upload_id`) | No (event+table validated) |
+| `/api/events/[eventId]/photos/[photoId]/saved` | POST | Set `guest_saved_at` (validasi `capture_token`) | No |
+| `/api/events/[eventId]/tables/[tableId]/scan` | POST | Increment `scan_count` (max 1× per sesi via sessionStorage guard client) | No |
+| `/api/events/[eventId]/photos/zip` | POST | Generate ZIP download | Yes |
+| `/api/events/[eventId]/photos/[photoId]` | DELETE | Hapus foto | Yes |
+| `/api/events/[eventId]/frame` | PUT | Upload frame kustom | Yes |
+| `/api/events/[eventId]/qr/[tableId]` | GET | Get QR code SVG/PNG | No |
 | `/api/billing/checkout` | POST | Create Xendit invoice | Yes |
 | `/api/billing/webhook` | POST | Xendit webhook handler | No (callback token verified) |
 | `/api/whatsapp/webhook` | POST | Delivery status WA | Signature verified |
@@ -207,7 +207,7 @@ supabase/
     → response: photo id + capture_token
 11. Client: preview → optimistic thumbnail → toast "Momen tersimpan ✨"
 12. Opsi "Simpan ke HP"/bagikan (Web Share API)
-    → POST /api/events/[id]/photos/[photoId]/saved { capture_token } → set guest_saved_at
+    → POST /api/events/[eventId]/photos/[photoId]/saved { capture_token } → set guest_saved_at
 ```
 
 **Upload resilience:** fetch gagal → simpan blob + client_upload_id ke IndexedDB → auto-retry saat `online` (idempotency via client_upload_id).

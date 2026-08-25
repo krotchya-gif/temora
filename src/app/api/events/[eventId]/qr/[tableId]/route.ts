@@ -8,9 +8,9 @@ export const runtime = "nodejs";
 // Encode URL kanonik UUID: /p/{eventId}/{tableId} (task 005 §7).
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string; tableId: string }> },
+  { params }: { params: Promise<{ eventId: string; tableId: string }> },
 ) {
-  const { id: eventId, tableId } = await params;
+  const { eventId, tableId } = await params;
 
   const admin = createAdminClient();
 
