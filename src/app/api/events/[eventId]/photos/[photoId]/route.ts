@@ -25,7 +25,7 @@ export async function GET(
     .select("id, storage_path")
     .eq("id", photoId)
     .eq("event_id", eventId)
-    .eq("deleted_at", null)
+    .is("deleted_at", null)
     .maybeSingle();
   if (!photo) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -67,7 +67,7 @@ export async function DELETE(
     .select("id")
     .eq("id", photoId)
     .eq("event_id", eventId)
-    .eq("deleted_at", null)
+    .is("deleted_at", null)
     .maybeSingle();
   if (!photo) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

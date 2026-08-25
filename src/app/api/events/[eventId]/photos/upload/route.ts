@@ -25,7 +25,7 @@ async function findByClientUploadId(
     .from("photos")
     .select("id, metadata")
     .eq("event_id", eventId)
-    .eq("deleted_at", null)
+    .is("deleted_at", null)
     .filter("metadata->>client_upload_id", "eq", clientUploadId)
     .maybeSingle();
   return data;
@@ -115,7 +115,7 @@ export async function POST(
       .from("photos")
       .select("id", { count: "exact", head: true })
       .eq("event_id", event.id)
-      .eq("deleted_at", null);
+      .is("deleted_at", null);
 
     if ((count ?? 0) >= event.photo_limit) {
       return jsonError(
@@ -198,7 +198,7 @@ export async function POST(
     .from("photos")
     .select("id", { count: "exact", head: true })
     .eq("event_id", event.id)
-    .eq("deleted_at", null);
+    .is("deleted_at", null);
 
   if (totalPhotos === 50 || totalPhotos === 100) {
     void enqueueWa(event.vendor_id, "photo_milestone", {

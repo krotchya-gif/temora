@@ -47,6 +47,28 @@ export function normalizePhone(input: string | null | undefined): string | null 
   return /^62\d{7,13}$/.test(digits) ? digits : null;
 }
 
+// ---- Verifikasi webhook Meta (task 009 §4.3) ----------------------------
+
+/**
+ * Verifikasi header `x-hub-signature-256` (format: "sha256=<hex>") —
+ * HMAC-SHA256 body mentah dengan WHATSAPP_APP_SECRET. Constant-time.
+ * Fail-closed: tanpa secret terpasang, signature dianggap tidak valid.
+ */
+export async function verifyMetaSignature(
+  rawBody: string,
+  header: string | null,
+): Promise<boolean> {
+  const secret = process.env.WHATSAPP_APP_SECRET;
+  if (!secret || !header?.startsWith("sha256=")) return false;
+
+  const expected = header.slice("sha256=".length);
+  const { createHmac, timingSafeEqual } = await import("node:crypto");
+  const digest = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
+
+  if (digest.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(digest), Buffer.from(expected));
+}
+
 // ---- Copy per trigger (task 009 §2) ------------------------------------
 
 function formatAmount(amount: unknown): string {

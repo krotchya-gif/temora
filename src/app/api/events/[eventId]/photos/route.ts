@@ -45,7 +45,7 @@ export async function GET(
       count: "exact",
     })
     .eq("event_id", eventId)
-    .eq("deleted_at", null)
+    .is("deleted_at", null)
     .order("taken_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

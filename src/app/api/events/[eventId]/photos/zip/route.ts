@@ -59,7 +59,7 @@ export async function POST(
     .from("photos")
     .select("id", { count: "exact", head: true })
     .eq("event_id", owned.event.id)
-    .eq("deleted_at", null);
+    .is("deleted_at", null);
 
   if (countError) {
     console.error("[zip.count]", countError.message);
@@ -83,7 +83,7 @@ export async function POST(
       .from("photos")
       .select("storage_path")
       .eq("event_id", owned.event.id)
-      .eq("deleted_at", null)
+      .is("deleted_at", null)
       .order("taken_at", { ascending: false });
     if (error) {
       console.error("[zip.sync.query]", error.message);

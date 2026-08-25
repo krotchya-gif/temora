@@ -45,19 +45,6 @@ export function EventSubNav({ eventId }: EventSubNavProps) {
             </Link>
           );
         })}
-
-        {["Frame"].map((label) => (
-          <span
-            key={label}
-            aria-disabled
-            className="-mb-px flex items-center gap-1.5 border-b-2 border-transparent py-3 text-sm text-text-secondary/50"
-          >
-            {label}
-            <span className="rounded-full bg-bg-warm px-2 py-0.5 text-[11px] text-text-secondary">
-              Segera
-            </span>
-          </span>
-        ))}
       </div>
     </nav>
   );

@@ -44,7 +44,7 @@ export default async function EventGalleryPage({ params }: EventGalleryProps) {
       count: "exact",
     })
     .eq("event_id", eventId)
-    .eq("deleted_at", null)
+    .is("deleted_at", null)
     .order("taken_at", { ascending: false })
     .range(0, 19);
 

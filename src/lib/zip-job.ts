@@ -118,7 +118,7 @@ export async function advanceJob(
       .from("photos")
       .select("id, storage_path")
       .eq("event_id", eventId)
-      .eq("deleted_at", null)
+      .is("deleted_at", null)
       .order("taken_at", { ascending: false })
       .range(from, from + CHUNK_SIZE - 1);
     if (error) throw new Error(`zip query: ${error.message}`);

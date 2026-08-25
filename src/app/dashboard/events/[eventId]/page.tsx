@@ -36,7 +36,7 @@ export default async function EventDetailPage({ params }: EventDetailProps) {
       .from("photos")
       .select("id", { count: "exact", head: true })
       .eq("event_id", eventId)
-      .eq("deleted_at", null),
+      .is("deleted_at", null),
     supabase
       .from("tables")
       .select("scan_count")

@@ -134,7 +134,7 @@
   border-radius: 4mm;
   padding: 3mm;
   break-inside: avoid;
-  background: #ffffff;
+  background: var(--color-bg-card);
 }
 
 .qr-card-image {
@@ -176,7 +176,7 @@
   }
 
   body {
-    background: #ffffff;
+    background: var(--color-bg-card);
   }
 
   .qr-card {

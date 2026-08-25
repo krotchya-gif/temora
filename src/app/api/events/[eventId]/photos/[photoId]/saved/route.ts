@@ -25,7 +25,7 @@ export async function POST(
     .select("id, metadata, guest_saved_at")
     .eq("id", photoId)
     .eq("event_id", eventId)
-    .eq("deleted_at", null)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (!photo || photo.metadata?.capture_token !== parsed.data.captureToken) {

@@ -96,7 +96,7 @@ const loadPhotoboothState = cache(
         .from("photos")
         .select("id", { count: "exact", head: true })
         .eq("event_id", event.id)
-        .eq("deleted_at", null);
+        .is("deleted_at", null);
       remaining = Math.max(0, (eventData.photo_limit ?? 0) - (count ?? 0));
     }
   } catch {

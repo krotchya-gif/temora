@@ -1,6 +1,14 @@
 export const SITE_NAME = "TEMORA";
 export const SITE_TAGLINE = "Keep the moments close.";
 
+// Nilai token kanonik design-system §2.1 untuk konteks non-CSS (SVG/canvas)
+// yang tak bisa membaca CSS custom property. Dilarang menambah hex baru
+// di sini tanpa update docs/design-system.md lebih dulu.
+export const TOKEN_HEX = {
+  textPrimary: "#3d3a36",
+  bgCard: "#ffffff",
+} as const;
+
 // Aturan tier terkunci — database.md §2.7.
 export const TIER_ACTIVE_EVENT_LIMITS: Record<
   "free" | "basic" | "pro",

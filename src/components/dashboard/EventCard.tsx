@@ -18,8 +18,8 @@ const THEME_LABELS: Record<string, string> = {
   other: "Acara",
 };
 
-function formatDate(iso: string | null): string {
-  if (!iso) return null as unknown as string;
+function formatDate(iso: string | null): string | null {
+  if (!iso) return null;
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "short",

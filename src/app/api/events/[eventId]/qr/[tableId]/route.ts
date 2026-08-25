@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { TOKEN_HEX } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,10 @@ export async function GET(
     errorCorrectionLevel: "M", // task 005 §4.2
     margin: 2,
     width: 512,
-    color: { dark: "#3d3a36ff", light: "#ffffffff" }, // token text-primary
+    color: {
+      dark: `${TOKEN_HEX.textPrimary}ff`, // token text-primary (design-system §2.1)
+      light: `${TOKEN_HEX.bgCard}ff`,
+    },
   });
 
   return new NextResponse(svg, {

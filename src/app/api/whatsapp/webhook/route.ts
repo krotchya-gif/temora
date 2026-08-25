@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifyMetaSignature } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 
@@ -24,22 +25,31 @@ export async function GET(request: Request) {
 
 // POST — update status pesan (sent/delivered/read/failed) berdasar messageId
 // yang disimpan di payload log saat pengiriman.
+// Signature `x-hub-signature-256` wajib valid (HMAC app secret, fail-closed).
 export async function POST(request: Request) {
-  const payload = (await request.json().catch(() => null)) as
-    | {
-        entry?: {
-          changes?: {
-            value?: {
-              statuses?: {
-                id: string;
-                status: StatusValue;
-                errors?: { title?: string }[];
-              }[];
-            };
-          };
-        }[];
-      }
-    | null;
+  const rawBody = await request.text();
+  if (!(await verifyMetaSignature(rawBody, request.headers.get("x-hub-signature-256")))) {
+    return NextResponse.json({ ok: false }, { status: 401 });
+  }
+
+  let payload: {
+    entry?: {
+      changes?: {
+        value?: {
+          statuses?: {
+            id: string;
+            status: StatusValue;
+            errors?: { title?: string }[];
+          }[];
+        };
+      };
+    }[];
+  } | null = null;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    // Body bukan JSON valid — perlakukan sebagai tanpa status.
+  }
 
   const statuses = payload?.entry?.flatMap((e) => e.changes ?? []).flatMap((c) => c.value?.statuses ?? []) ?? [];
   if (statuses.length === 0) {
