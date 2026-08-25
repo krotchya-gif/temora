@@ -55,3 +55,39 @@ Ambang upgrade: free tier Supabase = 1 GB; **≥ 80% → langsung upgrade Supaba
 - [ ] Sentry DSN aktif + test event masuk < 1 menit
 - [ ] Cron TTL & expiry muncul di Vercel dashboard
 - [ ] Backup: PITR Supabase aktif
+
+## 6. Superadmin (task 018)
+
+Penanda role disimpan di `auth.users.app_metadata.role` — **hanya** boleh
+diubah lewat SQL/Admin API (vendor tak bisa self-promote). Tanpa perubahan
+skema `public`.
+
+### Promosi superadmin
+
+```sql
+-- jalankan via Supabase CLI/SQL editor remote.
+-- Catatan: kolom fisik bernama raw_app_meta_data ("app_metadata" hanya bentuk API).
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role": "superadmin"}'
+where email = '<email>';
+```
+
+Setelah itu user wajib **login ulang** agar klaim JWT baru terbawa.
+Verifikasi: buka `/admin` → shell admin muncul.
+
+### Pencabutan akses superadmin
+
+```sql
+update auth.users
+set raw_app_meta_data = raw_app_meta_data - 'role'
+where email = '<email>';
+```
+
+Lalu paksa logout sesi aktifnya (Dashboard → Auth → Users → sign out) dan
+login ulang.
+
+### Riwayat bootstrap
+
+| Tanggal | Email | Catatan |
+|---|---|---|
+| 2026-08-26 | calysta@temora.com | Superadmin pertama (task 018) |

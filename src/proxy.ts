@@ -44,9 +44,23 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Gate /admin: wajib login + superadmin (task 018). Cek ulang terjadi lagi
+  // di layout & tiap API route (defense in depth).
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    const redirectUrl = request.nextUrl.clone();
+    if (!user) {
+      redirectUrl.pathname = "/login";
+      return NextResponse.redirect(redirectUrl);
+    }
+    if (user.app_metadata?.role !== "superadmin") {
+      redirectUrl.pathname = "/dashboard";
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   return response;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*"],
 };

@@ -163,6 +163,15 @@ supabase/
 | `/dashboard/settings` | Profil, WA opt-in, subscription | Yes |
 | `/dashboard/billing` | Invoice, pembayaran, history | Yes |
 
+> **Halaman superadmin** (`/admin/*`, task 018): role via `auth.users.app_metadata.role='superadmin'` (runbook §6), guard 3 lapis proxy→layout→route, query lintas-vendor lewat service-role client tanpa policy RLS baru.
+>
+> | Route | Deskripsi |
+> |---|---|
+> | `/admin` | Statistik global platform |
+> | `/admin/vendors` | Daftar vendor + kelola tier |
+> | `/admin/events` | Semua event + moderasi status |
+> | `/admin/events/[eventId]` | Detail event + moderasi foto |
+
 ### 3.3 API Routes
 
 | Endpoint | Method | Fungsi | Auth |
@@ -190,6 +199,9 @@ supabase/
 | `/api/billing/checkout` | POST | Create Xendit invoice | Yes |
 | `/api/billing/webhook` | POST | Xendit webhook handler | No (callback token verified) |
 | `/api/whatsapp/webhook` | POST | Delivery status WA | Signature verified |
+| `/api/admin/vendors/[vendorId]/tier` | PUT | Set tier vendor | Superadmin (404 mask) |
+| `/api/admin/events/[eventId]/status` | PATCH | Set is_active event | Superadmin (404 mask) |
+| `/api/admin/events/[eventId]/photos/[photoId]` | DELETE | Soft delete foto (moderasi) | Superadmin (404 mask) |
 
 ---
 

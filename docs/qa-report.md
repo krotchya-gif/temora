@@ -135,3 +135,12 @@ Tidak ada blocker/critical terbuka pada kode saat laporan ini dibuat.
 
 Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +
 vendor dashboard, triase per severity §4.2 task 016, catat hasil di sini.
+
+## 6c. Task 018 — Superadmin Dashboard (2026-08-26)
+
+Fitur `/admin` (monitor + kelola tier + moderasi) dibangun & diverifikasi live:
+guard 3 lapis teruji (anonim→login, vendor→dashboard, API tanpa sesi→404),
+ganti tier free↔pro tersimpan + audit `[admin]` di Vercel Logs, nonaktif event
+memutus upload tamu (404), hapus foto = soft delete. Bootstrap superadmin
+pertama `calysta@temora.com` via Admin API + SQL `raw_app_meta_data`
+(runbook §6). Tanpa perubahan skema public / policy RLS baru.
