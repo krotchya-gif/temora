@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isSuperAdmin } from "@/lib/auth";
 import { humanAuthError, loginSchema } from "@/lib/validation/auth";
 
 export async function POST(request: Request) {
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
@@ -26,5 +27,6 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  // Superadmin diarahkan ke panel admin oleh client berdasar flag ini.
+  return NextResponse.json({ ok: true, isAdmin: isSuperAdmin(data.user) });
 }

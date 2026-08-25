@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -26,11 +27,13 @@ const iconMap = {
 type DashboardShellProps = {
   children: React.ReactNode;
   vendorName?: string;
+  isAdmin?: boolean;
 };
 
 export function DashboardShell({
   children,
   vendorName = "Vendor",
+  isAdmin = false,
 }: DashboardShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -81,6 +84,15 @@ export function DashboardShell({
       </nav>
 
       <div className="border-t border-border p-4">
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="mb-3 flex min-h-11 items-center gap-3 rounded-lg bg-dusty-blue/10 px-3 text-sm font-medium text-dusty-blue transition-colors hover:bg-dusty-blue/20"
+          >
+            <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+            Panel Admin
+          </Link>
+        )}
         <p className="truncate text-sm font-medium text-text-primary">{vendorName}</p>
         <Button
           variant="ghost"

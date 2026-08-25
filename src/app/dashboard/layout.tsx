@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { isSuperAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-async function getVendorName(): Promise<string | null> {
+async function getSessionInfo(): Promise<{ name: string | null; isAdmin: boolean }> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   // Tanpa env (build lokal), shell tetap render dengan nama default.
-  if (!url || !anonKey) return null;
+  if (!url || !anonKey) return { name: null, isAdmin: false };
 
   // Mulai titik ini route menjadi dinamis (cookies) — tidak boleh di-try/catch.
   const supabase = await createClient();
@@ -23,7 +24,7 @@ async function getVendorName(): Promise<string | null> {
     .eq("id", user.id)
     .single();
 
-  return vendor?.name ?? null;
+  return { name: vendor?.name ?? null, isAdmin: isSuperAdmin(user) };
 }
 
 export default async function DashboardLayout({
@@ -31,7 +32,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const vendorName = await getVendorName();
+  const { name, isAdmin } = await getSessionInfo();
 
-  return <DashboardShell vendorName={vendorName ?? "Vendor"}>{children}</DashboardShell>;
+  return (
+    <DashboardShell vendorName={name ?? "Vendor"} isAdmin={isAdmin}>
+      {children}
+    </DashboardShell>
+  );
 }

@@ -26,14 +26,17 @@ export function LoginForm() {
           password: form.get("password"),
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        isAdmin?: boolean;
+      };
 
       if (!res.ok) {
         setError(data.error ?? "Gagal masuk. Coba sekali lagi.");
         return;
       }
 
-      router.push("/dashboard");
+      router.push(data.isAdmin ? "/admin" : "/dashboard");
       router.refresh();
     } catch {
       setError("Koneksi lagi ngambek. Coba sekali lagi?");
