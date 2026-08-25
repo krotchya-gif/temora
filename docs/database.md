@@ -177,6 +177,7 @@ ALTER TABLE events  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tables  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE photos  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
 -- Vendor kelola dirinya
 CREATE POLICY v_self ON vendors FOR ALL
@@ -220,6 +221,10 @@ CREATE POLICY p_owner_all ON photos FOR ALL
 
 -- Subscription hanya milik vendor
 CREATE POLICY s_owner ON subscriptions FOR ALL
+  USING (auth.uid() = vendor_id);
+
+-- Log WhatsApp hanya milik vendor (ditulis service role; tanpa akses anon)
+CREATE POLICY w_owner ON whatsapp_logs FOR ALL
   USING (auth.uid() = vendor_id);
 ```
 
