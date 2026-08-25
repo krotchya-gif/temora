@@ -1,6 +1,6 @@
 # Task 007 — Dashboard Vendor (CRUD Events)
 
-*Status: Ready · Prioritas: High · Phase: MVP*
+*Status: Kode selesai · create event + generate meja + delete (purge storage) terverifikasi live; overview dashboard kini wired data nyata (2026-08-26); sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
 
 Depends on: 003, 002
 

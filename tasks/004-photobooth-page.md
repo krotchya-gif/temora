@@ -1,6 +1,6 @@
 # Task 004 — Photobooth Page (WebRTC + Frame + Capture)
 
-*Status: Ready · Prioritas: High · Phase: MVP ⭐ CORE FEATURE*
+*Status: Kode selesai · halaman tamu + upload + dedup + saved terverifikasi live via API smoke (2026-08-26); kamera/capture browser & sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP ⭐ CORE FEATURE*
 
 Depends on: 002 (buckets + RLS), 005 (tables/QR agar bisa diakses tamu — boleh paralel dengan URL manual)
 

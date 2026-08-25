@@ -1,6 +1,6 @@
 # Task 005 — QR Code Kartu Meja
 
-*Status: Ready · Prioritas: High · Phase: MVP*
+*Status: Kode selesai · generate meja + QR SVG publik + scan RPC terverifikasi live (2026-08-26); cetak A4 & sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
 
 Depends on: 002
 

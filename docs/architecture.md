@@ -158,7 +158,7 @@ supabase/
 | `/dashboard/events/[eventId]` | Detail event | Yes |
 | `/dashboard/events/[eventId]/gallery` | Galeri foto + download ZIP | Yes |
 | `/dashboard/events/[eventId]/qr` | Generate + cetak QR meja | Yes |
-| `/dashboard/events/[eventId]/frame` | Upload/manage frame kustom | Yes |
+| `/dashboard/events/[eventId]/edit` | Edit event + upload frame kustom (slug immutable) | Yes |
 | `/dashboard/events/[eventId]/analytics` | Analytics (Phase 3) | Yes |
 | `/dashboard/settings` | Profil, WA opt-in, subscription | Yes |
 | `/dashboard/billing` | Invoice, pembayaran, history | Yes |
@@ -419,9 +419,12 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `NEXT_PUBLIC_APP_URL` | client | 001 | Base URL app (`http://localhost:3000` dev, `https://temora.id` prod) — QR & redirect |
 | `XENDIT_SECRET_KEY` | server | 008 | API key Xendit |
 | `XENDIT_WEBHOOK_TOKEN` | server | 008 | Verifikasi callback webhook |
+| `XENDIT_API_BASE` | server | 008 | Base URL API Xendit (default `https://api.xendit.co`) — override untuk sandbox |
 | `WHATSAPP_TOKEN` | server | 009 | Meta Cloud API access token |
 | `WHATSAPP_PHONE_NUMBER_ID` | server | 009 | ID nomor WA Business |
-| `WHATSAPP_VERIFY_TOKEN` | server | 009 | Verifikasi webhook Meta |
+| `WHATSAPP_VERIFY_TOKEN` | server | 009 | Verifikasi handshake webhook Meta |
+| `WHATSAPP_APP_SECRET` | server | 009 | App Secret Meta — verifikasi header `x-hub-signature-256` webhook |
+| `WA_GRAPH_BASE` | server | 009 | Base URL Graph API Meta (default `https://graph.facebook.com`) |
 | `NEXT_PUBLIC_WA_ADMIN_NUMBER` | client | 009/017 | Nomor admin aktivasi (format 62…, tanpa +) |
 | `NEXT_PUBLIC_SENTRY_DSN` | client + server | 015 | Error tracking (fallback `SENTRY_DSN` server-only) |
 | `CRON_SECRET` | server | 015 | Bearer token proteksi Vercel Cron routes |

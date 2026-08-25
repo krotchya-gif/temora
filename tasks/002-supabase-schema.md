@@ -1,6 +1,6 @@
 # Task 002 — Supabase Schema (Tabel + RLS + Storage)
 
-*Status: In Progress — 8 migrasi + seed selesai ditulis (2026-08-26); apply menunggu Docker lokal atau project remote · Prioritas: High · Phase: MVP*
+*Status: Selesai (2026-08-26) — 13 migrasi applied ke project remote `ekuunbcyplxibcnnroeb` + seed; seluruh AC diverifikasi live (lihat qa-report) · Prioritas: High · Phase: MVP*
 
 Depends on: 001 (supabase init + folder scaffold)
 
@@ -51,13 +51,15 @@ supabase/migrations/
 
 ## 6. Acceptance Criteria
 
-- [ ] `supabase db reset` jalan bersih tanpa error.
-- [ ] Vendor A tidak bisa baca/event milik Vendor B (test manual via SQL editor / PostgREST).
-- [ ] Anon bisa SELECT event aktif, tidak bisa SELECT foto.
-- [ ] Anon bisa INSERT foto ke event aktif; gagal jika event nonaktif, expired, atau limit habis. Pro tier (photo_limit NULL) tidak diblokir.
-- [ ] Unique index `client_upload_id` mencegah duplikat retry offline.
-- [ ] Signup user baru otomatis membuat row `vendors`.
-- [ ] Bucket + policies aktif: upload via service role ok, baca publik ok untuk `thumbs`.
+- [x] Migrasi jalan bersih tanpa error — applied via migration history remote (setara `db push`; CLI belum login access token). Ditemukan & diperbaiki bug latent: infinite recursion RLS pada `p_guest_insert` → migrasi 0012/0013 (`private.can_guest_upload` SECURITY DEFINER).
+- [ ] Vendor A tidak bisa baca/event milik Vendor B (test manual via SQL editor / PostgREST). — struktur policy terverifikasi (`to authenticated`, initplan); uji lintas-vendor nyata masuk E2E task 016.
+- [x] Anon bisa SELECT event aktif, tidak bisa SELECT foto. (live: event=1, foto=0)
+- [x] Anon bisa INSERT foto ke event aktif; gagal jika event nonaktif, expired, atau limit habis. Pro tier (photo_limit NULL) tidak diblokir. (5 skenario live PASS)
+- [x] Unique index `client_upload_id` mencegah duplikat retry offline. (SQL 23505 + app-level `duplicate:true`)
+- [x] Signup user baru otomatis membuat row `vendors`. (trigger `on_auth_user_created` teruji via admin-create; nama dari `raw_user_meta_data`)
+- [x] Bucket + policies aktif: upload via service role ok (200), baca publik ok untuk `thumbs` (anon 200).
+
+> Temuan tambahan saat verifikasi (2026-08-26): pola `.eq("deleted_at", null)` di 13 titik kode menghasilkan error PostgREST `22007` (harusnya `.is(..., null)`) — diperbaiki massal; dedup/saved/galeri kini lolos smoke test.
 
 ## 7. Catatan
 

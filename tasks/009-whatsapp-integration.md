@@ -1,6 +1,6 @@
 # Task 009 — WhatsApp Integration
 
-*Status: Ready · Prioritas: High · Phase: MVP*
+*Status: Kode selesai · webhook kini verifikasi signature x-hub-signature-256 fail-closed (401 tanpa signature, terverifikasi live); kirim WA nyata menunggu WHATSAPP_TOKEN; sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
 
 Depends on: 003, 008
 

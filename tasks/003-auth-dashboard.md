@@ -1,6 +1,6 @@
 # Task 003 — Auth Vendor + Dashboard Shell
 
-*Status: In Progress — kode auth selesai (2026-08-26); uji e2e menunggu env Supabase · Prioritas: High · Phase: MVP*
+*Status: Sebagian besar terverifikasi (2026-08-26) — login/logout/dashboard live via smoke test; signup UI terhalang throttle email Supabase (user dibuat via Admin API untuk verifikasi trigger) · Prioritas: High · Phase: MVP*
 
 Depends on: 001, 002
 

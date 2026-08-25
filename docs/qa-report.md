@@ -112,6 +112,23 @@ select id from events where id = '<event-vendor-A>';      -- harus kosong
 | Major | Increment `scan_count` read-then-write lost update antar tamu bersamaan | d3b798b RPC atomik migrasi 0009 (+fallback) |
 | Minor | Retry offline 5xx masuk antrean IndexedDB tanpa akhir saat server down | 440d4c3 kontrak send ok/drop/retry |
 
+## 6b. Ronde verifikasi live — 2026-08-26 (env Supabase remote terisi)
+
+Migrasi 0001–0011 di-apply ke project remote + seed. Temuan baru (sudah difix):
+
+| Severity | Temuan | Fix |
+|---|---|---|
+| **Blocker** | Infinite recursion RLS (42P17) pada `p_guest_insert` — subquery kuota ke tabel photos di dalam policy photos itu sendiri; baru terlihat saat pertama kali di-apply (sebelumnya menunggu Docker) | migrasi 0012+0013: helper `private.can_guest_upload()` SECURITY DEFINER, policy jadi `WITH CHECK (private.can_guest_upload(event_id))` |
+| **Critical** | Pola `.eq("deleted_at", null)` di **13 titik** (upload dedup, saved, galeri list, zip, detail event, halaman tamu) → error PostgREST `22007 invalid input syntax for timestamptz: "null"`; dedup retry offline & set `guest_saved_at` (north star) gagal | `.is("deleted_at", null)` massal; diverifikasi live: dedup `duplicate:true`, saved ok, galeri total=1 |
+| Major | Webhook WA menerima POST tanpa verifikasi `x-hub-signature-256` (asimetris dgn Xendit) | `verifyMetaSignature()` HMAC constant-time, fail-closed (401 tanpa signature — terverifikasi) |
+| Minor | Overview dashboard stat hardcoded "0" | Wired query nyata (event aktif / foto / momen disimpan) |
+
+Hasil uji RLS live (task 002 AC): anon baca event aktif ✓ · anon tak bisa baca foto ✓ · insert aktif ✓ · nonaktif ✗ ✓ · expired ✗ ✓ · limit habis ✗ ✓ · Pro NULL unlimited ✓ · dedup unique ✓ · trigger `handle_new_vendor` ✓ · buckets+policy thumbs publik ✓.
+
+Smoke API end-to-end: signup(admin-create karena throttle email Supabase ~2/jam) → login → create event → generate meja → upload tamu → dedup → saved → galeri → signed URL 200 → QR SVG 200 → scan RPC → halaman `/p/...` 200 → delete event (purge storage). Advisors security/performance bersih (sisa INFO unused-index wajar).
+
+Masih PENDING: E2E Playwright penuh, device lab, Lighthouse ≥85, isolasi lintas-vendor via 2 user, Xendit sandbox flow, kirim WA nyata (butuh token), deploy preview Vercel.
+
 Tidak ada blocker/critical terbuka pada kode saat laporan ini dibuat.
 
 ## 7. Bug bash — ⏳ disarankan setelah env live

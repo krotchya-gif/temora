@@ -1,6 +1,6 @@
 # Task 006 — Galeri Cloud + ZIP Download
 
-*Status: Ready · Prioritas: High · Phase: MVP*
+*Status: Kode selesai · galeri list + signed URL + soft-delete filter terverifikasi live (2026-08-26); ZIP besar menunggu uji beban, sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
 
 Depends on: 002, 004
 

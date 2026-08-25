@@ -1,6 +1,6 @@
 # Task 001 — Setup Project (Next.js + Supabase + Vercel)
 
-*Status: Ready · Prioritas: High · Phase: MVP*
+*Status: Hampir selesai (2026-08-26) — health endpoint live ✓, env lengkap & valid; sisa: deploy preview Vercel (butuh akses owner) · Prioritas: High · Phase: MVP*
 
 ---
 
