@@ -1,7 +1,8 @@
 name: CI
 
-# Task 015: lint + typecheck + build tiap push/PR.
-# Gagal CI = blok merge ke main (branch protection di GitHub settings).
+# Task 015/016: lint + typecheck + build + unit tests tiap push/PR.
+# E2E Playwright jalan otomatis bila repo variable RUN_E2E=true dan secrets
+# Supabase/Xendit sandbox terpasang (lihat docs/qa-report.md).
 
 on:
   push:
@@ -32,3 +33,31 @@ jobs:
       # (pola yang sudah dipakai di proxy.ts & halaman photobooth).
       - name: Build
         run: npm run build
+
+      - name: Unit tests
+        run: npm run test
+
+  e2e:
+    # Jalur kritis tamu/vendor/billing — butuh backend & seed nyata.
+    if: ${{ vars.RUN_E2E == 'true' }}
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run E2E
+        run: npx playwright test
+        env:
+          E2E_ENABLED: "1"
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          E2E_EVENT_ID: ${{ secrets.E2E_EVENT_ID }}
+          E2E_TABLE_ID: ${{ secrets.E2E_TABLE_ID }}
+          E2E_VENDOR_EMAIL: ${{ secrets.E2E_VENDOR_EMAIL }}
+          E2E_VENDOR_PASSWORD: ${{ secrets.E2E_VENDOR_PASSWORD }}
+          XENDIT_SECRET_KEY: ${{ secrets.XENDIT_SECRET_KEY }}
+          XENDIT_WEBHOOK_TOKEN: ${{ secrets.XENDIT_WEBHOOK_TOKEN }}
