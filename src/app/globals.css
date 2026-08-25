@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-base: #f9f6f1;
+  --color-bg-card: #ffffff;
+  --color-bg-warm: #f3ede4;
+  --color-text-primary: #3d3a36;
+  --color-text-secondary: #6b6660;
+  --color-accent: #8b7355;
+  --color-accent-hover: #75614a;
+  --color-accent-secondary: #d4a574;
+  --color-dusty-blue: #8fa8b8;
+  --color-muted-mauve: #a48b94;
+  --color-success: #7c9a6d;
+  --color-warning: #c9a961;
+  --color-danger: #b56a5e;
+  --color-border: #e8e1d6;
+  --font-display: var(--font-cormorant);
+  --font-body: var(--font-jakarta);
+  --font-mono: var(--font-jetbrains);
+  --shadow-soft: 0 2px 8px rgba(61, 58, 54, 0.06);
+  --shadow-card: 0 4px 20px rgba(61, 58, 54, 0.08);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-bg-base font-body text-text-primary antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent/20 text-text-primary;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-cormorant), Georgia, serif;
+  }
+
+  .font-body {
+    font-family: var(--font-jakarta), system-ui, sans-serif;
+  }
+
+  .font-mono {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .tracking-wordmark {
+    letter-spacing: 0.12em;
+  }
+
+  /* Glow lembut dari token (design-system §2.1) — tanpa hex baru. */
+  .bg-glow-accent {
+    background-image: radial-gradient(
+      ellipse at top right,
+      color-mix(in srgb, var(--color-accent-secondary) 16%, transparent),
+      transparent 55%
+    );
+  }
+
+  /* Motion §5: transisi halaman fade + slide up halus. */
+  .animate-fade-up {
+    animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Signature moment §5: foto "develop" seperti film instan — pudar lalu menajam. */
+  .animate-develop {
+    animation: polaroid-develop 0.8s ease-out both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes polaroid-develop {
+  from {
+    filter: saturate(0.3) brightness(1.12) contrast(0.9);
+  }
+  to {
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

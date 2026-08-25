@@ -1,0 +1,324 @@
+# Design System — TEMORA
+
+*Versi: 1.2 · Tanggal: 2026-08-25 · Status: Approved*
+*Konsolidasi: token & microcopy v1.0 (kanonik) + motion, imagery & brand assets dari draft lanjutan.*
+*Brand foundation: [BRAND.md](BRAND.md)*
+
+---
+
+## 1. Prinsip
+
+TEMORA harus terasa **warm, intimate, playful, personal** — seperti album foto yang dicintai, bukan produk tech.
+
+1. **Moments over features** — UI berbicara tentang momen, bukan spesifikasi teknis.
+2. **Warm minimalism** — minimal tapi hangat; ivory & earth tones, bukan putih steril.
+3. **Human voice** — microcopy pakai brand voice ("Ambil Momen", bukan "Capture Image").
+4. **Nostalgic over trendy** — sentuhan vintage halus (Polaroid), tanpa jadi retro norak.
+5. **Mobile-first selalu** — 90%+ tamu akses via HP; dashboard responsive.
+
+Setiap keputusan desain harus menjawab satu pertanyaan: *"Apakah ini membuat momennya terasa lebih dekat?"*
+
+---
+
+## 2. Design Tokens
+
+### 2.1 Warna (dari BRAND.md §8 — kanonik)
+
+| Token | Value | Penggunaan |
+|---|---|---|
+| `bg-base` | `#F9F6F1` | Latar utama (warm ivory) |
+| `bg-card` | `#FFFFFF` | Card surface |
+| `bg-warm` | `#F3EDE4` | Section alternatif (soft cream) |
+| `text-primary` | `#3D3A36` | Teks utama (soft brown-black) |
+| `text-secondary` | `#6B6660` | Teks sekunder |
+| `accent` | `#8B7355` | Aksi utama (earthy brown) |
+| `accent-hover` | `#75614a` | Hover state accent |
+| `accent-secondary` | `#D4A574` | Highlight sekunder (soft gold) |
+| `dusty-blue` | `#8FA8B8` | Tag/informasi kalem, focus ring |
+| `muted-mauve` | `#A48B94` | Aksen emosional (moments) |
+| `success` | `#7C9A6D` | Konfirmasi (sage green, bukan neon) |
+| `warning` | `#C9A961` | Status pending |
+| `danger` | `#B56A5E` | Error/hapus (terracotta lembut) |
+| `border` | `#E8E1D6` | Border halus |
+
+Aturan: tidak ada hardcode hex baru di kode — semua lewat token. Warna di luar daftar ini butuh update docs dulu. Glow/gradient lembut boleh dibuat dari token existing dengan alpha (utility `.bg-glow-accent` = `accent-secondary` ±16% via `color-mix`), tanpa hex baru.
+
+### 2.2 Variasi Tema Event
+
+Tema event menggeser accent saja; core palette tetap:
+
+| Tema Event | Accent |
+|------------|--------|
+| Wedding | `muted-mauve` |
+| Birthday | `dusty-blue` |
+| Corporate | `accent` (earthy brown) |
+| Graduation / Community | `accent-secondary` (soft gold) |
+
+Implementasi: CSS custom property per event (`--event-accent`) yang menimpa token accent di scope halaman photobooth event tsb.
+
+### 2.3 Tipografi
+
+| Token | Font | Penggunaan |
+|---|---|---|
+| `font-display` | Cormorant Garamond | Judul, nama event, tagline, logo wordmark |
+| `font-body` | Plus Jakarta Sans | Body, button, form |
+| `font-mono` | JetBrains Mono | QR data, angka analytics, token |
+
+Load via `next/font/google` dengan `display: swap`.
+
+| Level | Size | Weight | Line-height |
+|---|---|---|---|
+| Display/Hero | 40–48px | 600 | 1.15 |
+| H1 | 32px | 500–600 | 1.2 |
+| H2 | 24px | 500 | 1.25 |
+| H3 | 18px | 600 | 1.35 |
+| Body | 15–16px | 400 | 1.6 |
+| Small | 13px | 400 | 1.5 |
+| Caption/Label | 12px | 500 | 1.4 |
+
+Wordmark "TEMORA": Cormorant Garamond, letter-spacing +50 tracking.
+
+### 2.4 Spacing, Radius, Shadow
+
+- Grid: 4px base · padding section 24px · gap komponen 12–16px
+- Radius: `sm` 6px · `md` 10px · `lg` 14px · `xl` 16px (card) · `full` untuk tombol capture
+- Shadow sangat halus: `0 2px 8px rgba(61,58,54,0.06)` — depth lembut, bukan glassmorphism
+- Card hover: lift halus `translate-y(-2px)` + shadow bertambah tipis
+
+### 2.5 Implementasi Tailwind CSS 4
+
+Token §2.1–2.4 diterapkan via `@theme` di `src/app/globals.css` — **bukan** hardcode hex di komponen.
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-bg-base: #F9F6F1;
+  --color-bg-card: #FFFFFF;
+  --color-bg-warm: #F3EDE4;
+  --color-text-primary: #3D3A36;
+  --color-text-secondary: #6B6660;
+  --color-accent: #8B7355;
+  --color-accent-hover: #75614a;
+  --color-accent-secondary: #D4A574;
+  --color-dusty-blue: #8FA8B8;
+  --color-muted-mauve: #A48B94;
+  --color-success: #7C9A6D;
+  --color-warning: #C9A961;
+  --color-danger: #B56A5E;
+  --color-border: #E8E1D6;
+  --font-display: var(--font-cormorant);
+  --font-body: var(--font-jakarta);
+  --font-mono: var(--font-jetbrains);
+}
+```
+
+Font load via `next/font/google` di `src/app/layout.tsx`; bind ke CSS variable (`--font-cormorant`, dll.). Tidak perlu `tailwind.config.ts` kecuali plugin khusus — task 001 cukup `globals.css` + PostCSS default Next.js 16.
+
+---
+
+## 3. Komponen Inti
+
+### 3.1 Button
+```tsx
+// Primary — aksi utama
+<button className="rounded-lg bg-accent px-5 py-2.5 font-medium text-white
+                   shadow-sm transition-colors hover:bg-accent-hover">
+  Ambil Momen
+</button>
+
+// Secondary — outline hangat
+<button className="rounded-lg border border-accent/30 px-5 py-2.5 font-medium text-accent
+                   transition-colors hover:bg-accent/10">
+  Simpan ke Galeri
+</button>
+
+// Ghost
+<button className="rounded-lg px-4 py-2 text-sm text-text-secondary hover:bg-bg-warm">
+  Nanti Saja
+</button>
+```
+
+### 3.2 CaptureButton (photobooth)
+- Bulat besar (`w-20 h-20 rounded-full bg-accent`), ring putih tipis.
+- Label di bawah: "Tap untuk ambil momen".
+- Scale pulse saat ditekan (150ms) — bukan bounce norak.
+
+### 3.3 CameraPreview
+```tsx
+<div className="relative overflow-hidden rounded-xl shadow-md">
+  <video autoPlay playsInline muted className="h-full w-full object-cover" />
+  {/* Frame overlay PNG transparan */}
+  <img src={frameUrl} alt="" aria-hidden
+       className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
+</div>
+```
+
+### 3.4 Photo Frame Polaroid (signature component)
+Hasil foto distyle seperti Polaroid:
+- Border putih lebih tebal di bawah.
+- Area caption handwritten-style (dipakai fitur Moments, task 012).
+- Film grain overlay sangat halus (opsional, matikan jika mengurangi kejelasan).
+- Slight rotation on hover di galeri dashboard (playful).
+- Perlakuan yang sama dipakai untuk foto placeholder halaman marketing: rotasi statis halus (±2°), caption display italic, hover lurus sejajar; foto "develop" saat pertama tampil (pudar → tajam ±800ms, sesuai §5) — hormati `prefers-reduced-motion`.
+
+### 3.5 EventCard (dashboard)
+```tsx
+<div className="rounded-xl border border-border bg-card p-5 shadow-xs">
+  <p className="text-xs uppercase tracking-wide text-dusty-blue">Wedding</p>
+  <h3 className="mt-1 font-display text-lg text-text-primary">Andi &amp; Sinta</h3>
+  <p className="mt-0.5 text-sm text-text-secondary">24 Agt 2026 · 142 foto</p>
+  <div className="mt-4 flex gap-2">{/* actions */}</div>
+</div>
+```
+
+### 3.6 EmptyState
+Ilustrasi line-art sederhana + satu kalimat brand voice.
+Contoh galeri kosong: *"Belum ada momen yang terabadikan. Bagikan QR code-nya dulu, ya."*
+
+### 3.7 ConsentScreen (privacy tamu)
+Muncul sebelum kamera aktif:
+- Penjelasan singkat: foto disimpan, siapa yang bisa lihat, TTL hapus otomatis.
+- Link kecil ke `/privacy` (kebijakan privasi lengkap).
+- Jika event punya sponsor di frame → wajib disebut di sini (task 013).
+- CTA: "Oke, Mengerti" (primary).
+
+### 3.8 QR Table Card (print)
+- A6 size (105×148mm), grid A4 2×4.
+- QR min 4×4 cm, error correction level M.
+- Nama event font-display, nomor meja jelas, tagline kecil: *"Keep the moments close."*
+- Background warm ivory.
+
+---
+
+## 4. Layout
+
+### Photobooth Page (mobile-first, `min-h-dvh`)
+```
+┌──────────────────────┐
+│  Event name (display)│
+│  Meja 5 · tagline    │
+├──────────────────────┤
+│                      │
+│   Camera preview     │
+│   + frame overlay    │
+│   + watermark        │
+│                      │
+├──────────────────────┤
+│   ( O ) Ambil Momen  │
+├──────────────────────┤
+│  strip thumbnail     │
+└──────────────────────┘
+```
+Frame selector (jika >1 frame): horizontal scroll di atas preview.
+
+### Dashboard (desktop-first, mobile drawer/bottom nav)
+```
+┌────────┬─────────────────────────────┐
+│Sidebar │ Header (event switcher)     │
+│Events  ├─────────────────────────────┤
+│Galeri  │ Content grid                │
+│Billing │                             │
+│Settings│                             │
+└────────┴─────────────────────────────┘
+```
+Max width konten `max-w-6xl`; padding `px-4 sm:px-6 lg:px-8`.
+
+---
+
+## 5. Motion
+
+| Interaksi | Animasi | Durasi |
+|-------------|-----------|----------|
+| Transisi halaman | Fade + slide up halus | 300ms |
+| Capture foto | Flash effect + **Polaroid develop** | 800ms |
+| Card hover | Gentle lift | 200ms |
+| Gallery load | Staggered fade-in | 50ms/item |
+| Shutter press | Scale pulse | 150ms |
+
+**Signature moment**: setelah capture, foto "develop" seperti film instan — mulai sedikit pudar, lalu menajam selama 800ms. Ini identitas emosional TEMORA.
+
+Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung tampil).
+
+---
+
+## 6. Microcopy (Brand Voice)
+
+| Konteks | Copy |
+|---|---|
+| Tombol capture utama | "Ambil Momen" |
+| Setelah capture | "Momen tersimpan ✨" |
+| Upload gagal | "Koneksi lagi ngambek. Coba sekali lagi?" |
+| Empty state galeri | "Belum ada momen yang terabadikan." |
+| Prompt Moments (Phase 2) | "Apa yang sedang kamu rasakan?" — bukan "Add caption" |
+| CTA unduh ZIP | "Simpan Semua Momen" |
+| Footer tamu | "Keep it close. Keep it TEMORA." |
+| Tombol simpan hasil foto (tamu) | "Simpan ke HP" |
+| Setelah simpan/share sukses (tamu) | "Momen sekarang ada di HP-mu ✨" |
+| Field link kustom (form event) | Label "Link kustom (opsional)" · helper "Kosongkan untuk otomatis dari nama event." |
+| Event berakhir | "Acara ini sudah selesai. Terima kasih sudah jadi bagian dari momennya." |
+
+---
+
+## 7. Iconography & Imagery
+
+**Icons:** Lucide Icons — stroke 1.5px, rounded caps. Size: 16px inline · 20px button · 24px nav. Custom: monogram T untuk watermark/favicon.
+
+**Photography style:** candid, warm, natural light; orang nyata & emosi nyata (bukan stock photo orang kantoran senyum); color grade hangat; shallow DOF untuk kesan intim.
+
+**Illustration:** line-art minimal dengan warm fill, gaya hand-drawn — hanya untuk empty states & onboarding, dipakai hemat.
+
+---
+
+## 8. Brand Assets
+
+| Asset | Spec |
+|-------|------|
+| Logo (wordmark) | "TEMORA" Cormorant Garamond, tracked +50 |
+| Monogram | "T" dalam lingkaran, `dusty-blue` di atas `bg-base` |
+| Favicon | Monogram 32×32px |
+| OG Image | 1200×630px, warm ivory bg, tagline display font |
+| Watermark | Teks vendor/TEMORA, opacity rendah, pojok bawah hasil foto |
+
+---
+
+## 9. Aksesibilitas
+
+- Kontras teks utama vs `bg-base`: ≥ 7:1 (#3D3A36 di #F9F6F1).
+- Semua tombol ≥ 44×44px touch target.
+- `aria-label` pada semua icon-button.
+- Focus ring terlihat: `ring-2 ring-dusty-blue`.
+- Kamera ditolak → fallback UI jelas + instruksi izin browser.
+- Alt text semua gambar; reduced motion support.
+
+## 10. Loading & Error States
+
+- Skeleton shimmer warna `bg-warm` (bukan spinner default).
+- Error state: kalimat human + tombol retry, tanpa stack trace.
+- Optimistic UI untuk capture (thumbnail langsung muncul, sync diam-diam).
+
+---
+
+## 11. Anti-Slop Gate (checklist WAJIB sebelum deliver UI)
+
+### Dilarang keras
+- [ ] Tanpa gradient biru-ungu klise / gradient text
+- [ ] Tanpa glassmorphism tanpa alasan
+- [ ] Tanpa neon glow / estetika photobooth ramai
+- [ ] Tanpa emoji sebagai icon utama (pakai Lucide)
+- [ ] Tanpa badge generik "✨ AI-powered"
+- [ ] Tanpa lorem ipsum / stock photo staged
+- [ ] Tanpa dark mode default (TEMORA = warm light theme)
+
+### Wajib ada
+- [ ] Warna sesuai token §2.1 (tidak ada hardcode hex baru)
+- [ ] Microcopy memakai tabel §6
+- [ ] Loading states semua async actions
+- [ ] Empty states dengan copy hangat
+- [ ] Error states gentle + retry
+- [ ] Focus states accessibility
+- [ ] `min-h-dvh` (bukan `min-h-screen`) untuk mobile
+- [ ] Responsive dicek dari viewport 360px ke atas
+- [ ] Reduced motion (`prefers-reduced-motion`) didukung
+
+Prinsip akhir: setiap elemen punya alasan ada; whitespace adalah fitur; kalau ragu antara dua pilihan, pilih yang lebih sederhana.
