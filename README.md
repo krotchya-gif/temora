@@ -36,7 +36,8 @@ Temora Photos/
 │   ├── pendoman.md                 panduan pemakaian aplikasi (role, flow, ops)
 │   ├── qa-report.md                log QA + arsip spesifikasi fitur
 │   └── research/
-│       └── competitor-analysis.md  riset Invrame, Photobooth.ID, Framebooth
+│       ├── competitor-analysis.md  riset Invrame, Photobooth.ID, Framebooth
+│       └── seo-admin-reference.md  referensi pola /admin/seo (project lain, adaptasi)
 └── tasks/                      ← EKSEKUSI (berurutan)
     ├── 001-setup.md                Next.js + Supabase init          [MVP]
     ├── 002-supabase-schema.md      skema DB + RLS + buckets        [MVP]

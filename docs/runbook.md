@@ -46,6 +46,8 @@ Ambang upgrade: free tier Supabase = 1 GB; **≥ 80% → langsung upgrade Supaba
 | Webhook Xendit tidak masuk | Xendit Dashboard → Webhooks log | Pastikan URL `temora.id/api/billing/webhook` & token per-env |
 | WA tidak terkirim | `whatsapp_logs` (status/error) | Token Meta expired → refresh; quiet hours menahan sampai pagi |
 | Cron tidak jalan | Riwayat job di cron-job.org / UptimeRobot | Header `Authorization: Bearer $CRON_SECRET` mismatch pemicu paling sering |
+| Preview link WA/FB/X tanpa gambar | `NEXT_PUBLIC_APP_URL` di env hPanel | Wajib `https://…` (og:image http ditolak scraper); cek `/admin/seo` → OG Image URL |
+| Angka GA4/GSC kosong di `/admin/seo` | Kredensial service account + property ID + site URL | Status jujur di tab Analytics; cek JSON valid & scope `readonly`; hasil di-cache 5 menit |
 
 ## 5. Checklist go-live (task 015 §4.2)
 
@@ -78,6 +80,30 @@ where email = '<email>';
 
 Setelah itu user wajib **login ulang** agar klaim JWT baru terbawa.
 Verifikasi: buka `/admin` → shell admin muncul.
+
+### SEO & analytics (halaman `/admin/seo`)
+
+Semua pengaturan SEO/tracking/kampanye dikelola superadmin di `/admin/seo`
+(5 tab — detail `docs/research/seo-admin-reference.md`):
+
+1. **SEO & GEO**: meta title/description/keywords/OG image, isi `robots.txt` &
+   `sitemap.xml` (kosong = fallback otomatis), blokir bot AI, koordinat GEO
+   (JSON-LD LocalBusiness).
+2. **Analytics**: masukkan ID GA4/GTM/Clarity/GSC. Untuk **angka real**:
+   - Buat service account Google (IAM) dengan akses GA4 (`analytics.readonly`)
+     & Search Console (`webmasters.readonly`), unduh JSON-nya.
+   - Paste JSON di textarea → **Simpan Service Account** (tersimpan di
+     `admin_secrets`, tidak pernah tampil lagi / keluar ke client).
+   - Isi **GA4 Property ID** (angka) & **GSC Site URL** → Muat Statistik.
+3. **Marketing & Ads**: Meta Pixel / Google Ads / TikTok Pixel ID (di-inject
+   otomatis ke semua halaman publik).
+4. **Event Monitor**: event `wa_click`/`upgrade_click`/`payment_success` —
+   tombol Retry bila status gagal.
+5. **Campaign UTM**: builder link + laporan kunjungan & konversi per source.
+
+> ⚠️ Produksi wajib `NEXT_PUBLIC_APP_URL=https://…` — meta `og:image` yang
+> http ditolak scraper WA/FB/X (fallback di kode memaksa https, tapi env tetap
+> harus benar untuk canonical/sitemap).
 
 ### Pencabutan akses superadmin
 

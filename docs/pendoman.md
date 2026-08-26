@@ -10,7 +10,7 @@
 |---|---|---|---|
 | **Vendor** | WO, fotografer, EO — pelanggan SaaS | Dashboard penuh: event, QR, galeri, ZIP, billing, pengaturan | Daftar/masuk di `/signup` · `/login` |
 | **Tamu** | Undangan acara | Halaman photobooth saja (`/p/[eventId]/[tableId]`) | Scan kartu QR di meja — **tanpa akun, anonim** |
-| **Superadmin** | Pemilik platform TEMORA | `/admin`: pantau semua vendor/event, kelola tier, moderasi event & foto | Akun biasa yang dipromosikan via SQL (lihat bawah) |
+| **Superadmin** | Pemilik platform TEMORA | `/admin`: pantau semua vendor/event, kelola tier, moderasi event & foto, **SEO/analytics/UTM (`/admin/seo`)** | Akun biasa yang dipromosikan via SQL (lihat bawah) |
 | **Admin Platform (kontak)** | Nomor WA tujuan aktivasi vendor | Bukan role aplikasi — hanya kontak manusia | `NEXT_PUBLIC_WA_ADMIN_NUMBER` |
 
 ### Menjadikan superadmin (bootstrap)
@@ -114,6 +114,7 @@ Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilk
 2. **Upgrade paket** — vendor bayar sendiri via `/dashboard/billing` (Xendit); admin hanya menangani kasus khusus. Webhook Xendit otomatis menaikkan tier.
 3. **Perpanjangan** — manual: sistem antre reminder WA H-3 dan H-0 (cron `wa-reminders`), worker kirim tiap 5 menit (`wa-queue`, quiet hours 22:00–07:00 WIB).
 4. **Monitoring** — Sentry (error), UptimeRobot (ping `/api/health`); analitik web nonaktif sementara di prototipe (Vercel Analytics no-op di luar Vercel — architecture.md §9).
+5. **SEO, tracking & kampanye** (superadmin) — `/admin/seo` (5 tab): meta tag + robots/sitemap, ID GA4/GTM/Clarity/pixel, angka GA4/GSC real, event monitor (`wa_click`/`upgrade_click`/`payment_success`), builder link UTM + laporan konversi. Detail: `docs/research/seo-admin-reference.md`.
 
 ---
 

@@ -1,9 +1,15 @@
-# docs/seo.md — Anatomi Fitur Halaman Admin `/admin/seo`
+# Referensi: Anatomi Fitur Halaman Admin SEO (project lain)
 
-> Dokumen teknis: menjelaskan **cara kerja & pola pembuatan** setiap fitur yang ada di
-> halaman `src/app/(dashboard)/admin/seo/page.tsx`, plus **resep langkah-demi-langkah**
-> menambah tab/fitur baru mengikuti pola yang sama.
-> Referensi silang: `docs/riwayat.md` (riwayat bug), `AGENTS.md` (aturan repo).
+> ⚠️ **Dokumen ini adalah referensi pola dari project lain** (bukan spesifikasi
+> TEMORA). Adaptasi TEMORA berbeda di beberapa titik penting:
+> - penyimpanan: KV `platform_settings` (bukan tabel `landing_settings` satu-row);
+> - rahasia (service account) di tabel terpisah `admin_secrets` (tanpa public read);
+> - halaman: `/admin/seo` (guard superadmin via proxy + layout + API, bukan role `admin/owner`);
+> - robots/sitemap: textarea manual + **fallback otomatis** (tanpa endpoint upload file);
+> - event konversi TEMORA: `wa_click` · `upgrade_click` · `payment_success`;
+> - konversi UTM: `subscriptions.utm_source` (bukan `orders.utm_source`).
+> Implementasi aktual & skema: `docs/architecture.md` §3.2, `docs/database.md` §8,
+> `docs/BRAND.md` §10, dan kode `src/app/admin/seo/*`.
 > Terakhir diperbarui: 2026-08-26 (sesi 60B).
 
 ---

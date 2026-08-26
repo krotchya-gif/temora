@@ -45,6 +45,11 @@ Supabase Dashboard.
 | `PUT /api/admin/vendors/[vendorId]/tier` | Set tier (`free/basic/pro`) |
 | `PATCH /api/admin/events/[eventId]/status` | Set `is_active` |
 | `DELETE /api/admin/events/[eventId]/photos/[photoId]` | Soft delete foto |
+| `PATCH /api/admin/settings` | KV whitelist (sosial + SEO/tracking — validasi per-key) |
+| `PUT /api/admin/secrets` | Rahasia (service account GA4/GSC) — tidak pernah dikembalikan |
+| `GET /api/admin/analytics/stats` | Angka GA4 + GSC real (cache 5 mnt) |
+| `GET /api/admin/events` · `POST …/[id]/retry` | Event monitor + retry |
+| `GET /api/admin/utm/report` | Laporan kunjungan & konversi per source UTM |
 
 ## 4. Non-Scope
 
