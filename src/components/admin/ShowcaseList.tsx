@@ -6,27 +6,35 @@ import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 
 export type ShowcaseItem = {
   id: string;
-  storagePath: string;
+  url: string;
   title: string;
   caption: string | null;
 };
 
 type ShowcaseListProps = {
   items: ShowcaseItem[];
-  publicBase: string; // NEXT_PUBLIC_SUPABASE_URL
 };
 
-export function ShowcaseList({ items, publicBase }: ShowcaseListProps) {
-  const router = useRouter();
-  const [edits, setEdits] = useState<Record<string, { title: string; caption: string }>>(
-    Object.fromEntries(
-      items.map((it) => [
-        it.id,
-        { title: it.title, caption: it.caption ?? "" },
-      ]),
-    ),
-  );
+export function ShowcaseList({ items }: ShowcaseListProps) {
+  // Draft edit per bari disimpan dengan fallback ke props — foto baru hasil
+  // router.refresh() tidak punya entri lama dan tidak boleh crash (bugfix).
+  const [edits, setEdits] = useState<
+    Record<string, { title: string; caption: string }>
+  >({});
   const [busyId, setBusyId] = useState<string | null>(null);
+  const router = useRouter();
+
+  const editOf = (item: ShowcaseItem) =>
+    edits[item.id] ?? { title: item.title, caption: item.caption ?? "" };
+
+  const setEdit = (item: ShowcaseItem, patch: Partial<{ title: string; caption: string }>) =>
+    setEdits((prev) => ({
+      ...prev,
+      [item.id]: {
+        title: patch.title ?? editOf(item).title,
+        caption: patch.caption ?? editOf(item).caption,
+      },
+    }));
 
   async function call(url: string, method: string, body?: unknown) {
     const res = await fetch(url, {
@@ -38,11 +46,10 @@ export function ShowcaseList({ items, publicBase }: ShowcaseListProps) {
   }
 
   async function save(item: ShowcaseItem) {
-    const edit = edits[item.id];
     setBusyId(item.id);
     await call(`/api/admin/showcase/${item.id}`, "PATCH", {
-      title: edit.title,
-      caption: edit.caption || null,
+      title: editOf(item).title,
+      caption: editOf(item).caption || null,
     });
     setBusyId(null);
     router.refresh();
@@ -74,7 +81,7 @@ export function ShowcaseList({ items, publicBase }: ShowcaseListProps) {
   return (
     <ul className="space-y-3">
       {items.map((item, index) => {
-        const edit = edits[item.id];
+        const edit = editOf(item);
         return (
           <li
             key={item.id}
@@ -82,7 +89,7 @@ export function ShowcaseList({ items, publicBase }: ShowcaseListProps) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- thumbnail publik statis */}
             <img
-              src={`${publicBase}/storage/v1/object/public/${item.storagePath}`}
+              src={item.url}
               alt={item.title}
               className="h-20 w-28 shrink-0 rounded-lg bg-bg-warm object-cover"
               loading="lazy"
@@ -91,10 +98,7 @@ export function ShowcaseList({ items, publicBase }: ShowcaseListProps) {
               <input
                 value={edit.title}
                 onChange={(e) =>
-                  setEdits((prev) => ({
-                    ...prev,
-                    [item.id]: { ...edit, title: e.target.value },
-                  }))
+                  setEdit(item, { title: e.target.value })
                 }
                 maxLength={120}
                 aria-label={`Judul ${item.title}`}
@@ -103,10 +107,7 @@ export function ShowcaseList({ items, publicBase }: ShowcaseListProps) {
               <input
                 value={edit.caption}
                 onChange={(e) =>
-                  setEdits((prev) => ({
-                    ...prev,
-                    [item.id]: { ...edit, caption: e.target.value },
-                  }))
+                  setEdit(item, { caption: e.target.value })
                 }
                 maxLength={280}
                 placeholder="Kutipan singkat (opsional)"

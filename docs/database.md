@@ -155,14 +155,30 @@ CREATE TABLE showcase_photos (
   storage_path TEXT NOT NULL,          -- bucket publik 'showcase'
   title TEXT NOT NULL,                 -- label acara/kota (marketing)
   caption TEXT,                        -- kutipan singkat opsional
+  storage_path TEXT,                  -- nullable bila sumbernya external_url
+  external_url TEXT,                  -- placeholder/kurasi via URL (Unsplash/Wikimedia/picsum)
   sort_order INT NOT NULL DEFAULT 0,
   created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   deleted_at TIMESTAMPTZ,              -- soft delete oleh admin (purge objek langsung)
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX idx_showcase_order ON showcase_photos(sort_order, created_at DESC);
+CONSTRAINT: minimal satu sumber — CHECK (storage_path IS NOT NULL OR external_url IS NOT NULL);
 ```
 > Konten kurasi milik platform — diinput **superadmin** lewat `/admin/showcase`, BUKAN foto tamu vendor (privasi, keputusan terkunci #8). RLS: SELECT anon/authenticated hanya baris `deleted_at IS NULL`; tanpa policy tulis → mutasi eksklusif service role dari API admin. Bucket `showcase` PUBLIC + storage policy select. Dipakai: rope landing (24 terbaru) & halaman `/moments`.
+
+### 2.6e platform_settings (task sosial media)
+```sql
+CREATE TABLE platform_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+> KV pengaturan publik level-admin (social_instagram/tiktok/facebook). Read publik
+> disengaja untuk footer; tulis eksklusif service role dari `/admin/settings`.
+> Nilai kosong = fitur terkait disembunyikan dari halaman publik.
 
 ### 2.7 Aturan Tier & Limit (terkunci v1.2)
 

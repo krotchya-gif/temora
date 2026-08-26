@@ -7,6 +7,7 @@ import { RopeMoments } from "@/components/marketing/RopeMoments";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { getWhatsAppUrl, HOW_IT_WORKS_STEPS } from "@/lib/constants";
+import { momentImageUrl, type MomentCard } from "@/lib/moments";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -41,16 +42,17 @@ export default async function HomePage() {
   const supabase = await createClient();
   const { data: showcase } = await supabase
     .from("showcase_photos")
-    .select("id, storage_path, title, caption")
+    .select("id, storage_path, external_url, title, caption")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(24);
 
-  const ropeItems = (showcase ?? []).map((row) => ({
+  const publicBase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const ropeItems: MomentCard[] = (showcase ?? []).map((row) => ({
     id: row.id,
-    storagePath: row.storage_path,
     title: row.title,
     caption: row.caption,
+    url: momentImageUrl(row, publicBase),
   }));
 
   return (
@@ -160,7 +162,7 @@ export default async function HomePage() {
       </section>
 
       {/* Tali Momen — kurasi platform (design-system §5) */}
-      <RopeMoments items={ropeItems} publicBase={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""} />
+      <RopeMoments items={ropeItems} />
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">

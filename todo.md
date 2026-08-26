@@ -69,3 +69,20 @@
 - ❌ Foto tamu vendor sebagai konten publik (privasi #8)
 - ❌ Rating bintang / nama tamu pada showcase (bukan testimoni asli)
 - ❌ Drag-and-drop reorder (cukup tombol naik/turun)
+
+## Ronde Perbaikan (2026-08-26, pasca-uji manual)
+1. **Fix crash** `ShowcaseList`: draft edit kini fallback ke props — foto baru
+   hasil refresh tak lagi memicu TypeError (akar "halaman broken" saat upload).
+2. **Upload tangguh**: cap 10MB, validasi pra-fetch (ukuran/format/HEIC),
+   pesan server spesifik.
+3. **Placeholder**: kolom `external_url` (0017/0018 — storage_path jadi nullable
+   + constraint salah-satu-sumber) + seed 12 foto campuran
+   Unsplash/Wikimedia/picsum + fallback onError picsum seeded.
+4. **Navbar/footer**: link Moments di header & footer.
+5. **Sosial media dinamis**: tabel `platform_settings` (0019) +
+   `/admin/settings` — ikon IG/TikTok/Facebook footer dirender hanya bila
+   URL terisi (TikTok = SVG inline).
+6. **Floating WhatsApp** di MarketingLayout (token success, semua halaman publik).
+
+Catatan verifikasi: upload "grand luley" milik owner sebelumnya TERSIMPAN di DB —
+yang gagal hanyalah render setelah refresh; kini aman.

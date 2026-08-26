@@ -22,6 +22,37 @@ export function ShowcaseUploadForm() {
       setMessage({ kind: "err", text: "Pilih minimal satu foto." });
       return;
     }
+
+    // Validasi pra-fetch — error instan tanpa menembak server (task fix upload).
+    const MAX = 10 * 1024 * 1024;
+    for (const file of Array.from(files)) {
+      const isImageType =
+        file.type === "image/jpeg" ||
+        file.type === "image/png" ||
+        /\.(jpe?g|png)$/i.test(file.name);
+      if (!isImageType) {
+        setMessage({
+          kind: "err",
+          text: `"${file.name}" bukan JPEG/PNG. Foto iPhone HEIC: ubah dulu ke JPG lewat pengaturan kamera atau konverter.`,
+        });
+        return;
+      }
+      if (file.size > MAX) {
+        setMessage({
+          kind: "err",
+          text: `"${file.name}" lebih dari 10MB. Kompres dulu ya.`,
+        });
+        return;
+      }
+      if (file.size < 1024) {
+        setMessage({
+          kind: "err",
+          text: `"${file.name}" terlalu kecil — pastikan itu foto yang benar.`,
+        });
+        return;
+      }
+    }
+
     setBusy(true);
     setMessage(null);
 
@@ -87,14 +118,17 @@ export function ShowcaseUploadForm() {
         />
       </label>
       <label className="space-y-1 text-sm">
-        <span className="text-text-secondary">Foto (JPEG/PNG, maks 5MB)</span>
+        <span className="text-text-secondary">Foto (JPEG/PNG, maks 10MB per file)</span>
         <input
           type="file"
-          accept="image/jpeg,image/png"
+          accept="image/jpeg,image/png,.jpg,.jpeg,.png"
           multiple
           onChange={(e) => setFiles(e.target.files)}
           className="w-full text-sm text-text-secondary file:mr-3 file:min-h-9 file:rounded-lg file:border-0 file:bg-bg-warm file:px-3 file:text-sm file:text-accent"
         />
+        <span className="block text-xs text-text-secondary">
+          Foto iPhone format HEIC ubah dulu ke JPG ya.
+        </span>
       </label>
       <div className="flex items-end gap-3">
         <Button type="submit" size="sm" disabled={busy}>

@@ -2,21 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { picsumFallback, type MomentCard } from "@/lib/moments";
 
-export type MomentCard = {
-  id: string;
-  storagePath: string;
-  title: string;
-  caption: string | null;
-};
-
-type MomentsLightboxProps = {
+type MomentsGridProps = {
   items: MomentCard[];
-  publicBase: string;
 };
 
 // Grid + lightbox galeri publik /moments (todo.md — pola Chiffon /galeri).
-export function MomentsGrid({ items, publicBase }: MomentsLightboxProps) {
+export function MomentsGrid({ items }: MomentsGridProps) {
   const [active, setActive] = useState<MomentCard | null>(null);
 
   useEffect(() => {
@@ -24,8 +17,6 @@ export function MomentsGrid({ items, publicBase }: MomentsLightboxProps) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-
-  const url = (path: string) => `${publicBase}/storage/v1/object/public/${path}`;
 
   return (
     <>
@@ -38,12 +29,19 @@ export function MomentsGrid({ items, publicBase }: MomentsLightboxProps) {
             className="group mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl border border-border bg-bg-card text-left shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none"
             aria-label={`Lihat momen ${item.title}`}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- objek publik statis */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- gambar eksternal/publik statis */}
             <img
-              src={url(item.storagePath)}
+              src={item.url}
               alt={item.title}
               loading="lazy"
               decoding="async"
+              onError={(e) => {
+                const img = e.currentTarget;
+                if (!img.dataset.fb) {
+                  img.dataset.fb = "1";
+                  img.src = picsumFallback(item.id);
+                }
+              }}
               className="w-full bg-bg-warm object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
             />
             <span className="block px-4 py-3">
@@ -85,11 +83,18 @@ export function MomentsGrid({ items, publicBase }: MomentsLightboxProps) {
             >
               <X size={16} />
             </button>
-            {/* eslint-disable-next-line @next/next/no-img-element -- objek publik statis */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- gambar eksternal/publik statis */}
             <img
-              src={url(active.storagePath)}
+              src={active.url}
               alt={active.title}
-              className="max-h-[60vh] w-full rounded-xl object-contain bg-bg-warm"
+              onError={(e) => {
+                const img = e.currentTarget;
+                if (!img.dataset.fb) {
+                  img.dataset.fb = "1";
+                  img.src = picsumFallback(active.id);
+                }
+              }}
+              className="max-h-[60vh] w-full rounded-xl bg-bg-warm object-contain"
             />
             <div className="mt-4 space-y-1 px-1 pb-1">
               <p className="font-display text-2xl text-text-primary">{active.title}</p>

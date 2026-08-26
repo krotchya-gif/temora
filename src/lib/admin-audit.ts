@@ -11,6 +11,7 @@ export type AdminAction =
   | "delete_vendor"
   | "set_event_status"
   | "delete_photo"
+  | "edit_settings"
   | "showcase_upload"
   | "showcase_edit"
   | "showcase_delete";

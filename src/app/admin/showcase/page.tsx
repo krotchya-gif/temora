@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { ShowcaseUploadForm } from "@/components/admin/ShowcaseUploadForm";
 import { ShowcaseList } from "@/components/admin/ShowcaseList";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { momentImageUrl } from "@/lib/moments";
 
 export const metadata: Metadata = {
   title: "Showcase Moments — TEMORA Admin",
@@ -14,14 +15,15 @@ export default async function AdminShowcasePage() {
   const admin = createAdminClient();
   const { data } = await admin
     .from("showcase_photos")
-    .select("id, storage_path, title, caption")
+    .select("id, storage_path, external_url, title, caption")
     .is("deleted_at", null)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
+  const publicBase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const items = (data ?? []).map((row) => ({
     id: row.id,
-    storagePath: row.storage_path,
+    url: momentImageUrl(row, publicBase),
     title: row.title,
     caption: row.caption,
   }));
@@ -43,7 +45,7 @@ export default async function AdminShowcasePage() {
         <h2 className="font-display text-xl text-text-primary">
           Koleksi ({items.length})
         </h2>
-        <ShowcaseList items={items} publicBase={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""} />
+        <ShowcaseList items={items} />
       </Card>
     </div>
   );

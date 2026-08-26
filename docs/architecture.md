@@ -144,6 +144,7 @@ supabase/
 | `/signup` | Register vendor | No |
 | `/how-it-works` | How it works | No |
 | `/moments` | Galeri publik foto kurasi platform + lightbox | No |
+| (landing `/`) | Section tali momen interaktif — 24 showcase terbaru | No |
 | `/pricing` | Pricing tiers | No |
 | `/privacy` | Kebijakan privasi (statis) | No |
 | `/terms` | Syarat & ketentuan (statis) | No |
@@ -174,6 +175,7 @@ supabase/
 > | `/admin/events` | Semua event + moderasi status |
 > | `/admin/events/[eventId]` | Detail event + moderasi foto |
 > | `/admin/showcase` | Kurasi foto Moments: upload/edit/hapus/urutkan |
+| `/admin/settings` | Pengaturan platform (URL sosial media footer) |
 > | `/admin/audit` | Feed jejak audit admin (terpaginasi) |
 >
 > Prinsip peran terpisah (task 019): superadmin **tidak** bisa membuka
@@ -213,6 +215,7 @@ supabase/
 | `/api/admin/events/[eventId]/status` | PATCH | Set is_active event | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/photos/[photoId]` | DELETE | Soft delete foto (moderasi) | Superadmin (404 mask) |
 | `/api/admin/showcase` | POST/PATCH/DELETE | Kurasi foto Moments (upload/edit/hapus) | Superadmin (404 mask) |
+| `/api/admin/settings` | PATCH | Simpan platform_settings (KV whitelist) | Superadmin (404 mask) |
 
 ---
 

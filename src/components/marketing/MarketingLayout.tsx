@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FloatingWhatsApp } from "@/components/marketing/FloatingWhatsApp";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 
@@ -15,6 +16,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
       />
       <main className="flex-1">{children}</main>
       <MarketingFooter />
+      <FloatingWhatsApp />
     </div>
   );
 }

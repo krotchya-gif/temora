@@ -7,7 +7,7 @@ import { ulid } from "@/lib/ulid";
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 10 * 1024 * 1024;
 
 // POST — upload foto kurasi (multipart: file + title + caption?) (todo.md).
 export async function POST(request: Request) {
@@ -24,9 +24,15 @@ export async function POST(request: Request) {
   if (!form || !(file instanceof File) || !title) {
     return NextResponse.json({ error: "Data tidak lengkap." }, { status: 400 });
   }
-  if (file.size < 1024 || file.size > MAX_BYTES) {
+  if (file.size > MAX_BYTES) {
     return NextResponse.json(
-      { error: "Ukuran foto harus antara 1KB–5MB." },
+      { error: "Foto lebih dari 10MB. Kompres dulu ya." },
+      { status: 415 },
+    );
+  }
+  if (file.size < 1024) {
+    return NextResponse.json(
+      { error: "File terlalu kecil — pastikan itu foto yang benar." },
       { status: 415 },
     );
   }

@@ -5,6 +5,7 @@ import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { Button } from "@/components/ui/Button";
 import { MomentsGrid } from "@/components/marketing/MomentsGrid";
 import { getWhatsAppUrl } from "@/lib/constants";
+import { momentImageUrl, type MomentCard } from "@/lib/moments";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -19,15 +20,15 @@ export default async function MomentsPage() {
 
   const { data } = await supabase
     .from("showcase_photos")
-    .select("id, storage_path, title, caption")
+    .select("id, storage_path, external_url, title, caption")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
-  const items = (data ?? []).map((row) => ({
+  const items: MomentCard[] = (data ?? []).map((row) => ({
     id: row.id,
-    storagePath: row.storage_path,
     title: row.title,
     caption: row.caption,
+    url: momentImageUrl(row, publicBase),
   }));
 
   return (
@@ -59,7 +60,7 @@ export default async function MomentsPage() {
               </p>
             </div>
           ) : (
-            <MomentsGrid items={items} publicBase={publicBase} />
+            <MomentsGrid items={items} />
           )}
         </div>
 

@@ -11,7 +11,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { ArrowRight, X } from "lucide-react";
-import type { MomentCard } from "@/components/marketing/MomentsGrid";
+import { picsumFallback, type MomentCard } from "@/lib/moments";
 
 const LOOP = 2; // set diduplikasi → drag tak terasa ujungnya
 
@@ -34,7 +34,6 @@ function shuffleStable<T extends { id: string }>(arr: T[]): T[] {
 
 type RopeMomentsProps = {
   items: MomentCard[];
-  publicBase: string;
 };
 
 /* ─── kartu polaroid di tali ──────────────────────────────────── */
@@ -42,13 +41,11 @@ function RopeCard({
   item,
   i,
   layoutKey,
-  urlBase,
   onOpen,
 }: {
   item: MomentCard;
   i: number;
   layoutKey: string;
-  urlBase: string;
   onOpen: (item: MomentCard, layoutKey: string) => void;
 }) {
   const reduce = useReducedMotion();
@@ -95,12 +92,19 @@ function RopeCard({
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- objek publik statis */}
           <img
-            src={`${urlBase}/storage/v1/object/public/${item.storagePath}`}
+            src={item.url}
             alt={`Momen ${item.title}`}
             width={640}
             height={480}
             loading="lazy"
             decoding="async"
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (!img.dataset.fb) {
+                img.dataset.fb = "1";
+                img.src = picsumFallback(item.id);
+              }
+            }}
             className="aspect-[4/3] w-full rounded-[3px] bg-bg-warm object-cover"
           />
         </motion.div>
@@ -123,12 +127,10 @@ function RopeCard({
 function MomentOverlay({
   item,
   layoutKey,
-  urlBase,
   onClose,
 }: {
   item: MomentCard;
   layoutKey: string;
-  urlBase: string;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -181,10 +183,17 @@ function MomentOverlay({
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- objek publik statis */}
           <img
-            src={`${urlBase}/storage/v1/object/public/${item.storagePath}`}
+            src={item.url}
             alt={`Momen ${item.title}`}
             width={640}
             height={480}
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (!img.dataset.fb) {
+                img.dataset.fb = "1";
+                img.src = picsumFallback(item.id);
+              }
+            }}
             className="aspect-[4/3] w-full rounded-md object-cover"
           />
         </motion.div>
@@ -211,7 +220,7 @@ function MomentOverlay({
 }
 
 /* ─── section tali momen di landing ───────────────────────────── */
-export function RopeMoments({ items, publicBase }: RopeMomentsProps) {
+export function RopeMoments({ items }: RopeMomentsProps) {
   const [active, setActive] = useState<{ item: MomentCard; layoutKey: string } | null>(
     null,
   );
@@ -393,7 +402,6 @@ export function RopeMoments({ items, publicBase }: RopeMomentsProps) {
                 item={item}
                 i={i}
                 layoutKey={`moment-${item.id}-${i}`}
-                urlBase={publicBase}
                 onOpen={handleOpen}
               />
             ))}
@@ -416,7 +424,6 @@ export function RopeMoments({ items, publicBase }: RopeMomentsProps) {
           <MomentOverlay
             item={active.item}
             layoutKey={active.layoutKey}
-            urlBase={publicBase}
             onClose={() => setActive(null)}
           />
         )}

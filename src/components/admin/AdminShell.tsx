@@ -14,6 +14,7 @@ const NAV = [
   { href: "/admin/events", label: "Events", exact: false },
   { href: "/admin/showcase", label: "Moments", exact: false },
   { href: "/admin/audit", label: "Audit", exact: false },
+  { href: "/admin/settings", label: "Pengaturan", exact: false },
 ];
 
 type AdminShellProps = {
