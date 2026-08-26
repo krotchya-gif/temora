@@ -235,8 +235,16 @@ Max width konten `max-w-6xl`; padding `px-4 sm:px-6 lg:px-8`.
 | Card hover | Gentle lift | 200ms |
 | Gallery load | Staggered fade-in | 50ms/item |
 | Shutter press | Scale pulse | 150ms |
+| **Tali Momen** (landing) | Kartu polaroid tergantung di tali; drag horizontal + inersia (friksi 0.94/frame, rAF) + infinite loop (set ×2, offset wrap); rotasi kartu golden-ratio ±2.5°; hover kartu → rotate(0) lift | inersia ~1–2s decay |
+| Tali Momen — klik kartu | Overlay detail: fade backdrop + scale 0.96→1 | 350ms |
 
 **Signature moment**: setelah capture, foto "develop" seperti film instan — mulai sedikit pudar, lalu menajam selama 800ms. Ini identitas emosional TEMORA.
+
+**Tali Momen** (task showcase): interaksi drag memakai pointer events native
+(bukan delegasi React) agar mulus; `touchAction: pan-y` supaya scroll halaman
+tetap hidup; threshold tap-vs-drag 6px; `prefers-reduced-motion` → **inersia
+dimatikan total** (vel = 0 saat lepas), entrance animation dilewati. Semua
+warna via token (`accent`→`accent-secondary` untuk tali, `bg-card` polaroid).
 
 Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung tampil).
 

@@ -10,7 +10,10 @@ export type AdminAction =
   | "unban_vendor"
   | "delete_vendor"
   | "set_event_status"
-  | "delete_photo";
+  | "delete_photo"
+  | "showcase_upload"
+  | "showcase_edit"
+  | "showcase_delete";
 
 export async function logAdminAction(input: {
   actorId: string;

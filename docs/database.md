@@ -129,7 +129,7 @@ CREATE TABLE whatsapp_logs (
 
 > Phase 2+ (buat migrasinya nanti, jangan sekarang): `moments` (task 012 — caption + guestbook), `sponsors` (task 013). Tidak dibuat di MVP agar skema tetap ramping.
 
-### 2.6b admin_audit_logs (task 019)
+### 2.6c admin_audit_logs (task 019)
 ```sql
 CREATE TABLE admin_audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -147,6 +147,22 @@ CREATE INDEX idx_audit_time ON admin_audit_logs(created_at DESC);
 CREATE INDEX idx_audit_target ON admin_audit_logs(target_type, target_id);
 ```
 > Append-only: ditulis service role dari API admin; **tanpa policy** INSERT/UPDATE/DELETE untuk role biasa (immutable). Read via policy superadmin (`auth.jwt() -> 'app_metadata' ->> 'role' = 'superadmin'`) atau langsung service-role client di halaman `/admin/audit`.
+
+### 2.6d showcase_photos (task showcase moments)
+```sql
+CREATE TABLE showcase_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  storage_path TEXT NOT NULL,          -- bucket publik 'showcase'
+  title TEXT NOT NULL,                 -- label acara/kota (marketing)
+  caption TEXT,                        -- kutipan singkat opsional
+  sort_order INT NOT NULL DEFAULT 0,
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  deleted_at TIMESTAMPTZ,              -- soft delete oleh admin (purge objek langsung)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_showcase_order ON showcase_photos(sort_order, created_at DESC);
+```
+> Konten kurasi milik platform — diinput **superadmin** lewat `/admin/showcase`, BUKAN foto tamu vendor (privasi, keputusan terkunci #8). RLS: SELECT anon/authenticated hanya baris `deleted_at IS NULL`; tanpa policy tulis → mutasi eksklusif service role dari API admin. Bucket `showcase` PUBLIC + storage policy select. Dipakai: rope landing (24 terbaru) & halaman `/moments`.
 
 ### 2.7 Aturan Tier & Limit (terkunci v1.2)
 
@@ -282,6 +298,7 @@ supabase.channel(`photos:${eventId}`)
 | `thumbs` | Public read | Thumbnail 320px |
 | `frames` | Public read | Frame PNG vendor |
 | `zips` | Private — signed URL 15 menit | Hasil export ZIP |
+| `showcase` | Public read | Foto kurasi platform (input superadmin) |
 
 Path convention:
 ```

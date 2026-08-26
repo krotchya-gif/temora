@@ -1,0 +1,76 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import { Button } from "@/components/ui/Button";
+import { MomentsGrid } from "@/components/marketing/MomentsGrid";
+import { getWhatsAppUrl } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Moments — TEMORA",
+  description:
+    "Galeri momen terkurasi dari acara-acara yang memakai TEMORA virtual photobooth.",
+};
+
+export default async function MomentsPage() {
+  const supabase = await createClient();
+  const publicBase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+
+  const { data } = await supabase
+    .from("showcase_photos")
+    .select("id, storage_path, title, caption")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  const items = (data ?? []).map((row) => ({
+    id: row.id,
+    storagePath: row.storage_path,
+    title: row.title,
+    caption: row.caption,
+  }));
+
+  return (
+    <MarketingLayout>
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="space-y-2">
+            <h1 className="font-display text-4xl leading-tight text-text-primary sm:text-5xl">
+              Momen yang Keep Close.
+            </h1>
+            <p className="max-w-md text-sm leading-relaxed text-text-secondary">
+              Kurasi momen favorit dari berbagai acara yang memakai TEMORA.
+              Setiap foto adalah cerita yang dipilih untuk tetap dikenang.
+            </p>
+          </div>
+          <Button href={getWhatsAppUrl("Halo! Saya ingin coba TEMORA untuk acara saya.")} size="sm" variant="secondary">
+            Buat Momenmu
+          </Button>
+        </div>
+
+        <div className="mt-10">
+          {items.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-bg-warm px-6 py-16 text-center">
+              <p className="font-display text-2xl text-text-primary">
+                Belum ada momen yang terabadikan.
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-text-secondary">
+                Kurasi pertama sedang disiapkan tim TEMORA. Nantikan segera.
+              </p>
+            </div>
+          ) : (
+            <MomentsGrid items={items} publicBase={publicBase} />
+          )}
+        </div>
+
+        <Link
+          href="/how-it-works"
+          className="mt-12 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:text-accent-hover"
+        >
+          Tahu bagaimana momen ini tercipta
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </section>
+    </MarketingLayout>
+  );
+}

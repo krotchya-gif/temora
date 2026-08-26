@@ -158,3 +158,13 @@ dan `vendors.banned_at` (0015). Pemisahan peran: superadmin diblokir dari
 Sisa backlog keamanan (tidak blocker): limiter in-memory per-instance
 (pindah Redis bila multi-region), MFA superadmin (rekomendasi runbook §7),
 ZIP streaming untuk event sangat besar.
+
+## 6e. Showcase Moments + Tali Momen (2026-08-26)
+
+Galeri kurasi platform: superadmin input foto (`/admin/showcase`) → tampil di
+halaman publik `/moments` dan rope interaktif di landing (port komponen
+Chiffon, re-theme token penuh). Migrasi 0016 (tabel + bucket publik
+`showcase`). Dependensi baru: motion v13. Verifikasi live: upload multi-file,
+magic-byte (HTML menyamar → 415), soft-delete menyembunyikan konten publik,
+purge objek storage, guard superadmin/origin/audit konsisten task 019.
+Entri uji dibersihkan setelah verifikasi.

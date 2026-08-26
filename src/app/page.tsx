@@ -3,9 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Camera, Download, QrCode } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import { RopeMoments } from "@/components/marketing/RopeMoments";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { getWhatsAppUrl, HOW_IT_WORKS_STEPS } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "TEMORA — Virtual Photobooth for Every Moment",
@@ -34,7 +36,23 @@ const valueProps = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  // 24 momen kurasi terbaru untuk rope (todo.md — showcase moments).
+  const supabase = await createClient();
+  const { data: showcase } = await supabase
+    .from("showcase_photos")
+    .select("id, storage_path, title, caption")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(24);
+
+  const ropeItems = (showcase ?? []).map((row) => ({
+    id: row.id,
+    storagePath: row.storage_path,
+    title: row.title,
+    caption: row.caption,
+  }));
+
   return (
     <MarketingLayout>
       {/* Hero */}
@@ -140,6 +158,9 @@ export default function HomePage() {
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </section>
+
+      {/* Tali Momen — kurasi platform (design-system §5) */}
+      <RopeMoments items={ropeItems} publicBase={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""} />
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
