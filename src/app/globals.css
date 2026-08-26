@@ -79,6 +79,16 @@
   .animate-develop {
     animation: polaroid-develop 0.8s ease-out both;
   }
+
+  /* Tali Momen §5: goyangan lembut kartu yang menggantung (pause saat hover). */
+  .animate-rope-sway {
+    transform-origin: top center;
+    animation: rope-sway 3.8s ease-in-out infinite alternate;
+  }
+
+  .group:hover .animate-rope-sway {
+    animation-play-state: paused;
+  }
 }
 
 @keyframes fade-up {
@@ -98,6 +108,15 @@
   }
   to {
     filter: none;
+  }
+}
+
+@keyframes rope-sway {
+  from {
+    transform: rotate(-1.4deg);
+  }
+  to {
+    transform: rotate(1.4deg);
   }
 }
 

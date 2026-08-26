@@ -86,37 +86,44 @@ function RopeCard({
               "linear-gradient(to bottom, color-mix(in srgb, var(--color-accent) 70%, transparent), color-mix(in srgb, var(--color-accent) 20%, transparent))",
           }}
         />
-        <motion.div
-          layoutId={layoutKey}
-          className="rounded-md bg-bg-card p-2 pb-3 shadow-card"
+        {/* wrapper sway: hanya kartu+caption yang bergoyang; klip tetap di tali */}
+        <div
+          className="animate-rope-sway"
+          style={{ animationDelay: `${((i % 12) * -0.45).toFixed(2)}s` }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- objek publik statis */}
-          <img
-            src={item.url}
-            alt={`Momen ${item.title}`}
-            width={640}
-            height={480}
-            loading="lazy"
-            decoding="async"
-            onError={(e) => {
-              const img = e.currentTarget;
-              if (!img.dataset.fb) {
-                img.dataset.fb = "1";
-                img.src = picsumFallback(item.id);
-              }
-            }}
-            className="aspect-[4/3] w-full rounded-[3px] bg-bg-warm object-cover"
-          />
-        </motion.div>
-        <div className="mt-3 px-0.5">
-          <p className="font-display text-sm font-semibold text-text-primary">
-            {item.title}
-          </p>
-          {item.caption && (
-            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-text-secondary">
-              “{item.caption}”
+          <motion.div
+            layoutId={layoutKey}
+            className="rounded-md bg-bg-card p-2 pb-3 shadow-card"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- objek publik statis */}
+            <img
+              src={item.url}
+              alt={`Momen ${item.title}`}
+              width={640}
+              height={480}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                const img = e.currentTarget;
+                if (!img.dataset.fb) {
+                  img.dataset.fb = "1";
+                  img.src = picsumFallback(item.id);
+                }
+              }}
+              style={{ animationDelay: `${(i % 12) * 0.05 + 0.15}s` }}
+              className="animate-develop aspect-[4/3] w-full rounded-[3px] bg-bg-warm object-cover"
+            />
+          </motion.div>
+          <div className="mt-3 px-0.5">
+            <p className="font-display text-sm font-semibold text-text-primary">
+              {item.title}
             </p>
-          )}
+            {item.caption && (
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-text-secondary">
+                “{item.caption}”
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </motion.button>

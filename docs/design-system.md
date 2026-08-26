@@ -236,7 +236,8 @@ Max width konten `max-w-6xl`; padding `px-4 sm:px-6 lg:px-8`.
 | Gallery load | Staggered fade-in | 50ms/item |
 | Shutter press | Scale pulse | 150ms |
 | **Tali Momen** (landing) | Kartu polaroid tergantung di tali; drag horizontal + inersia (friksi 0.94/frame, rAF) + infinite loop (set ×2, offset wrap); rotasi kartu golden-ratio ±2.5°; hover kartu → rotate(0) lift | inersia ~1–2s decay |
-| Tali Momen — klik kartu | Overlay detail: fade backdrop + scale 0.96→1 | 350ms |
+| Tali Momen — klik kartu | Overlay detail: fade backdrop + scale 0.96→1 + foto mainkan **polaroid develop** | 350ms · develop 800ms |
+| Tali Momen — sway kontinu | Semua kartu bergoyang ±1.4° sekitar engsel gantung (3.8s alternate), delay fase negatif per kartu → gelombang alami; hover = pause sway | infinite |
 
 **Signature moment**: setelah capture, foto "develop" seperti film instan — mulai sedikit pudar, lalu menajam selama 800ms. Ini identitas emosional TEMORA.
 

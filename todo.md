@@ -103,3 +103,14 @@ yang gagal hanyalah render setelah refresh; kini aman.
 2. Foto di overlay momen (rope + lightbox /moments) memainkan efek
    **polaroid develop** (design-system §5) saat dipilih — konsisten dengan
    signature moment hero. Otomatis hormati prefers-reduced-motion.
+
+## Ronde 5 (2026-08-26) — animasi kartu tali momen
+1. **Develop stagger**: tiap foto kartu memainkan polaroid-develop saat masuk
+   viewport, delay berjenjang (i%12)×0.05s+0.15s.
+2. **Sway kontinu**: wrapper `animate-rope-sway` menggoyang kartu+caption
+   ±1.4°/3.8s alternate, transform-origin top center, delay fase negatif per
+   kartu (gelombang alami); klip & benang tetap di tali.
+3. Hover: straighten+lift tetap; sway pause (`animation-play-state: paused`).
+4. Reduced-motion: global rule globals.css mematikan keduanya otomatis;
+   drag/inersia tetap fungsional.
+5. e2e rope.spec wajib tetap pass (sway layer dalam, tak ganggu trackX).
