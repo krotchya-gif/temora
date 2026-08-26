@@ -82,8 +82,8 @@ export function MarketingFooter() {
 
           </div>
 
-          <nav className="flex flex-col items-start gap-5 sm:items-end">
-            <ul className="flex flex-col items-start gap-y-3 sm:items-end">
+          <nav className="flex flex-col items-start gap-4 sm:items-end">
+            <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 sm:justify-end">
               {footerLinks.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -97,7 +97,7 @@ export function MarketingFooter() {
             </ul>
 
             {socials.length > 0 && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 sm:justify-end">
                 {socials.map(({ key, label, url, Icon }) => (
                   <a
                     key={key}

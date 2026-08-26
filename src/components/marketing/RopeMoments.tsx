@@ -194,7 +194,7 @@ function MomentOverlay({
                 img.src = picsumFallback(item.id);
               }
             }}
-            className="aspect-[4/3] w-full rounded-md object-cover"
+            className="animate-develop aspect-[4/3] w-full rounded-md object-cover"
           />
         </motion.div>
 

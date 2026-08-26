@@ -94,7 +94,7 @@ export function MomentsGrid({ items }: MomentsGridProps) {
                   img.src = picsumFallback(active.id);
                 }
               }}
-              className="max-h-[60vh] w-full rounded-xl bg-bg-warm object-contain"
+              className="animate-develop max-h-[60vh] w-full rounded-xl bg-bg-warm object-contain"
             />
             <div className="mt-4 space-y-1 px-1 pb-1">
               <p className="font-display text-2xl text-text-primary">{active.title}</p>

@@ -96,3 +96,10 @@ yang gagal hanyalah render setelah refresh; kini aman.
 4. Halaman baru `/faq` (7 accordion native `<details>`, SEO metadata).
 5. Uji objektif fisika rope: `tests/e2e/rope.spec.ts` (drag → track bergeser
    >150px; inersia meluncur; varian reducedMotion tetap berfungsi).
+
+## Ronde 4 (2026-08-26) — polish footer & overlay
+1. Nav footer kini **horizontal** (flex-wrap, rata kanan desktop) — sebelumnya
+   kolom vertikal akibat refactor ikon sosial.
+2. Foto di overlay momen (rope + lightbox /moments) memainkan efek
+   **polaroid develop** (design-system §5) saat dipilih — konsisten dengan
+   signature moment hero. Otomatis hormati prefers-reduced-motion.
