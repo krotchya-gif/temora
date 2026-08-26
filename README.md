@@ -13,7 +13,7 @@ Platform SaaS virtual photobooth untuk vendor event (WO, fotografer, EO): tamu s
 | Frontend | Next.js 16 · React 19 · Tailwind CSS 4 · Radix UI |
 | Font | Cormorant Garamond · Plus Jakarta Sans · JetBrains Mono |
 | Backend | Next.js API Routes (Node.js 20+) |
-| Hosting | Hostinger shared — Git deploy (prototipe; build via `next build --webpack`, lihat architecture.md §2) |
+| Hosting | Hostinger shared — Git deploy (prototipe; build `next build --webpack` + config `next.config.mjs`, lihat architecture.md §2) |
 | Database | Supabase (PostgreSQL 15 + RLS) |
 | Auth | Supabase Auth |
 | Storage | Supabase Storage (photos, thumbs, frames, zips) |

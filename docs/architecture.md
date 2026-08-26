@@ -2,7 +2,7 @@
 
 *Versi: 1.3 · Tanggal: 2026-08-26 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
-*Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, cron via pinger eksternal. Detail §2, §9, §10, §12.*
+*Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 
 ---
 
@@ -64,7 +64,7 @@
 
 | Keputusan | Pilihan | Alasan |
 |-----------|---------|--------|
-| Framework | Next.js 16 (App Router), build via Webpack (`next build --webpack`) | Full-stack (SSR + API Routes); Turbopack build butuh glibc ≥ 2.29 — tidak didukung builder Hostinger shared (vercel/next.js#96960) |
+| Framework | Next.js 16 (App Router), build via Webpack (`next build --webpack`), config `next.config.mjs` | Full-stack (SSR + API Routes). Turbopack & load config TS butuh SWC native glibc ≥ 2.29 — tidak tersedia di builder Hostinger shared; fallback WASM gagal di tahap kompilasi config (vercel/next.js#96960). `.mjs` = tanpa transpile config |
 | UI | Tailwind CSS 4 + Radix UI + Lucide Icons | Komponen accessible, konsisten, cepat |
 | Database | Supabase (PostgreSQL 15) | SQL relasional cocok, RLS built-in, free tier generous |
 | Auth | Supabase Auth | Email/password, terintegrasi langsung dengan DB & RLS |
