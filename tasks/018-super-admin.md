@@ -37,6 +37,7 @@ Supabase Dashboard.
 | `/admin/vendors` | Daftar vendor + pencarian + aksi ganti tier |
 | `/admin/events` | Semua event + filter status + aksi nonaktifkan |
 | `/admin/events/[eventId]` | Detail + grid foto + hapus foto (soft delete) |
+| `/admin/seo` | Hub SEO & analytics 5 tab (SEO/GEO, Analytics, Marketing, Event Monitor, UTM) — detail architecture.md §3.2 |
 
 ### API
 | Endpoint | Fungsi |

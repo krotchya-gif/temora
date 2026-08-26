@@ -349,7 +349,22 @@ zips/{event_id}/temora-{slug}.zip
 | AI consent (Phase 2) | Opt-in eksplisit sebelum fitur segmentasi/AR memproses wajah |
 | No facial recognition | Hanya segmentasi & landmark — tidak pernah identifikasi individu |
 
-## 8. Aturan Umum (wajib)
+## 8. Tabel Pendukung Marketing/SEO (migrasi 0020–0021)
+
+| Tabel/Kolom | Akses | Isi |
+|---|---|---|
+| `platform_settings` (+key SEO/tracking) | Public read (memang untuk halaman publik) | `seo_title/description/keywords/og_image`, `robots_content`, `sitemap_content`, `ai_crawlers_block` (koma), `geo_lat/lng`, `tracking_ga4_id/gtm_id/clarity_id/pixel_id/ads_id/tiktok_id`, `gsc_verification`, `tracking_ga4_property_id`, `tracking_gsc_site_url` |
+| `admin_secrets` | **Tanpa public read** — hanya service role + API superadmin | `ga_service_account` (JSON service account GA4/GSC) — **rahasia, dilarang keluar ke client** |
+| `event_logs` | Anon **insert-only** (`status='pending'`); read/update superadmin | Event konversi marketing: `wa_click`, `upgrade_click`, `payment_success` |
+| `utm_visits` | Anon insert-only | Kunjungan kampanye `?utm_*` |
+| `subscriptions.utm_source` | — | Atribusi konversi kampanye (diisi checkout bila client punya UTM) |
+
+> ⚠️ Jangan pernah menaruh rahasia (service account, token) di `platform_settings` —
+> tabel itu **public read**. Sekret wajib di `admin_secrets` (anti-pattern
+> `USING(true)` dilarang keras di sana, database.md §4).
+> Konsumen publik & pola pembuatan: `docs/research/seo-admin-reference.md`.
+
+## 9. Aturan Umum (wajib)
 
 1. Semua string user-generated di-sanitize (strip `< > \``, batasi panjang).
 2. Tulisan multi-step (upload file + insert row) → transaksi / RPC supaya atomik.
@@ -357,7 +372,7 @@ zips/{event_id}/temora-{slug}.zip
 4. Migrasi via `supabase migration` files — tidak ada DDL manual di dashboard.
 5. TTL foto: job harian hapus foto event yang `expires_at` sudah lewat (Storage + row).
 
-## 9. Migration Strategy
+## 10. Migration Strategy
 
 - Gunakan Supabase CLI: `supabase migration new <name>` → edit file → `supabase db push`.
 - **Never** edit migration yang sudah applied — selalu buat migration baru.

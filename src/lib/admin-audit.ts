@@ -14,7 +14,8 @@ export type AdminAction =
   | "edit_settings"
   | "showcase_upload"
   | "showcase_edit"
-  | "showcase_delete";
+  | "showcase_delete"
+  | "event_retry";
 
 export async function logAdminAction(input: {
   actorId: string;

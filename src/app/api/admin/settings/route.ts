@@ -7,16 +7,97 @@ import { logAdminAction } from "@/lib/admin-audit";
 export const runtime = "nodejs";
 
 const patchSchema = z.object({
-  // Partial: kirim hanya key yang berubah (Zod record-enum menuntut lengkap).
-  settings: z.object({
-    social_instagram: z.string().max(300).optional(),
-    social_tiktok: z.string().max(300).optional(),
-    social_facebook: z.string().max(300).optional(),
-  }),
+  settings: z.record(z.string(), z.string()),
 });
 
-// PATCH /api/admin/settings — simpan pengaturan platform (KV, task sosial media).
-// Key di-whitelist; nilai kosong = fitur disembunyikan dari footer.
+// Whitelist key — key di luar daftar ini ditolak (KV aman dari injeksi key baru).
+const ALLOWED_KEYS = new Set([
+  // Sosial footer (task sosial media).
+  "social_instagram",
+  "social_tiktok",
+  "social_facebook",
+  // SEO & GEO (tab SEO — /admin/seo).
+  "seo_title",
+  "seo_description",
+  "seo_keywords",
+  "seo_og_image",
+  "robots_content",
+  "sitemap_content",
+  "ai_crawlers_block",
+  "geo_lat",
+  "geo_lng",
+  // Analytics / Ads / GSC.
+  "tracking_ga4_id",
+  "tracking_gtm_id",
+  "tracking_clarity_id",
+  "tracking_pixel_id",
+  "tracking_ads_id",
+  "tracking_tiktok_id",
+  "gsc_verification",
+  "tracking_ga4_property_id",
+  "tracking_gsc_site_url",
+]);
+
+const URL_KEYS = new Set([
+  "social_instagram",
+  "social_tiktok",
+  "social_facebook",
+  "seo_og_image",
+]);
+
+const ID_KEYS = new Set([
+  "tracking_ga4_id",
+  "tracking_gtm_id",
+  "tracking_clarity_id",
+  "tracking_pixel_id",
+  "tracking_ads_id",
+  "tracking_tiktok_id",
+  "gsc_verification",
+]);
+
+const COORD_KEYS = new Set(["geo_lat", "geo_lng"]);
+
+const TEXT_LIMITS: Record<string, number> = {
+  seo_title: 200,
+  seo_description: 400,
+  seo_keywords: 500,
+  ai_crawlers_block: 2000,
+  robots_content: 20_000,
+  sitemap_content: 50_000,
+};
+
+const ID_PATTERN = /^[A-Za-z0-9_-]{4,64}$/;
+const COORD_PATTERN = /^-?\d+(\.\d+)?$/;
+
+function validateValue(key: string, value: string): string | null {
+  if (URL_KEYS.has(key)) {
+    if (value && !/^https?:\/\//.test(value)) {
+      return "URL harus dimulai http:// atau https://";
+    }
+    return null;
+  }
+  if (ID_KEYS.has(key)) {
+    if (value && !ID_PATTERN.test(value)) {
+      return "ID hanya huruf/angka/dash/underscore (4–64 karakter).";
+    }
+    return null;
+  }
+  if (COORD_KEYS.has(key)) {
+    if (value && !COORD_PATTERN.test(value)) {
+      return "Koordinat harus angka desimal (mis. -6.200000).";
+    }
+    return null;
+  }
+  const limit = TEXT_LIMITS[key];
+  if (limit && value.length > limit) {
+    return `Maksimal ${limit.toLocaleString("id-ID")} karakter.`;
+  }
+  return null;
+}
+
+// PATCH /api/admin/settings — simpan pengaturan platform (KV whitelist).
+// Validasi per-key: URL / ID / koordinat / teks (bukan URL global — robots_content
+// dan sitemap_content bukan URL). Key non-whitelist ditolak.
 export async function PATCH(request: Request) {
   const actor = await getSuperAdminOrNull();
   if (!actor) {
@@ -33,12 +114,15 @@ export async function PATCH(request: Request) {
   if (entries.length === 0) {
     return NextResponse.json({ error: "Tidak ada perubahan." }, { status: 400 });
   }
-  for (const [, value] of entries) {
-    if (value && !/^https?:\/\//.test(value)) {
-      return NextResponse.json(
-        { error: "URL harus dimulai http:// atau https://" },
-        { status: 400 },
-      );
+  for (const [key] of entries) {
+    if (!ALLOWED_KEYS.has(key)) {
+      return NextResponse.json({ error: `Key tidak dikenal: ${key}` }, { status: 400 });
+    }
+  }
+  for (const [key, value] of entries) {
+    const problem = validateValue(key, value);
+    if (problem) {
+      return NextResponse.json({ error: `${key}: ${problem}` }, { status: 400 });
     }
   }
 

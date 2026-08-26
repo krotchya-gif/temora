@@ -5,6 +5,8 @@ import {
   Plus_Jakarta_Sans,
 } from "next/font/google";
 import { MonitoringProvider } from "@/components/MonitoringProvider";
+import { SeoScripts } from "@/components/SeoScripts";
+import { appUrl, getPublicSettings } from "@/lib/seo-settings";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -26,24 +28,50 @@ const jetbrains = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  ),
-  title: {
-    default: "TEMORA — Virtual Photobooth for Every Moment",
-    template: "%s · TEMORA",
-  },
-  description:
-    "Capture the moments that matter with TEMORA, a virtual photobooth experience for weddings, birthdays, gatherings, and special events.",
-  openGraph: {
-    type: "website",
-    locale: "id_ID",
-    siteName: "TEMORA",
-    // PNG — scraper WA/FB/X tidak merender SVG.
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "TEMORA" }],
-  },
-};
+// Metadata dinamis dari platform_settings (tab SEO — /admin/seo).
+// Fallback = nilai statis BRAND.md §10 bila key kosong / build tanpa env.
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getPublicSettings();
+  const base = appUrl();
+
+  const defaultTitle = "TEMORA — Virtual Photobooth for Every Moment";
+  const defaultDescription =
+    "Capture the moments that matter with TEMORA, a virtual photobooth experience for weddings, birthdays, gatherings, and special events.";
+
+  const title = settings.seo_title?.trim() || defaultTitle;
+  const description = settings.seo_description?.trim() || defaultDescription;
+  const ogImage = settings.seo_og_image?.trim() || "/og.png";
+  const keywords = settings.seo_keywords?.trim()
+    ? settings.seo_keywords.split(",").map((k) => k.trim()).filter(Boolean)
+    : undefined;
+
+  const other: Record<string, string> = {};
+  const gsc = settings.gsc_verification?.trim();
+  if (gsc) other["google-site-verification"] = gsc;
+
+  return {
+    metadataBase: base,
+    title: { default: title, template: "%s · TEMORA" },
+    description,
+    keywords,
+    other,
+    openGraph: {
+      type: "website",
+      locale: "id_ID",
+      siteName: "TEMORA",
+      title,
+      description,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: "TEMORA" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
+    icons: { icon: "/logos/temora-wordmark.svg" },
+  };
+}
 
 export default function RootLayout({
   children,
@@ -58,6 +86,7 @@ export default function RootLayout({
       <body className="min-h-dvh">
         {children}
         <MonitoringProvider />
+        <SeoScripts />
       </body>
     </html>
   );

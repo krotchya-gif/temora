@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Camera, Download, QrCode } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { RopeMoments } from "@/components/marketing/RopeMoments";
+import { TrackedWaCta } from "@/components/marketing/TrackedWaCta";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { getWhatsAppUrl, HOW_IT_WORKS_STEPS } from "@/lib/constants";
@@ -70,9 +71,7 @@ export default async function HomePage() {
               moments worth remembering.
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <Button href={getWhatsAppUrl()} size="lg">
-                Mulai via WhatsApp
-              </Button>
+              <TrackedWaCta href={getWhatsAppUrl()} />
               <Button href="/how-it-works" variant="secondary" size="lg">
                 Lihat Cara Kerja
               </Button>

@@ -28,6 +28,14 @@ export async function POST(request: Request) {
     );
   }
 
+  // Atribusi kampanye UTM (tab UTM — /admin/seo): dikirim client dari
+  // sessionStorage, disimpan ke subscriptions.utm_source untuk laporan.
+  const utmSource =
+    typeof body?.utm_source === "string" &&
+    /^[A-Za-z0-9_-]{1,64}$/.test(body.utm_source)
+      ? body.utm_source
+      : null;
+
   // Setiap call membuat invoice eksternal Xendit — meter ketat per vendor.
   if (!allowRequest(`checkout:${user.id}`, 3)) {
     return NextResponse.json(
@@ -79,6 +87,7 @@ export async function POST(request: Request) {
       tier,
       amount_idr: amountIdr,
       status: "pending",
+      utm_source: utmSource,
     })
     .select("id")
     .single();

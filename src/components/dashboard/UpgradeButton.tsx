@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { trackEvent } from "@/lib/tracking";
 
 type UpgradeButtonProps = {
   tier: "basic" | "pro";
@@ -15,11 +16,18 @@ export function UpgradeButton({ tier }: UpgradeButtonProps) {
   async function checkout() {
     setBusy(true);
     setError(null);
+    void trackEvent("upgrade_click", `upgrade_${tier}`, "/dashboard/billing");
     try {
+      let utmSource: string | null = null;
+      try {
+        utmSource = sessionStorage.getItem("utm_source");
+      } catch {
+        utmSource = null;
+      }
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, utm_source: utmSource }),
       });
       const data = (await res.json().catch(() => null)) as {
         paymentUrl?: string;

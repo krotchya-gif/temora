@@ -177,6 +177,7 @@ supabase/
 > | `/admin/events/[eventId]` | Detail event + moderasi foto |
 > | `/admin/showcase` | Kurasi foto Moments: upload/edit/hapus/urutkan |
 | `/admin/settings` | Pengaturan platform (URL sosial media footer) |
+| `/admin/seo` | Hub SEO & analytics 5 tab (meta/robots/sitemap/tracking/event/UTM) — detail `docs/research/seo-admin-reference.md` |
 > | `/admin/audit` | Feed jejak audit admin (terpaginasi) |
 >
 > Prinsip peran terpisah (task 019): superadmin **tidak** bisa membuka
@@ -216,7 +217,12 @@ supabase/
 | `/api/admin/events/[eventId]/status` | PATCH | Set is_active event | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/photos/[photoId]` | DELETE | Soft delete foto (moderasi) | Superadmin (404 mask) |
 | `/api/admin/showcase` | POST/PATCH/DELETE | Kurasi foto Moments (upload/edit/hapus) | Superadmin (404 mask) |
-| `/api/admin/settings` | PATCH | Simpan platform_settings (KV whitelist) | Superadmin (404 mask) |
+| `/api/admin/settings` | PATCH | Simpan platform_settings (KV whitelist, validasi per-key) | Superadmin (404 mask) |
+| `/api/admin/secrets` | PUT | Simpan rahasia (service account GA4/GSC) — nilai tidak pernah dikembalikan | Superadmin (404 mask) |
+| `/api/admin/analytics/stats` | GET | Angka GA4 + GSC real (server-side, cache 5 mnt) | Superadmin (404 mask) |
+| `/api/admin/events` | GET | 100 event konversi marketing terakhir | Superadmin (404 mask) |
+| `/api/admin/events/[eventId]/retry` | POST | Tandai event terkirim (retry manual) | Superadmin (404 mask) |
+| `/api/admin/utm/report` | GET | Laporan kunjungan + konversi per source kampanye | Superadmin (404 mask) |
 
 ---
 
@@ -443,7 +449,7 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `NEXT_PUBLIC_SUPABASE_URL` | client + server | 001 | URL project Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | 001 | Anon key (RLS enforced) |
 | `SUPABASE_SERVICE_ROLE_KEY` | server only | 001 | Service role — `admin.ts` saja |
-| `NEXT_PUBLIC_APP_URL` | client | 001 | Base URL app (`http://localhost:3000` dev, `https://temora.id` prod) — QR & redirect |
+| `NEXT_PUBLIC_APP_URL` | client | 001 | Base URL app (`http://localhost:3000` dev, `https://temora.id` prod) — QR & redirect & metadataBase. **Produksi wajib `https://`** (og:image dsb. ditolak scraper bila http) |
 | `XENDIT_SECRET_KEY` | server | 008 | API key Xendit |
 | `XENDIT_WEBHOOK_TOKEN` | server | 008 | Verifikasi callback webhook |
 | `XENDIT_API_BASE` | server | 008 | Base URL API Xendit (default `https://api.xendit.co`) — override untuk sandbox |

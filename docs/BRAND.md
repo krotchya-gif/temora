@@ -258,6 +258,14 @@ Location pages dapat dikembangkan berdasarkan area operasional, misalnya:
 
 > A virtual photobooth made for the people, laughter, and little moments worth remembering.
 
+### Pengelolaan SEO (level admin)
+
+Nilai meta title/description/keywords/OG image, isi `robots.txt`/`sitemap.xml`,
+blokir bot AI, koordinat GEO, ID tracking (GA4/GTM/Clarity/pixel), dan kampanye
+UTM **dikelola superadmin via `/admin/seo`** (KV `platform_settings`, lihat
+`database.md` §8). Nilai di §10 di atas adalah **fallback default** bila key
+kosong. Detail teknis: `architecture.md` §3.2 & `docs/research/seo-admin-reference.md`.
+
 ---
 
 ## 11. Website Structure

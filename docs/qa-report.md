@@ -141,6 +141,12 @@ Checklist regresi storage (wajib setelah migrasi):
 - [ ] Cron TTL & purge event/vendor masih menghapus objek benar (tanpa asumsi prefix)
 - [ ] Capture foto rasio **3:4** (1080×1440) lintas device; frame 3:4 menutupi penuh (design-system §3.3)
 
+Fitur baru 2026-08-26: `/admin/seo` (5 tab: SEO/GEO, Analytics, Marketing, Event Monitor, UTM) —
+migrasi 0020–0021 (platform_settings + admin_secrets + event_logs + utm_visits +
+subscriptions.utm_source). Verifikasi: robots.txt/sitemap.xml dinamis 200, meta/OG/twitter
+dari settings, noindex `/p/*`, JSON-LD Organization/WebSite, GA4/GSC stats (butuh service account),
+event wa_click/upgrade_click/payment_success, laporan UTM.
+
 Smoke API end-to-end: signup(admin-create karena throttle email Supabase ~2/jam) → login → create event → generate meja → upload tamu → dedup → saved → galeri → signed URL 200 → QR SVG 200 → scan RPC → halaman `/p/...` 200 → delete event (purge storage). Advisors security/performance bersih (sisa INFO unused-index wajar).
 
 Masih PENDING: E2E Playwright penuh, device lab, Lighthouse ≥85, isolasi lintas-vendor via 2 user, Xendit sandbox flow, kirim WA nyata (butuh token). Deploy prototipe Hostinger sudah live (task 015).

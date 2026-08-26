@@ -73,6 +73,16 @@ export async function POST(request: Request) {
       .update({ subscription_tier: subscription.tier })
       .eq("id", subscription.vendor_id);
 
+    // Event konversi marketing (tab Event Monitor — /admin/seo).
+    await admin.from("event_logs").insert({
+      event_name: "payment_success",
+      label: `pembayaran_${subscription.tier}`,
+      page: "/dashboard/billing",
+      value: { vendor_id: subscription.vendor_id, tier: subscription.tier },
+      status: "sent",
+      provider: "xendit",
+    });
+
     void enqueueWa(subscription.vendor_id, "payment_ok", {
       tier: subscription.tier,
       periodEnd: periodEnd.toISOString(),
