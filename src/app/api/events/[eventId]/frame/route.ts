@@ -123,8 +123,8 @@ export async function POST(
     );
   }
 
-  // Path convention database.md §6: frames/{vendor_id}/{event_id}/frame.png
-  const path = `frames/${event.vendor_id}/${event.id}/frame.png`;
+  // Path convention database.md §6 — key relatif bucket frames: {vendor_id}/{event_id}/frame.png
+  const path = `${event.vendor_id}/${event.id}/frame.png`;
   const admin = createAdminClient();
 
   const { error: uploadError } = await admin.storage

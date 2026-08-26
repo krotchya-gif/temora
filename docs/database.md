@@ -324,6 +324,13 @@ frames/{vendor_id}/{event_id}/frame.png
 zips/{event_id}/temora-{slug}.zip
 ```
 
+> ⚠️ **Key = relatif terhadap bucket, DILARANG menyertakan nama bucket sebagai
+> folder di dalam key.** Bug 2026-08-26: upload memakai `photos/{...}` dst. ke dalam
+> bucket-nya sendiri → URL publik `thumbs`/`frames`/`showcase` jadi double-prefix
+> → 404 (thumb & frame tak tampil). Key privat `photos`/`zips` selamat karena
+> signed URL memakai key yang sama persis. Fix: kode + migrasi key existing
+> (`scripts/migrate-storage-prefix.mjs`, catatan di qa-report).
+
 ## 7. Data Retention & Privacy
 
 | Policy | Rule |

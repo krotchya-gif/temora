@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   }
   const contentType = file.type === "image/png" ? "image/png" : "image/jpeg";
   const ext = contentType === "image/png" ? "png" : "jpg";
-  const path = `showcase/${ulid()}.${ext}`;
+  const path = `${ulid()}.${ext}`;
 
   const admin = createAdminClient();
   const { error: upError } = await admin.storage

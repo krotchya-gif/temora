@@ -39,16 +39,8 @@ export async function GET(request: Request) {
     .lt("expires_at", now.toISOString());
 
   for (const event of expiredEvents ?? []) {
-    summary.removedObjects += await removePrefix(
-      admin,
-      "photos",
-      `photos/${event.id}`,
-    );
-    summary.removedObjects += await removePrefix(
-      admin,
-      "thumbs",
-      `thumbs/${event.id}`,
-    );
+    summary.removedObjects += await removePrefix(admin, "photos", event.id);
+    summary.removedObjects += await removePrefix(admin, "thumbs", event.id);
     const { error } = await admin
       .from("photos")
       .delete()
@@ -67,13 +59,13 @@ export async function GET(request: Request) {
     .limit(1000);
 
   for (const photo of stale ?? []) {
-    const paths = [photo.storage_path, photo.thumb_path].filter(
-      (p): p is string => Boolean(p),
-    );
-    if (paths.length > 0) {
-      await admin.storage.from("photos").remove(paths.filter((p) => p.startsWith("photos/")));
-      await admin.storage.from("thumbs").remove(paths.filter((p) => p.startsWith("thumbs/")));
-      summary.removedObjects += paths.length;
+    if (photo.storage_path) {
+      await admin.storage.from("photos").remove([photo.storage_path]);
+      summary.removedObjects += 1;
+    }
+    if (photo.thumb_path) {
+      await admin.storage.from("thumbs").remove([photo.thumb_path]);
+      summary.removedObjects += 1;
     }
     const { error } = await admin.from("photos").delete().eq("id", photo.id);
     if (!error) summary.hardDeletedRows += 1;

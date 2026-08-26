@@ -139,10 +139,10 @@ export async function POST(
     }
   }
 
-  // Path convention database.md §6.
+  // Path convention database.md §6 — key relatif bucket, tanpa prefix nama bucket.
   const fileId = ulid();
-  const photoPath = `photos/${event.id}/${tableId}/${fileId}.jpg`;
-  const thumbPath = `thumbs/${event.id}/${fileId}_320.jpg`;
+  const photoPath = `${event.id}/${tableId}/${fileId}.jpg`;
+  const thumbPath = `${event.id}/${fileId}_320.jpg`;
 
   const { error: photoError } = await admin.storage
     .from("photos")

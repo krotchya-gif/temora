@@ -147,10 +147,10 @@ export async function DELETE(
   // Cascade row (tables/photos) lewat FK; bersihkan objek Storage.
   // MVP: purge langsung di request (volume wajar); job async menyusul bila perlu.
   try {
-    await removePrefix(admin, "photos", `photos/${event.id}`);
-    await removePrefix(admin, "thumbs", `thumbs/${event.id}`);
-    await removePrefix(admin, "frames", `frames/${event.vendor_id}/${event.id}`);
-    await removePrefix(admin, "zips", `${event.id}`);
+    await removePrefix(admin, "photos", event.id);
+    await removePrefix(admin, "thumbs", event.id);
+    await removePrefix(admin, "frames", `${event.vendor_id}/${event.id}`);
+    await removePrefix(admin, "zips", event.id);
   } catch (err) {
     console.error("[events.delete] storage purge:", err);
   }

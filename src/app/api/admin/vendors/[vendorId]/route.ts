@@ -129,19 +129,15 @@ export async function DELETE(
     .eq("vendor_id", vendorId);
 
   for (const event of events ?? []) {
-    for (const prefix of [
-      `photos/${event.id}`,
-      `thumbs/${event.id}`,
-      `zips/${event.id}`,
-      `frames/${vendorId}/${event.id}`,
-    ]) {
-      const removed = await removePrefix(
-        admin,
-        prefix.split("/")[0],
-        prefix,
-      );
+    for (const [bucket, prefix] of [
+      ["photos", event.id],
+      ["thumbs", event.id],
+      ["zips", event.id],
+      ["frames", `${vendorId}/${event.id}`],
+    ] as const) {
+      const removed = await removePrefix(admin, bucket, prefix);
       if (removed > 0) {
-        console.info(`[admin] purge ${prefix}: ${removed} objek`);
+        console.info(`[admin] purge ${bucket}/${prefix}: ${removed} objek`);
       }
     }
   }
