@@ -8,7 +8,7 @@ type MomentsGridProps = {
   items: MomentCard[];
 };
 
-// Grid + lightbox galeri publik /moments (todo.md — pola Chiffon /galeri).
+// Grid + lightbox galeri publik /moments (pola Chiffon /galeri).
 export function MomentsGrid({ items }: MomentsGridProps) {
   const [active, setActive] = useState<MomentCard | null>(null);
 

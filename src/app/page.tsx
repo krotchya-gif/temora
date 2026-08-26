@@ -38,7 +38,7 @@ const valueProps = [
 ];
 
 export default async function HomePage() {
-  // 24 momen kurasi terbaru untuk rope (todo.md — showcase moments).
+  // 24 momen kurasi terbaru untuk rope (showcase moments).
   const supabase = await createClient();
   const { data: showcase } = await supabase
     .from("showcase_photos")

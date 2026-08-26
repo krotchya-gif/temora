@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
-// POST — upload foto kurasi (multipart: file + title + caption?) (todo.md).
+// POST — upload foto kurasi (multipart: file + title + caption?) (docs/qa-report.md §7).
 export async function POST(request: Request) {
   const actor = await getSuperAdminOrNull();
   if (!actor) {

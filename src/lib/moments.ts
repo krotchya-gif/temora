@@ -1,4 +1,4 @@
-// Model kartu momen showcase + resolver URL gambar satu pintu (todo.md).
+// Model kartu momen showcase + resolver URL gambar satu pintu (docs/qa-report.md §7).
 // Prioritas: external_url (placeholder Unsplash/Wikimedia/picsum) →
 // objek storage bucket publik 'showcase' (upload superadmin).
 

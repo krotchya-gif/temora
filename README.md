@@ -32,6 +32,8 @@ Temora Photos/
 │   ├── architecture.md             stack, routes, data flow, AI ref, monitoring
 │   ├── design-system.md            tokens, komponen, motion, microcopy, anti-slop
 │   ├── database.md                 skema SQL, RLS, storage, retention
+│   ├── pendoman.md                 panduan pemakaian aplikasi (role, flow, ops)
+│   ├── qa-report.md                log QA + arsip spesifikasi fitur
 │   └── research/
 │       └── competitor-analysis.md  riset Invrame, Photobooth.ID, Framebooth
 └── tasks/                      ← EKSEKUSI (berurutan)
@@ -92,3 +94,17 @@ Temora Photos/
 
 - Riset kompetitor: `docs/research/competitor-analysis.md`
 - Aturan anti-slop UI: tergabung di `docs/design-system.md` §11
+
+
+---
+
+## Catatan Setup Test (lokal saja)
+
+File konfigurasi test (`vitest.config.ts`, `playwright.config.ts`) dan hasilnya
+(`test-results/`, `playwright-report/`) sengaja **tidak dipush** — bersifat
+lokal. Salin dari mesin lama atau tulis ulang di mesin baru:
+
+- `vitest.config.ts` → include `tests/unit`
+- `playwright.config.ts` → baseURL `localhost:3100`, webServer `npm run dev -- --port 3100`
+
+CI menjalankan unit test langsung: `npx vitest run tests/unit`.

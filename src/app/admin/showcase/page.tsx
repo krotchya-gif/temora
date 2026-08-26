@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
-// Kurasi galeri publik /moments + sumber rope landing (todo.md).
+// Kurasi galeri publik /moments + sumber rope landing (docs/qa-report.md §7).
 export default async function AdminShowcasePage() {
   const admin = createAdminClient();
   const { data } = await admin

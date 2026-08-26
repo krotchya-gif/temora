@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// Task showcase/todo.md — uji objektif fisika tali momen di landing publik.
+// Task showcase — docs/qa-report.md §7 — uji objektif fisika tali momen di landing publik.
 // Tidak butuh backend/seed (halaman marketing), tapi tetap ikut gate E2E
 // agar konsisten dengan konvensi task 016.
 test.skip(!process.env.E2E_ENABLED, "E2E aktif hanya dengan E2E_ENABLED=1");

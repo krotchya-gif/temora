@@ -44,4 +44,10 @@ supabase/.temp
 
 # zcode
 /.zcode/
+
+# test — lokal saja (config & hasil tidak dipush)
 test-results/
+playwright-report/
+blob-report/
+vitest.config.ts
+playwright.config.ts

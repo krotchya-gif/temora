@@ -34,8 +34,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Config vitest bersifat lokal (gitignored) — target eksplisit.
       - name: Unit tests
-        run: npm run test
+        run: npx vitest run tests/unit
 
   e2e:
     # Jalur kritis tamu/vendor/billing — butuh backend & seed nyata.
