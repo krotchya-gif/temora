@@ -6,10 +6,9 @@ import { Facebook, Instagram } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/constants";
 
+// Footer sengaja TIDAK menduplikasi nav header — hanya legal & FAQ.
 const footerLinks = [
-  { href: "/how-it-works", label: "Cara Kerja" },
-  { href: "/moments", label: "Moments" },
-  { href: "/pricing", label: "Harga" },
+  { href: "/faq", label: "FAQ" },
   { href: "/privacy", label: "Privasi" },
   { href: "/terms", label: "Syarat" },
 ];
@@ -81,8 +80,24 @@ export function MarketingFooter() {
               Virtual photobooth untuk wedding, ulang tahun, dan acara spesial.
             </p>
 
+          </div>
+
+          <nav className="flex flex-col items-start gap-5 sm:items-end">
+            <ul className="flex flex-col items-start gap-y-3 sm:items-end">
+              {footerLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-text-secondary transition-colors hover:text-accent"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
             {socials.length > 0 && (
-              <div className="flex items-center gap-3 pt-1">
+              <div className="flex items-center gap-3">
                 {socials.map(({ key, label, url, Icon }) => (
                   <a
                     key={key}
@@ -97,18 +112,6 @@ export function MarketingFooter() {
                 ))}
               </div>
             )}
-          </div>
-
-          <nav className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4">
-            {footerLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm text-text-secondary transition-colors hover:text-accent"
-              >
-                {link.label}
-              </Link>
-            ))}
           </nav>
         </div>
 

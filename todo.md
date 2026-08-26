@@ -86,3 +86,13 @@
 
 Catatan verifikasi: upload "grand luley" milik owner sebelumnya TERSIMPAN di DB —
 yang gagal hanyalah render setelah refresh; kini aman.
+
+## Ronde 3 (2026-08-26) — motion real + footer
+1. **Fisika rope**: jalur reduced-motion tak lagi mematikan inersia total
+   (akar "motion tidak ada" bila OS Reduce Motion aktif) — kini diredam
+   (0.75/frame, vel×0.2 lepas) sesuai perilaku Chiffon.
+2. **Ikon sosial** dipindah ke kolom navigasi footer (kanan, di bawah link).
+3. **Footer links** tak lagi menduplikasi nav header → FAQ · Privasi · Syarat.
+4. Halaman baru `/faq` (7 accordion native `<details>`, SEO metadata).
+5. Uji objektif fisika rope: `tests/e2e/rope.spec.ts` (drag → track bergeser
+   >150px; inersia meluncur; varian reducedMotion tetap berfungsi).

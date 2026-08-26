@@ -268,7 +268,6 @@ export function RopeMoments({ items }: RopeMomentsProps) {
   }, [cards]);
 
   useAnimationFrame((_, delta) => {
-    if (reduce) return; // reduced-motion: tanpa inersia (design-system §5)
     const d = drag.current;
     if (d.dragging) return;
     if (Math.abs(d.vel) < 0.25) {
@@ -277,7 +276,8 @@ export function RopeMoments({ items }: RopeMomentsProps) {
     }
     const dt = Math.min(delta, 50) / 1000;
     offset.set(wrap(offset.get() + d.vel * dt));
-    d.vel *= 0.94;
+    // Reduced-motion: inersia tetap ada tapi glide pendek (design-system §5).
+    d.vel *= reduce ? 0.75 : 0.94;
   });
 
   const handleOpen = (item: MomentCard, layoutKey: string) => {
@@ -311,11 +311,11 @@ export function RopeMoments({ items }: RopeMomentsProps) {
     const endDrag = () => {
       if (!d.dragging) return;
       d.dragging = false;
-      if (reduce) d.vel = 0;
+      if (reduce) d.vel *= 0.2; // glide pendek, bukan mati total
     };
     const onWheel = (e: WheelEvent) => {
       const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      if (!dx || reduce) return;
+      if (!dx) return;
       e.preventDefault();
       offset.set(wrap(offset.get() + dx));
     };
@@ -362,6 +362,7 @@ export function RopeMoments({ items }: RopeMomentsProps) {
 
         <div
           ref={viewportRef}
+          data-testid="rope-viewport"
           className="relative cursor-grab select-none overflow-x-hidden active:cursor-grabbing"
           style={{ touchAction: "pan-y" }}
         >

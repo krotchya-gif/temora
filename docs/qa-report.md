@@ -168,3 +168,11 @@ Chiffon, re-theme token penuh). Migrasi 0016 (tabel + bucket publik
 magic-byte (HTML menyamar → 415), soft-delete menyembunyikan konten publik,
 purge objek storage, guard superadmin/origin/audit konsisten task 019.
 Entri uji dibersihkan setelah verifikasi.
+
+## 6g. Tali Momen — motion real + footer (2026-08-26)
+Temuan user: rope terasa tanpa motion. Akar: jalur prefers-reduced-motion
+mematikan inersia total (vel=0) — aktif bila OS Reduce Motion menyala.
+Fix: meredam bukan mematikan (friksi 0.75, vel×0.2) + uji Playwright
+objektif (drag → displacement & glide dinilai otomatis, dua konteks).
+Footer dirapikan: ikon sosial ke kanan-bawah nav, link tak duplikat header,
+halaman /faq baru.
