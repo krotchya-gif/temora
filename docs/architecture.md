@@ -1,7 +1,8 @@
 # Architecture — TEMORA
 
-*Versi: 1.2 · Tanggal: 2026-08-25 · Status: Approved*
+*Versi: 1.3 · Tanggal: 2026-08-26 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
+*Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, cron via pinger eksternal. Detail §2, §9, §10, §12.*
 
 ---
 
@@ -24,7 +25,7 @@
 └────────────────────────────┼────────────────────────────────────┘
                              │ HTTPS
 ┌────────────────────────────┼────────────────────────────────────┐
-│                     VERCEL EDGE NETWORK                        │
+│                HOSTING (PROTOTIPE: HOSTINGER SHARED)           │
 │                                                                 │
 │  ┌─────────────────────────┴────────────────────────────────┐  │
 │  │           Next.js API Routes (Node.js 20)                │  │
@@ -63,12 +64,12 @@
 
 | Keputusan | Pilihan | Alasan |
 |-----------|---------|--------|
-| Framework | Next.js 16 (App Router) | Full-stack (SSR + API Routes), best DX untuk Vercel |
+| Framework | Next.js 16 (App Router), build via Webpack (`next build --webpack`) | Full-stack (SSR + API Routes); Turbopack build butuh glibc ≥ 2.29 — tidak didukung builder Hostinger shared (vercel/next.js#96960) |
 | UI | Tailwind CSS 4 + Radix UI + Lucide Icons | Komponen accessible, konsisten, cepat |
 | Database | Supabase (PostgreSQL 15) | SQL relasional cocok, RLS built-in, free tier generous |
 | Auth | Supabase Auth | Email/password, terintegrasi langsung dengan DB & RLS |
 | Storage | Supabase Storage | Foto, frame, ZIP — terintegrasi dengan RLS |
-| Hosting | Vercel | Edge network, CDN global, zero-config deploy, Cron Jobs |
+| Hosting | Hostinger shared — Git deploy (tahap prototipe) | Biaya nol tambahan selama MVP belum monetisasi; re-evaluasi Vercel/VPS sebelum launch gate (task 015–017) |
 | Payment | Xendit | Invoice + payment link + webhook, populer di Indonesia |
 | WhatsApp | WhatsApp Business Cloud API | Notifikasi ke vendor + deep-link aktivasi |
 | QR Code | `qrcode` (npm) | Ringan, generate SVG/PNG server-side |
@@ -317,7 +318,7 @@ Detail aturan terkunci: `docs/database.md` §2.7. Ringkas:
 | **Payment** | Xendit callback token verification + idempotent handler |
 | **WhatsApp** | Tidak kirim data sensitif; throttle & quiet hours |
 | **Photos** | Watermark otomatis saat capture |
-| **Data at rest/in transit** | AES-256 default Supabase + HTTPS forced Vercel |
+| **Data at rest/in transit** | AES-256 default Supabase + HTTPS via SSL hPanel (auto Let's Encrypt) |
 | **Guest privacy** | Consent screen, TTL auto-delete (30 hari), tanpa facial recognition |
 | **Input** | Sanitize string user-generated; zod validation di semua form/API |
 
@@ -335,7 +336,7 @@ Detail aturan terkunci: `docs/database.md` §2.7. Ringkas:
 - Spike upload → client-side compression + IndexedDB queue
 - ZIP generation berat → background job + polling (bukan blok request)
 - Storage free tier 1GB → monitor pemakaian; ≥ 80% (~800MB) langsung upgrade Supabase Pro $25/bln (checklist task 015 + runbook)
-- CDN → Vercel Edge untuk static assets + frame PNG
+- CDN → static assets + frame PNG diserve langsung hosting (upgrade ke CDN/Vercel Edge saat launch)
 
 ---
 
@@ -405,10 +406,10 @@ export async function createFaceLandmarker() {
 | Layer | Tool | Cakupan |
 |---|---|---|
 | Error tracking | Sentry | Frontend + API routes, alert critical errors |
-| Logs | Vercel Logs | Request, error, deployment |
+| Logs | Log Node app di hPanel (Hostinger) | Request, error, deployment |
 | DB logs | Supabase Logs | Query lambat, auth events |
 | Uptime | UptimeRobot | Ping `temora.id` tiap 5 menit |
-| Performance | Vercel Analytics | Web vitals halaman photobooth & dashboard |
+| Performance | — (nonaktif sementara) | Vercel Analytics no-op di luar Vercel; aktifkan Sentry perf/alternatif saat upgrade hosting menjelang launch |
 | Billing alerts | Xendit Dashboard + cron reconciliation harian | Webhook gagal / invoice pending > 24 jam |
 
 ---
@@ -422,13 +423,13 @@ Backend:    Next.js API Routes (Node.js 20+)
 Database:   Supabase (PostgreSQL 15)
 Auth:       Supabase Auth (email/password)
 Storage:    Supabase Storage (photos, thumbs, frames, zips)
-Hosting:    Vercel (Edge Network, Serverless Functions, Cron Jobs)
+Hosting:    Hostinger shared, Git deploy (prototipe; build --webpack)
 Payment:    Xendit (invoice, payment link, webhook)
 WhatsApp:   WhatsApp Business Cloud API
 Libraries:  qrcode, jszip, sharp, zod, @supabase/ssr, chart.js (Phase 3)
 Phase 2:    @mediapipe/tasks-vision (segmentation, face landmark)
-CI/CD:      GitHub Actions + Vercel auto-deploy
-Monitoring: Sentry · UptimeRobot · Vercel Analytics
+CI/CD:      GitHub Actions (lint/typecheck/build/test) + Hostinger Git auto-deploy
+Monitoring: Sentry · UptimeRobot · cron-job.org (pinger cron)
 ```
 
 ---
@@ -453,13 +454,15 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `WA_GRAPH_BASE` | server | 009 | Base URL Graph API Meta (default `https://graph.facebook.com`) |
 | `NEXT_PUBLIC_WA_ADMIN_NUMBER` | client | 009/017 | Nomor admin aktivasi (format 62…, tanpa +) |
 | `NEXT_PUBLIC_SENTRY_DSN` | client + server | 015 | Error tracking (fallback `SENTRY_DSN` server-only) |
-| `CRON_SECRET` | server | 015 | Bearer token proteksi Vercel Cron routes |
+| `CRON_SECRET` | server | 015 | Bearer token proteksi route `/api/cron/*` (dipanggil pinger eksternal) |
 
 Secret **tidak pernah** di-commit. Preview & production pakai nilai berbeda (task 015 §4.1).
 
 ---
 
-## 12. Vercel Cron Jobs
+## 12. Cron Jobs (Pinger Eksternal — Tahap Prototipe)
+
+Hosting prototipe (Hostinger shared) tidak menyediakan scheduler HTTP bawaan. Semua job dijadwalkan via **pinger eksternal gratis** (cron-job.org / UptimeRobot) yang memanggil endpoint dengan header `Authorization: Bearer ${CRON_SECRET}`.
 
 | Path | Schedule | Task | Fungsi |
 |------|----------|------|--------|
@@ -469,3 +472,5 @@ Secret **tidak pernah** di-commit. Preview & production pakai nilai berbeda (tas
 | `/api/cron/wa-reminders` | `0 8 * * *` | 008/009 | Reminder H-3/H-0 sebelum `period_end` |
 
 Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
+
+> Saat upgrade hosting menjelang launch (task 015), pindahkan kembali ke scheduler native (Vercel Cron / systemd timer) dan hapus pinger eksternal.

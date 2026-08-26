@@ -13,14 +13,15 @@ Platform SaaS virtual photobooth untuk vendor event (WO, fotografer, EO): tamu s
 | Frontend | Next.js 16 · React 19 · Tailwind CSS 4 · Radix UI |
 | Font | Cormorant Garamond · Plus Jakarta Sans · JetBrains Mono |
 | Backend | Next.js API Routes (Node.js 20+) |
+| Hosting | Hostinger shared — Git deploy (prototipe; build via `next build --webpack`, lihat architecture.md §2) |
 | Database | Supabase (PostgreSQL 15 + RLS) |
 | Auth | Supabase Auth |
 | Storage | Supabase Storage (photos, thumbs, frames, zips) |
 | Payment | Xendit |
 | Notifikasi | WhatsApp Business Cloud API |
 | AI (Phase 2) | MediaPipe Tasks Vision (client-side, lazy-load) |
-| CI/CD | GitHub Actions + Vercel |
-| Monitoring | Sentry · UptimeRobot · Vercel Analytics |
+| CI/CD | GitHub Actions + Hostinger Git auto-deploy |
+| Monitoring | Sentry · UptimeRobot · cron-job.org (pinger cron) |
 
 ## Struktur
 
