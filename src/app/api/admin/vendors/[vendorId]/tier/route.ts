@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { z } from "zod";
 import { getSuperAdminOrNull } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -16,6 +17,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ vendorId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const actor = await getSuperAdminOrNull();
   if (!actor) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

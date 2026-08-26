@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isJpegBuffer } from "@/lib/security";
 import { allowRequest, getClientIp } from "@/lib/rate-limit";
 import { enqueueWa } from "@/lib/whatsapp";
 import { ulid } from "@/lib/ulid";
@@ -35,6 +37,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { eventId } = await params;
 
   const form = await request.formData().catch(() => null);
@@ -52,6 +57,12 @@ export async function POST(
     return jsonError("Data tidak lengkap.", 400);
   }
   if (image.type !== "image/jpeg" || image.size < 1024 || image.size > MAX_UPLOAD_BYTES) {
+    return jsonError("Format foto tidak didukung.", 415);
+  }
+
+  // Magic-byte check — deklarasi MIME client bisa palsu (task 019 §2.3).
+  const imageBuffer = Buffer.from(await image.arrayBuffer());
+  if (!isJpegBuffer(imageBuffer)) {
     return jsonError("Format foto tidak didukung.", 415);
   }
 
@@ -88,17 +99,9 @@ export async function POST(
     return jsonError("Sepertinya tautan ini tidak tepat. Coba scan ulang QR di mejamu, ya.", 404);
   }
 
-  // Dedup dulu: retry offline dengan client_upload_id sama tidak boleh kena rate limit.
-  const existing = await findByClientUploadId(admin, event.id, clientUploadId);
-  if (existing) {
-    return NextResponse.json({
-      ok: true,
-      photoId: existing.id,
-      captureToken: existing.metadata?.capture_token ?? null,
-      duplicate: true,
-    });
-  }
-
+  // Rate limit SEBELUM dedup (task 019): query dedup tak lagi jadi jalur
+  // bebas-biaya bagi spammer dengan UUID acak. Retry offline manusiawi tetap
+  // muat di jendela 12/menit.
   const ipKey = getClientIp(request);
   if (
     !allowRequest(`table:${tableId}`, RATE_LIMIT_PER_MINUTE) ||
@@ -108,6 +111,17 @@ export async function POST(
       "Semangat sekali! Tunggu sebentar ya, lalu lanjut ambil momen berikutnya.",
       429,
     );
+  }
+
+  // Dedup: retry offline dengan client_upload_id sama balik foto yang sama.
+  const existing = await findByClientUploadId(admin, event.id, clientUploadId);
+  if (existing) {
+    return NextResponse.json({
+      ok: true,
+      photoId: existing.id,
+      captureToken: existing.metadata?.capture_token ?? null,
+      duplicate: true,
+    });
   }
 
   if (event.photo_limit !== null) {
@@ -130,7 +144,6 @@ export async function POST(
   const photoPath = `photos/${event.id}/${tableId}/${fileId}.jpg`;
   const thumbPath = `thumbs/${event.id}/${fileId}_320.jpg`;
 
-  const imageBuffer = Buffer.from(await image.arrayBuffer());
   const { error: photoError } = await admin.storage
     .from("photos")
     .upload(photoPath, imageBuffer, { contentType: "image/jpeg" });
@@ -143,12 +156,15 @@ export async function POST(
   let storedThumbPath: string | null = null;
   const thumb = form.get("thumb");
   if (thumb instanceof File && thumb.size > 0 && thumb.size < 512_000) {
-    const { error: thumbError } = await admin.storage
-      .from("thumbs")
-      .upload(thumbPath, Buffer.from(await thumb.arrayBuffer()), {
-        contentType: thumb.type || "image/jpeg",
-      });
-    if (!thumbError) storedThumbPath = thumbPath;
+    // Thumbs = bucket PUBLIK — magic byte wajib & content-type dipaksa
+    // image/jpeg agar tak bisa ditanam text/html/svg (task 019 §2.3).
+    const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
+    if (isJpegBuffer(thumbBuffer)) {
+      const { error: thumbError } = await admin.storage
+        .from("thumbs")
+        .upload(thumbPath, thumbBuffer, { contentType: "image/jpeg" });
+      if (!thumbError) storedThumbPath = thumbPath;
+    }
   }
 
   const captureToken = Array.from(crypto.getRandomValues(new Uint8Array(24)))

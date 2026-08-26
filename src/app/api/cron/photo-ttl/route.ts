@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqualStr } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removePrefix } from "@/lib/storage";
 
@@ -19,7 +20,9 @@ function unauthorized() {
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   const auth = request.headers.get("authorization");
-  if (!secret || auth !== `Bearer ${secret}`) return unauthorized();
+  if (!secret || !timingSafeEqualStr(auth ?? "", `Bearer ${secret}`)) {
+    return unauthorized();
+  }
 
   const admin = createAdminClient();
   const now = new Date();

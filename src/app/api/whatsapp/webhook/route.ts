@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyMetaSignature } from "@/lib/whatsapp";
+import { timingSafeEqualStr } from "@/lib/security";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,13 @@ export async function GET(request: Request) {
   const token = url.searchParams.get("hub.verify_token");
   const challenge = url.searchParams.get("hub.challenge") ?? "";
 
-  if (mode === "subscribe" && token && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+  if (
+    mode === "subscribe" &&
+    token &&
+    verifyToken &&
+    timingSafeEqualStr(token, verifyToken)
+  ) {
     return new NextResponse(challenge, {
       status: 200,
       headers: { "Content-Type": "text/plain" },

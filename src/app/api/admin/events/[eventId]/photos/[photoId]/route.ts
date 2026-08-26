@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { getSuperAdminOrNull } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -8,9 +9,12 @@ export const runtime = "nodejs";
 // (task 018). Soft delete konsisten dengan alur vendor (deleted_at);
 // hard delete tetap tugas cron TTL agar storage purge seragam.
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ eventId: string; photoId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const actor = await getSuperAdminOrNull();
   if (!actor) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

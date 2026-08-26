@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqualStr } from "@/lib/security";
 import { processWaQueue } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
@@ -8,7 +9,7 @@ export const maxDuration = 60;
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   const auth = request.headers.get("authorization");
-  if (!secret || auth !== `Bearer ${secret}`) {
+  if (!secret || !timingSafeEqualStr(auth ?? "", `Bearer ${secret}`)) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 

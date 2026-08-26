@@ -29,11 +29,15 @@ CREATE TABLE vendors (
       CHECK (subscription_tier IN ('free','basic','pro')),
   xendit_customer_id TEXT,
   wa_opt_in BOOLEAN NOT NULL DEFAULT TRUE,
+  banned_at TIMESTAMPTZ,               -- task 019: ban admin; NULL = aktif
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX idx_vendors_banned ON vendors(banned_at) WHERE banned_at IS NOT NULL;
 ```
 > Catatan: `id` = `auth.users.id` (Supabase Auth), disinkronkan via trigger `on_auth_user_created`. **Jangan** buat kolom `password_hash` — auth ditangani penuh Supabase Auth.
+>
+> `banned_at` (task 019): ban admin menolak login baru & memblokir sesi hidup di guard berikutnya, serta **menonaktifkan semua event** vendor (keputusan desain task 019 §2.12). Data tidak dihapus — unban hanya memulihkan login; pengaktifan ulang event manual oleh vendor (hormati batas tier aktif).
 
 ### 2.2 events
 ```sql
@@ -124,6 +128,25 @@ CREATE TABLE whatsapp_logs (
 ```
 
 > Phase 2+ (buat migrasinya nanti, jangan sekarang): `moments` (task 012 — caption + guestbook), `sponsors` (task 013). Tidak dibuat di MVP agar skema tetap ramping.
+
+### 2.6b admin_audit_logs (task 019)
+```sql
+CREATE TABLE admin_audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  actor_email TEXT NOT NULL,           -- snapshot; tahan bila akun terhapus nanti
+  action TEXT NOT NULL,                -- set_tier | edit_vendor | ban_vendor |
+                                       -- unban_vendor | delete_vendor |
+                                       -- set_event_status | delete_photo
+  target_type TEXT NOT NULL,           -- vendor | event | photo
+  target_id TEXT,
+  detail JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_audit_time ON admin_audit_logs(created_at DESC);
+CREATE INDEX idx_audit_target ON admin_audit_logs(target_type, target_id);
+```
+> Append-only: ditulis service role dari API admin; **tanpa policy** INSERT/UPDATE/DELETE untuk role biasa (immutable). Read via policy superadmin (`auth.jwt() -> 'app_metadata' ->> 'role' = 'superadmin'`) atau langsung service-role client di halaman `/admin/audit`.
 
 ### 2.7 Aturan Tier & Limit (terkunci v1.2)
 

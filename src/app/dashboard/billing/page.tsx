@@ -40,20 +40,30 @@ function formatDate(iso: string | null): string {
 
 export default async function BillingPage() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: vendor } = await supabase
+  // Filter eksplisit + RLS v_self (defense in depth, task 019).
+  const { data: vendor, error: vendorError } = await supabase
     .from("vendors")
     .select("subscription_tier")
-    .single();
+    .eq("id", user?.id ?? "")
+    .maybeSingle();
+
+  if (vendorError) {
+    console.error("[billing] vendor:", vendorError.message);
+  }
 
   const currentTier = vendor?.subscription_tier ?? "free";
 
-  // Riwayat invoice (RLS s_owner).
+  // Riwayat invoice — filter eksplisit + RLS s_owner.
   const { data: invoices } = await supabase
     .from("subscriptions")
     .select(
       "id, tier, amount_idr, status, xendit_payment_url, period_end, created_at",
     )
+    .eq("vendor_id", user?.id ?? "")
     .order("created_at", { ascending: false })
     .limit(20);
 

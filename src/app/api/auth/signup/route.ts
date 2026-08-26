@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
+import { allowRequest, getClientIp } from "@/lib/rate-limit";
 import { humanAuthError, signupSchema } from "@/lib/validation/auth";
 import { enqueueWa } from "@/lib/whatsapp";
 
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (!allowRequest(`signup-ip:${getClientIp(request)}`, 10)) {
+    return NextResponse.json(
+      { error: "Terlalu banyak percobaan. Coba lagi beberapa menit." },
+      { status: 429 },
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = signupSchema.safeParse(body);
 

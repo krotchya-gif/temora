@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { allowRequest, getClientIp } from "@/lib/rate-limit";
 
@@ -12,6 +13,10 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string; tableId: string }> },
 ) {
   const { eventId, tableId } = await params;
+
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   if (!allowRequest(`scan-ip:${getClientIp(request)}`, 30)) {
     return NextResponse.json({ ok: true });

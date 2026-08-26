@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removePrefix } from "@/lib/storage";
@@ -49,6 +50,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { eventId } = await params;
   const result = await resolveOwnedEvent(eventId);
   if ("error" in result) {
@@ -113,9 +117,12 @@ export async function PUT(
 
 // DELETE — hapus event (row cascade via FK) + purge objek Storage terkait.
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { eventId } = await params;
   const result = await resolveOwnedEvent(eventId);
   if ("error" in result) {

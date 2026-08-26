@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { allowRequest } from "@/lib/rate-limit";
 import { createXenditInvoice, isXenditConfigured } from "@/lib/xendit";
 import { enqueueWa } from "@/lib/whatsapp";
 
@@ -24,6 +25,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Pilih paket Basic atau Pro dulu ya." },
       { status: 400 },
+    );
+  }
+
+  // Setiap call membuat invoice eksternal Xendit — meter ketat per vendor.
+  if (!allowRequest(`checkout:${user.id}`, 3)) {
+    return NextResponse.json(
+      { error: "Terlalu banyak permintaan. Tunggu sebentar ya." },
+      { status: 429 },
     );
   }
 

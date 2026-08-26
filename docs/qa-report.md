@@ -144,3 +144,17 @@ ganti tier free↔pro tersimpan + audit `[admin]` di Vercel Logs, nonaktif event
 memutus upload tamu (404), hapus foto = soft delete. Bootstrap superadmin
 pertama `calysta@temora.com` via Admin API + SQL `raw_app_meta_data`
 (runbook §6). Tanpa perubahan skema public / policy RLS baru.
+
+## 6d. Task 019 — Security Hardening + Admin v2 (2026-08-26)
+
+Audit ronde 2 menemukan 8 temuan (1 injection PostgREST, MIME palsu ke bucket
+publik, cookie non-httpOnly, tanpa origin check, dedup pra-ratelimit, ZIP
+tanpa meter, rate-limit gap, billing tanpa filter eksplisit) — semuanya diperbaiki
+& diverifikasi live. Ditambah manajemen vendor penuh (edit/ban dengan auto-
+nonaktif event/hapus permanen bertingkat) + tabel `admin_audit_logs` (0014)
+dan `vendors.banned_at` (0015). Pemisahan peran: superadmin diblokir dari
+/dashboard. Unit test naik 26→38. Detail bukti per-AC di tasks/019 §5.
+
+Sisa backlog keamanan (tidak blocker): limiter in-memory per-instance
+(pindah Redis bila multi-region), MFA superadmin (rekomendasi runbook §7),
+ZIP streaming untuk event sangat besar.

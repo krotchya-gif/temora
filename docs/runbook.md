@@ -91,3 +91,22 @@ login ulang.
 | Tanggal | Email | Catatan |
 |---|---|---|
 | 2026-08-26 | calysta@temora.com | Superadmin pertama (task 018) |
+
+## 7. Rotasi password superadmin (task 019)
+
+Superadmin wajib memakai password kuat (≥12 karakter campuran). Rotasi:
+
+1. Dashboard Supabase → Authentication → Users → pilih akun → **Send password recovery** / atau via Admin API:
+```bash
+curl -X PUT "https://<ref>.supabase.co/auth/v1/admin/users/<USER_ID>" \
+  -H "apikey: $SERVICE_ROLE" -H "Authorization: Bearer $SERVICE_ROLE" \
+  -H "Content-Type: application/json" \
+  -d '{"password": "<password-baru>"}'
+```
+2. Rekomendasi tambahan: aktifkan MFA TOTP (Auth → Providers → enable MFA; user daftar faktor kedua dari halaman akun).
+3. Setelah rotasi, sesi lama tetap hidup — paksa sign-out semua sesi dari Dashboard bila rotasi karena kebocoran.
+
+## 8. Ban & penghapusan vendor (task 019)
+
+- **Ban** (via `/admin/vendors/[id]`): menolak login baru, memblokir sesi hidup, dan menonaktifkan seluruh event vendor. Unban hanya memulihkan login.
+- **Hapus permanen**: purge Storage semua event → delete baris `vendors` (kaskade events/photos/subscriptions/wa_logs) → delete user auth. Data tidak dapat dipulihkan kecuali PITR database; Storage tidak tercakup PITR — pastikan sebelum mengonfirmasi.

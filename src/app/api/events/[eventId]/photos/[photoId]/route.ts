@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -49,9 +50,12 @@ export async function GET(
 
 // DELETE — soft delete per database.md §7 (cron hard-delete Storage 30 hari).
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ eventId: string; photoId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { eventId, photoId } = await params;
 
   const supabase = await createClient();

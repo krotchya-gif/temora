@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { EventStatusButton } from "@/components/admin/EventStatusButton";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizeSearchQuery } from "@/lib/security";
+import { isUuid } from "@/lib/events";
 
 export const metadata: Metadata = {
   title: "Events — TEMORA Admin",
 };
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 25;
 
 const STATUS_FILTERS = [
   { value: "all", label: "Semua" },
@@ -24,54 +29,110 @@ function formatDate(iso: string | null): string | null {
   }).format(new Date(iso));
 }
 
+function buildQuery(overrides: Record<string, string | undefined>): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value) params.set(key, value);
+  }
+  const s = params.toString();
+  return s ? `?${s}` : "";
+}
+
 export default async function AdminEventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; vendor?: string }>;
+  searchParams: Promise<{ status?: string; vendor?: string; q?: string; page?: string }>;
 }) {
-  const { status, vendor } = await searchParams;
+  const params = await searchParams;
+  const query = sanitizeSearchQuery(params.q);
+  const status = ["all", "active", "inactive"].includes(params.status ?? "")
+    ? (params.status ?? "all")
+    : "all";
+  // Param vendor divalidasi — nilai acak jangan sampai dikirim ke PostgREST.
+  const vendorFilter =
+    params.vendor && isUuid(params.vendor) ? params.vendor : undefined;
+  const page = Math.max(1, Number(params.page) || 1);
+
   const admin = createAdminClient();
 
   let request = admin
     .from("events")
-    .select("id, name, slug, is_active, expires_at, vendor:vendors(id, name), photos(count)")
-    .order("created_at", { ascending: false });
+    .select(
+      "id, name, slug, is_active, expires_at, vendor:vendors(id, name), photos(count)",
+    )
+    .order("created_at", { ascending: false })
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  let countRequest = admin
+    .from("events")
+    .select("id", { count: "exact", head: true });
+
   if (status === "active") request = request.eq("is_active", true);
   if (status === "inactive") request = request.eq("is_active", false);
-  if (vendor) request = request.eq("vendor_id", vendor);
+  if (status === "active") countRequest = countRequest.eq("is_active", true);
+  if (status === "inactive") countRequest = countRequest.eq("is_active", false);
+  if (vendorFilter) {
+    request = request.eq("vendor_id", vendorFilter);
+    countRequest = countRequest.eq("vendor_id", vendorFilter);
+  }
+  if (query) {
+    request = request.or(`name.ilike.%${query}%,slug.ilike.%${query}%`);
+    countRequest = countRequest.or(`name.ilike.%${query}%,slug.ilike.%${query}%`);
+  }
 
-  type EventRow = {
+  const [{ data, count }] = await Promise.all([request, countRequest]);
+  const events = (data ?? []) as unknown as Array<{
     id: string;
     name: string;
     slug: string;
     is_active: boolean;
     expires_at: string | null;
-    vendor: { name: string } | null;
+    vendor: { id: string; name: string } | null;
     photos: { count: number }[] | null;
-  };
-  const { data } = await request;
-  const events = (data ?? []) as unknown as EventRow[];
+  }>;
+
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const pageHref = (nextPage: number) =>
+    `/admin/events${buildQuery({
+      status: status !== "all" ? status : undefined,
+      vendor: vendorFilter,
+      q: query || undefined,
+      page: nextPage > 1 ? String(nextPage) : undefined,
+    })}`;
 
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="font-display text-3xl text-text-primary">Events</h1>
         <p className="text-sm text-text-secondary">
-          {events.length} event. Menonaktifkan event langsung memutus akses tamu.
+          {total} event. Menonaktifkan event langsung memutus akses tamu.
         </p>
       </div>
 
+      <form action="/admin/events" className="flex max-w-md items-center gap-2">
+        {status !== "all" && <input type="hidden" name="status" value={status} />}
+        {vendorFilter && <input type="hidden" name="vendor" value={vendorFilter} />}
+        <Input
+          type="search"
+          name="q"
+          defaultValue={query}
+          placeholder="Cari nama atau slug event…"
+          aria-label="Cari event"
+        />
+      </form>
+
       <nav aria-label="Filter status" className="flex items-center gap-2">
         {STATUS_FILTERS.map((filter) => {
-          const active = (status ?? "all") === filter.value;
-          const params = new URLSearchParams();
-          if (filter.value !== "all") params.set("status", filter.value);
-          if (vendor) params.set("vendor", vendor);
-          const href = `/admin/events${params.size > 0 ? `?${params}` : ""}`;
+          const active = status === filter.value;
           return (
             <Link
               key={filter.value}
-              href={href}
+              href={`/admin/events${buildQuery({
+                status: filter.value !== "all" ? filter.value : undefined,
+                vendor: vendorFilter,
+                q: query || undefined,
+              })}`}
               aria-current={active ? "true" : undefined}
               className={`min-h-9 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                 active
@@ -109,7 +170,16 @@ export default async function AdminEventsPage({
                   <p className="text-xs text-text-secondary">/{event.slug}</p>
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {event.vendor?.name ?? "—"}
+                  {event.vendor?.id ? (
+                    <Link
+                      href={`/admin/vendors/${event.vendor.id}`}
+                      className="hover:text-accent hover:underline"
+                    >
+                      {event.vendor?.name ?? "—"}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td className="px-4 py-3 font-mono text-text-primary">
                   {event.photos?.[0]?.count ?? 0}
@@ -136,6 +206,34 @@ export default async function AdminEventsPage({
           </tbody>
         </table>
       </Card>
+
+      {totalPages > 1 && (
+        <nav aria-label="Navigasi halaman" className="flex items-center justify-between">
+          {page > 1 ? (
+            <Link
+              href={pageHref(page - 1)}
+              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+            >
+              ← Sebelumnya
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-xs text-text-secondary">
+            Halaman {page} dari {totalPages}
+          </span>
+          {page < totalPages ? (
+            <Link
+              href={pageHref(page + 1)}
+              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+            >
+              Berikutnya →
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
     </div>
   );
 }

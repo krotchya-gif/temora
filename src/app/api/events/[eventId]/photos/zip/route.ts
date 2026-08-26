@@ -2,6 +2,8 @@ import JSZip from "jszip";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { allowRequest } from "@/lib/rate-limit";
+import { isSameOrigin } from "@/lib/security";
 import {
   advanceJob,
   createJob,
@@ -37,9 +39,12 @@ async function resolveOwnedEvent(eventId: string): Promise<OwnedResult> {
 
 // POST — mulai unduh ZIP: ≤100 foto langsung di-stream; >100 job resumable.
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { eventId } = await params;
   const owned = await resolveOwnedEvent(eventId);
   if ("error" in owned) {
@@ -55,6 +60,15 @@ export async function POST(
   }
 
   const admin = createAdminClient();
+
+  // ZIP berat (buffering RAM) — meter ketat per event (task 019).
+  if (!allowRequest(`zip:${owned.event.id}`, 2)) {
+    return NextResponse.json(
+      { error: "Unduhan ZIP sedang diproses. Tunggu sebentar ya." },
+      { status: 429 },
+    );
+  }
+
   const { count, error: countError } = await admin
     .from("photos")
     .select("id", { count: "exact", head: true })

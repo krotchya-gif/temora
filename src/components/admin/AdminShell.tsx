@@ -12,6 +12,7 @@ const NAV = [
   { href: "/admin", label: "Overview", exact: true },
   { href: "/admin/vendors", label: "Vendors", exact: false },
   { href: "/admin/events", label: "Events", exact: false },
+  { href: "/admin/audit", label: "Audit", exact: false },
 ];
 
 type AdminShellProps = {
@@ -68,9 +69,6 @@ export function AdminShell({ children }: AdminShellProps) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <Button href="/dashboard" variant="ghost" size="sm">
-              Dashboard Vendor
-            </Button>
             <Button
               variant="ghost"
               size="sm"

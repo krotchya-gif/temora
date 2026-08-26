@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
 import { tablesGenerateSchema } from "@/lib/validation/photobooth";
 
@@ -10,6 +11,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { eventId } = await params;
 
   const body = await request.json().catch(() => null);

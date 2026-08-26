@@ -167,10 +167,15 @@ supabase/
 >
 > | Route | Deskripsi |
 > |---|---|
-> | `/admin` | Statistik global platform |
-> | `/admin/vendors` | Daftar vendor + kelola tier |
-> | `/admin/events` | Semua event + moderasi status |
+> | `/admin` | Statistik global platform (subs/WA/audit/storage) |
+> | `/admin/vendors` | Daftar vendor + kelola tier + pagination/search |
+> | `/admin/vendors/[vendorId]` | Detail vendor: edit profil, ban/unban, hapus permanen, subscription, WA health, audit |
+> | `/admin/events` | Semua event + moderasi status + search/pagination |
 > | `/admin/events/[eventId]` | Detail event + moderasi foto |
+> | `/admin/audit` | Feed jejak audit admin (terpaginasi) |
+>
+> Prinsip peran terpisah (task 019): superadmin **tidak** bisa membuka
+> `/dashboard` (redirect ke `/admin`); 1 akun = 1 peran.
 
 ### 3.3 API Routes
 
@@ -200,6 +205,9 @@ supabase/
 | `/api/billing/webhook` | POST | Xendit webhook handler | No (callback token verified) |
 | `/api/whatsapp/webhook` | POST | Delivery status WA | Signature verified |
 | `/api/admin/vendors/[vendorId]/tier` | PUT | Set tier vendor | Superadmin (404 mask) |
+| `/api/admin/vendors/[vendorId]` | PATCH | Edit profil vendor (email tersinkron Admin API) | Superadmin (404 mask) |
+| `/api/admin/vendors/[vendorId]/ban` | POST | Ban/unban vendor (+nonaktif semua event saat ban) | Superadmin (404 mask) |
+| `/api/admin/vendors/[vendorId]` | DELETE | Hapus permanen (purge storage → cascade → auth user; confirmEmail wajib) | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/status` | PATCH | Set is_active event | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/photos/[photoId]` | DELETE | Soft delete foto (moderasi) | Superadmin (404 mask) |
 

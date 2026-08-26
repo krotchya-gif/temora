@@ -26,6 +26,19 @@
 
 Tidak ada pendaftaran superadmin publik — dengan sengaja, demi keamanan.
 
+**Prinsip peran terpisah (task 019): 1 akun = 1 peran.** Superadmin adalah
+operator platform murni — dia tidak bisa membuka dashboard vendor, dan vendor
+tidak melihat jejak admin sedikit pun. Kalau pemilik TEMORA ingin ikut jualan
+sebagai vendor, buat akun terpisah.
+
+### Manajemen vendor oleh superadmin
+
+Di `/admin/vendors/[id]` superadmin bisa: edit profil vendor, ban/unban
+(ban menonaktifkan otomatis semua event vendor dan memblokir login), ganti
+paket, serta **hapus permanen** (purge storage + cascade data + hapus auth
+user — konfirmasi ketik email, tidak bisa dibatalkan). Semua aksi tercatat di
+`/admin/audit`.
+
 ---
 
 ## 2. Menjalankan Aplikasi (Lokal)

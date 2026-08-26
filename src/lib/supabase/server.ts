@@ -12,6 +12,12 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(url, key, {
+    cookieOptions: {
+      // Hardening task 019: token tak terbaca JavaScript (mitigasi dampak XSS).
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();

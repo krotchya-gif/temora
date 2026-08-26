@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { isSuperAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-async function getSessionInfo(): Promise<{ name: string | null; isAdmin: boolean }> {
+async function getVendorName(): Promise<string | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   // Tanpa env (build lokal), shell tetap render dengan nama default.
-  if (!url || !anonKey) return { name: null, isAdmin: false };
+  if (!url || !anonKey) return null;
 
   // Mulai titik ini route menjadi dinamis (cookies) — tidak boleh di-try/catch.
   const supabase = await createClient();
@@ -20,11 +19,17 @@ async function getSessionInfo(): Promise<{ name: string | null; isAdmin: boolean
 
   const { data: vendor } = await supabase
     .from("vendors")
-    .select("name")
+    .select("name, banned_at")
     .eq("id", user.id)
     .single();
 
-  return { name: vendor?.name ?? null, isAdmin: isSuperAdmin(user) };
+  // Vendor dibanned: matikan sesi & tendang ke login (task 019).
+  if (vendor?.banned_at) {
+    await supabase.auth.signOut();
+    redirect("/login");
+  }
+
+  return vendor?.name ?? null;
 }
 
 export default async function DashboardLayout({
@@ -32,11 +37,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { name, isAdmin } = await getSessionInfo();
+  const vendorName = await getVendorName();
 
-  return (
-    <DashboardShell vendorName={name ?? "Vendor"} isAdmin={isAdmin}>
-      {children}
-    </DashboardShell>
-  );
+  return <DashboardShell vendorName={vendorName ?? "Vendor"}>{children}</DashboardShell>;
 }
