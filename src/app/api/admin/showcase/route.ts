@@ -43,12 +43,14 @@ export async function POST(request: Request) {
   }
   const contentType = file.type === "image/png" ? "image/png" : "image/jpeg";
   const ext = contentType === "image/png" ? "png" : "jpg";
-  const path = `${ulid()}.${ext}`;
+  // Key relatif bucket showcase (tanpa folder "showcase/"); storage_path DB
+  // berformat {bucket}/{key} agar moments.ts (/object/public/{storage_path}) benar.
+  const key = `${ulid()}.${ext}`;
 
   const admin = createAdminClient();
   const { error: upError } = await admin.storage
     .from("showcase")
-    .upload(path, buffer, { contentType });
+    .upload(key, buffer, { contentType });
 
   if (upError) {
     console.error("[admin] showcase upload:", upError.message);
@@ -66,7 +68,7 @@ export async function POST(request: Request) {
   const { data, error } = await admin
     .from("showcase_photos")
     .insert({
-      storage_path: path,
+      storage_path: `showcase/${key}`,
       title,
       caption: caption || null,
       sort_order: (last?.sort_order ?? 0) + 1,
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
 
   if (error || !data) {
     console.error("[admin] showcase insert:", error?.message);
-    await admin.storage.from("showcase").remove([path]);
+    await admin.storage.from("showcase").remove([key]);
     return NextResponse.json({ error: "Gagal menyimpan." }, { status: 500 });
   }
 
@@ -87,7 +89,7 @@ export async function POST(request: Request) {
     action: "showcase_upload",
     targetType: "photo",
     targetId: data.id,
-    detail: { title, path },
+    detail: { title, path: `showcase/${key}` },
   });
 
   return NextResponse.json({ ok: true, id: data.id });

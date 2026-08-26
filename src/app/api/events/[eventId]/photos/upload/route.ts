@@ -139,10 +139,13 @@ export async function POST(
     }
   }
 
-  // Path convention database.md §6 — key relatif bucket, tanpa prefix nama bucket.
+  // Path convention database.md §6 — key relatif bucket (tanpa folder nama bucket).
+  // Kolom DB yang dikonsumsi publicStorageUrl harus berformat {bucket}/{key}
+  // (jadi thumb_path = "thumbs/" + key), sedangkan key upload TIDAK boleh
+  // menyertakan folder bucket.
   const fileId = ulid();
   const photoPath = `${event.id}/${tableId}/${fileId}.jpg`;
-  const thumbPath = `${event.id}/${fileId}_320.jpg`;
+  const thumbKey = `${event.id}/${fileId}_320.jpg`;
 
   const { error: photoError } = await admin.storage
     .from("photos")
@@ -162,8 +165,8 @@ export async function POST(
     if (isJpegBuffer(thumbBuffer)) {
       const { error: thumbError } = await admin.storage
         .from("thumbs")
-        .upload(thumbPath, thumbBuffer, { contentType: "image/jpeg" });
-      if (!thumbError) storedThumbPath = thumbPath;
+        .upload(thumbKey, thumbBuffer, { contentType: "image/jpeg" });
+      if (!thumbError) storedThumbPath = `thumbs/${thumbKey}`;
     }
   }
 
@@ -205,7 +208,7 @@ export async function POST(
 
     console.error("[upload] insert photos:", insertError.message);
     await admin.storage.from("photos").remove([photoPath]);
-    if (storedThumbPath) await admin.storage.from("thumbs").remove([storedThumbPath]);
+    if (storedThumbPath) await admin.storage.from("thumbs").remove([thumbKey]);
     return jsonError("Momen gagal tersimpan. Coba sekali lagi ya.", 500);
   }
 

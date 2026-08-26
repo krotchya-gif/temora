@@ -130,7 +130,8 @@ Hasil uji RLS live (task 002 AC): anon baca event aktif ✓ · anon tak bisa bac
 | Severity | Temuan | Fix |
 |---|---|---|
 | **Blocker** | Next.js 16 build gagal di builder Hostinger shared (glibc < 2.29): Turbopack & load `next.config.ts` butuh binary SWC native → `Cannot find module <hash>.next.config` | build `--webpack` + config `next.config.mjs` (commit a5b01f5, d1548bd) |
-| **Blocker** | Key storage menyertakan prefix nama bucket di dalam bucket → URL publik `thumbs`/`frames`/`showcase` double-prefix → 404 (thumb & frame tak tampil; foto privat selamat via signed URL) | hapus prefix di writer (upload/frame/showcase) + purge/cron + migrasi key existing `scripts/migrate-storage-prefix.mjs` + SQL update rows |
+| **Blocker** | Key storage menyertakan prefix nama bucket di dalam bucket → URL publik `thumbs`/`frames`/`showcase` double-prefix → 404 (thumb & frame tak tampil; foto privat selamat via signed URL) | koreksi konvensi final: key objek relatif bucket (tanpa folder bucket), kolom DB `{bucket}/{key}`; migrasi objek existing `scripts/migrate-storage-prefix.mjs` + SQL restore prefix kolom |
+| **Major** | Ronde 1 koreksi: prefix bucket ikut dihapus dari kolom DB (`thumb_path`, `showcase.storage_path`) → `publicStorageUrl` menghasilkan URL tanpa bucket → 404 lagi (galeri broken image) | SQL restore prefix (`thumbs/`, `showcase/`) di kolom; writer kode memakai format `{bucket}/{key}` utk kolom DB & key relatif utk upload |
 
 Checklist regresi storage (wajib setelah migrasi):
 - [ ] Upload frame PNG → frame overlay tampil di `/p/[eventId]/[tableId]`; `frame_url` HTTP 200
@@ -138,6 +139,7 @@ Checklist regresi storage (wajib setelah migrasi):
 - [ ] Klik foto → lightbox (signed URL) tetap 200
 - [ ] (bila ada data) Halaman `/moments` & rope landing menampilkan showcase 200
 - [ ] Cron TTL & purge event/vendor masih menghapus objek benar (tanpa asumsi prefix)
+- [ ] Capture foto rasio **3:4** (1080×1440) lintas device; frame 3:4 menutupi penuh (design-system §3.3)
 
 Smoke API end-to-end: signup(admin-create karena throttle email Supabase ~2/jam) → login → create event → generate meja → upload tamu → dedup → saved → galeri → signed URL 200 → QR SVG 200 → scan RPC → halaman `/p/...` 200 → delete event (purge storage). Advisors security/performance bersih (sisa INFO unused-index wajar).
 

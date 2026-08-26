@@ -64,7 +64,9 @@ export async function GET(request: Request) {
       summary.removedObjects += 1;
     }
     if (photo.thumb_path) {
-      await admin.storage.from("thumbs").remove([photo.thumb_path]);
+      await admin.storage
+        .from("thumbs")
+        .remove([photo.thumb_path.replace(/^thumbs\//, "")]);
       summary.removedObjects += 1;
     }
     const { error } = await admin.from("photos").delete().eq("id", photo.id);

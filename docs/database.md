@@ -324,12 +324,20 @@ frames/{vendor_id}/{event_id}/frame.png
 zips/{event_id}/temora-{slug}.zip
 ```
 
-> ⚠️ **Key = relatif terhadap bucket, DILARANG menyertakan nama bucket sebagai
-> folder di dalam key.** Bug 2026-08-26: upload memakai `photos/{...}` dst. ke dalam
-> bucket-nya sendiri → URL publik `thumbs`/`frames`/`showcase` jadi double-prefix
-> → 404 (thumb & frame tak tampil). Key privat `photos`/`zips` selamat karena
-> signed URL memakai key yang sama persis. Fix: kode + migrasi key existing
-> (`scripts/migrate-storage-prefix.mjs`, catatan di qa-report).
+> ⚠️ **Konvensi path (2 aturan berbeda — jangan tertukar):**
+> 1. **Key objek di Storage = relatif terhadap bucket, TANPA folder bernama bucket.**
+>    `storage.from("thumbs").upload("7fa0/…", …)` → key `7fa0/…` (bukan `thumbs/7fa0/…`).
+> 2. **Kolom DB yang dikonsumsi `publicStorageUrl`/`/object/public/{path}` WAJIB
+>    berformat `{bucket}/{key}`** (mis. `thumb_path = "thumbs/7fa0/…"`).
+>    Pengecualian: `storage_path` bucket privat (`photos`) = key apa adanya
+>    (dipakai `createSignedUrl(key)`), dan `frame_url`/`showcase.storage_path`
+>    berformat `{bucket}/{key}` karena dipakai public URL.
+>
+> Bug 2026-08-26 (dua ronde): (1) key upload sempat menyertakan folder bucket →
+> URL publik `thumbs`/`frames`/`showcase` 404; (2) saat koreksi, prefix bucket
+> sempat dihapus dari kolom DB → `publicStorageUrl` tanpa bucket → 404 lagi.
+> Konvensi di atas adalah bentuk final yang benar. Detail migrasi & uji:
+> `docs/qa-report.md` §6c.
 
 ## 7. Data Retention & Privacy
 

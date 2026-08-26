@@ -123,13 +123,14 @@ export async function POST(
     );
   }
 
-  // Path convention database.md §6 — key relatif bucket frames: {vendor_id}/{event_id}/frame.png
-  const path = `${event.vendor_id}/${event.id}/frame.png`;
+  // Path convention database.md §6 — key relatif bucket frames: {vendor_id}/{event_id}/frame.png.
+  // frame_url (DB) = publicStorageUrl berformat {bucket}/{key} → "frames/" + key.
+  const key = `${event.vendor_id}/${event.id}/frame.png`;
   const admin = createAdminClient();
 
   const { error: uploadError } = await admin.storage
     .from("frames")
-    .upload(path, buffer, { contentType: "image/png", upsert: true });
+    .upload(key, buffer, { contentType: "image/png", upsert: true });
 
   if (uploadError) {
     console.error("[frame.upload]", uploadError.message);
@@ -139,7 +140,7 @@ export async function POST(
     );
   }
 
-  const frameUrl = publicStorageUrl(path);
+  const frameUrl = publicStorageUrl(`frames/${key}`);
   const { error: updateError } = await admin
     .from("events")
     .update({ frame_url: frameUrl })

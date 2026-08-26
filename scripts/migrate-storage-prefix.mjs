@@ -85,9 +85,15 @@ for (const bucket of BUCKETS) {
 
 console.log(`\nSelesai. moved=${moved} skipped=${skipped} failed=${failed}`);
 
-// UPDATE DB berikut (jalankan manual di SQL editor):
-//   update photos set storage_path = substr(storage_path, 8) where storage_path like 'photos/%';
-//   update photos set thumb_path   = substr(thumb_path, 8)   where thumb_path   like 'thumbs/%';
-//   update showcase_photos set storage_path = substr(storage_path, 10) where storage_path like 'showcase/%';
-// Catatan: events.frame_url TIDAK perlu diubah — key frames baru tanpa prefix
-// sudah cocok dengan URL publik yang tersimpan ( /public/frames/{vendor}/{event}/frame.png ).
+// UPDATE DB berikut (jalankan manual di SQL editor) — PULIHKAN prefix bucket
+// di kolom yang dikonsumsi publicStorageUrl (/object/public/{path}):
+//   update photos set thumb_path = 'thumbs/' || thumb_path
+//     where thumb_path is not null and thumb_path not like 'thumbs/%';
+//   update showcase_photos set storage_path = 'showcase/' || storage_path
+//     where storage_path not like 'showcase/%';
+// Catatan konvensi final (database.md §6):
+//   - key objek Storage = relatif bucket, TANPA folder bernama bucket
+//   - kolom DB utk public URL (thumb_path, showcase.storage_path, frame_url) =
+//     format {bucket}/{key}
+//   - storage_path bucket privat (photos) = key apa adanya (signed URL).
+// photos.storage_path & events.frame_url TIDAK perlu diubah (sudah konsisten).

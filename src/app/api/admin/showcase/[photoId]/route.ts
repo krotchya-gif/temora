@@ -97,7 +97,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Gagal menghapus." }, { status: 500 });
   }
 
-  await admin.storage.from("showcase").remove([row.storage_path]);
+  await admin.storage
+    .from("showcase")
+    .remove([row.storage_path.replace(/^showcase\//, "")]);
 
   await logAdminAction({
     actorId: actor.id,

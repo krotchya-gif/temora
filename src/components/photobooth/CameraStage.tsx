@@ -39,6 +39,10 @@ const MAX_LONG_SIDE = 1440;
 const TARGET_BYTES = 800_000;
 const THUMB_LONG_SIDE = 320;
 
+// Rasio capture kanonik 3:4 portrait (design-system §3.3) — semua device
+// menghasilkan foto 3:4 agar frame template selalu menutupi penuh.
+const CAPTURE_RATIO = 3 / 4;
+
 // Copy dari design-system §6.
 const COPY = {
   cameraDenied:
@@ -260,9 +264,24 @@ export function CameraStage({
     setFlash(true);
     setTimeout(() => setFlash(false), 180);
 
-    const scale = Math.min(1, MAX_LONG_SIDE / Math.max(vw, vh));
-    const cw = Math.round(vw * scale);
-    const ch = Math.round(vh * scale);
+    // Crop video ke rasio kanonik 3:4 (design-system §3.3):
+    // - video lebih lebar → potong kiri/kanan (center horizontal)
+    // - video lebih tinggi → potong bawah, bias atas agar wajah subjek aman
+    let sx = 0;
+    let sy = 0;
+    let sw = vw;
+    let sh = vh;
+    if (vw / vh > CAPTURE_RATIO) {
+      sw = Math.round(vh * CAPTURE_RATIO);
+      sx = Math.round((vw - sw) / 2);
+    } else if (vw / vh < CAPTURE_RATIO) {
+      sh = Math.round(vw / CAPTURE_RATIO);
+      sy = 0; // top-bias: crop berlebih di bawah
+    }
+
+    const scale = Math.min(1, MAX_LONG_SIDE / Math.max(sw, sh));
+    const cw = Math.round(sw * scale);
+    const ch = Math.round(sh * scale);
 
     const canvas = document.createElement("canvas");
     canvas.width = cw;
@@ -279,7 +298,7 @@ export function CameraStage({
       ctx.translate(cw, 0);
       ctx.scale(-1, 1);
     }
-    ctx.drawImage(video, 0, 0, cw, ch);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
     ctx.restore();
 
     // Frame PNG transparan, object-contain center.

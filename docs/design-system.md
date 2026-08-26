@@ -154,6 +154,15 @@ Font load via `next/font/google` di `src/app/layout.tsx`; bind ke CSS variable (
 </div>
 ```
 
+**Rasio capture kanonik: 3:4 portrait (locked, 2026-08-26).**
+- Hasil foto **selalu 3:4** lintas device — canvas di-*crop* ke 3:4 (center horizontal,
+  bias atas untuk subjek) lalu di-scale ke sisi terpanjang ≤ 1440px (output umum
+  `1080×1440`). Implementasi: `CameraStage.tsx` capture.
+- Konsekuensi frame: template frame **harus 3:4** agar `object-contain` menutupi
+  penuh foto. Ukuran rekomendasi **1080×1440 px** (PNG transparan, window subjek
+  di tengah-atas). Rentang validasi route frame: min side 480 / max side 2560.
+- Preview (`aspect-[3/4]`) sejajar dengan hasil jadinya — tidak ada beda framing.
+
 ### 3.4 Photo Frame Polaroid (signature component)
 Hasil foto distyle seperti Polaroid:
 - Border putih lebih tebal di bawah.
