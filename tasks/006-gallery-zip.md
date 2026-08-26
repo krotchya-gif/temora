@@ -19,7 +19,7 @@ Vendor melihat semua foto tamu real-time dan mengunduh semuanya sebagai satu ZIP
 - Download ZIP: API route stream — fetch semua foto dari Storage → JSZip server-side → upload ke bucket `zips` → return signed URL 15 menit.
 - Progress indicator saat generate ZIP (count foto).
 - Hapus foto individual (dengan konfirmasi) — hapus Storage object + row.
-- TTL cleanup: route `GET /api/cron/photo-ttl` + entri di `vercel.json` (architecture.md §12).
+- TTL cleanup: route `GET /api/cron/photo-ttl` dipicu pinger eksternal (architecture.md §12; schedule di `vercel.json` sebagai referensi native).
 
 ## 3. Non-Scope
 
@@ -38,7 +38,7 @@ Vendor melihat semua foto tamu real-time dan mengunduh semuanya sebagai satu ZIP
 
 MVP target 500 foto/event → wajib jalur background job.
 
-Job background wajib **resumable**: state/progress tersimpan persisten (metadata object di bucket `zips` atau tabel log ringan) sehingga polling client tetap berlanjut walau invocation timeout/restart — jangan andalkan satu invokasi panjang Vercel Functions.
+Job background wajib **resumable**: state/progress tersimpan persisten (metadata object di bucket `zips` atau tabel log ringan) sehingga polling client tetap berlanjut walau invocation timeout/restart — jangan andalkan satu invokasi panjang serverless/worker.
 
 ### 4.2 Empty state (design-system §3.6)
 *"Belum ada momen yang terabadikan. Bagikan QR code-nya dulu, ya."* + CTA ke halaman QR.
@@ -54,7 +54,7 @@ Job background wajib **resumable**: state/progress tersimpan persisten (metadata
 | `src/app/api/events/[id]/photos/zip/route.ts` | baru |
 | `src/app/api/events/[id]/photos/[photoId]/route.ts` | baru (delete) |
 | `src/app/api/cron/photo-ttl/route.ts` | baru — TTL cleanup |
-| `vercel.json` | tambah cron §12 (koordinasi task 008/009/015) |
+| `vercel.json` | cron §12 (referensi; dieksekusi pinger eksternal — architecture.md §12) |
 
 ## 6. Acceptance Criteria
 

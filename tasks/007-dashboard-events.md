@@ -21,7 +21,7 @@ Vendor mengelola events: buat, edit, aktifkan/nonaktifkan, hapus — termasuk up
 - Validasi tier saat create/activate: free = max 1 event **aktif** (unlimited nonaktif); basic = max 3 aktif; pro = unlimited aktif. Cek server-side, bukan cuma UI.
 - Saat create event: set `photo_limit` dari tier vendor saat itu (Free=100, Basic=500, Pro=NULL). Tidak diupdate saat upgrade tier nanti — lihat database.md §2.7.
 - Block activate/create event baru jika downgrade ke Free dengan >1 event aktif (event aktif existing tetap jalan).
-- Upload frame: validasi PNG transparan (mime + dimensi min/max), compress bila perlu, simpan ke `frames/{vendor}/{event}/frame.png`.
+- Upload frame: validasi PNG transparan (mime + dimensi min/max), compress bila perlu. Key objek relatif bucket = `{vendor}/{event}/frame.png`; `frame_url` (DB) berformat `frames/{vendor}/{event}/frame.png` (database.md §6). Frame wajib **3:4** (rekomendasi 1080×1440, design-system §3.3).
 - Field opsional "Link kustom": slug publik untuk URL photobooth alternatif (`/p/{slug}/{tableId}`). Validasi zod format `^[a-z0-9-]{6,60}$` + unik; kosong → auto-generate dari nama (+ suffix pendek bila bentrok); immutable setelah dibuat.
 
 ## 3. Non-Scope

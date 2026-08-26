@@ -23,7 +23,7 @@ Supabase Dashboard.
 3. **Guard 3 lapis**: `proxy.ts` matcher `/admin/:path*` (login + role) →
    layout `/admin` cek ulang → tiap API route cek ulang.
 4. Endpoint non-admin yang mencoba akses → **404 mask** (konsisten pola repo).
-5. Audit aksi moderasi/tier via log terstruktur `[admin]` (Vercel Logs) —
+5. Audit aksi moderasi/tier via log terstruktur `[admin]` (Log Node app hPanel) —
    skema tetap ramping (database.md §1).
 6. Perubahan tier hanya berpengaruh ke event **baru** (`photo_limit` dikunci
    saat create event — keputusan terkunci #13); UI wajib memberitahu ini.

@@ -49,10 +49,14 @@ Consent ("Oke, Mengerti")
 ### 4.2 Compositing
 
 ```
-canvas size = video intrinsic size (cap max 1440px panjang sisi)
+crop video → rasio kanonik 3:4 (center x, top-bias y; design-system §3.3)
+scale → sisi terpanjang ≤ 1440px (output umum 1080×1440)
 draw video → draw frame (object-contain center) → draw watermark text
 toDataURL('image/jpeg', 0.85)
 ```
+
+> Frame template wajib **3:4** (rekomendasi 1080×1440) agar `object-contain`
+> menutupi penuh — spek di design-system §3.3.
 
 ### 4.3 Upload resilience
 

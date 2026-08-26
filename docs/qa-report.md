@@ -143,7 +143,7 @@ Checklist regresi storage (wajib setelah migrasi):
 
 Smoke API end-to-end: signup(admin-create karena throttle email Supabase ~2/jam) → login → create event → generate meja → upload tamu → dedup → saved → galeri → signed URL 200 → QR SVG 200 → scan RPC → halaman `/p/...` 200 → delete event (purge storage). Advisors security/performance bersih (sisa INFO unused-index wajar).
 
-Masih PENDING: E2E Playwright penuh, device lab, Lighthouse ≥85, isolasi lintas-vendor via 2 user, Xendit sandbox flow, kirim WA nyata (butuh token), deploy preview Vercel.
+Masih PENDING: E2E Playwright penuh, device lab, Lighthouse ≥85, isolasi lintas-vendor via 2 user, Xendit sandbox flow, kirim WA nyata (butuh token). Deploy prototipe Hostinger sudah live (task 015).
 
 Tidak ada blocker/critical terbuka pada kode saat laporan ini dibuat.
 
@@ -156,7 +156,7 @@ vendor dashboard, triase per severity §4.2 task 016, catat hasil di sini.
 
 Fitur `/admin` (monitor + kelola tier + moderasi) dibangun & diverifikasi live:
 guard 3 lapis teruji (anonim→login, vendor→dashboard, API tanpa sesi→404),
-ganti tier free↔pro tersimpan + audit `[admin]` di Vercel Logs, nonaktif event
+ganti tier free↔pro tersimpan + audit `[admin]` di Log Node app hPanel, nonaktif event
 memutus upload tamu (404), hapus foto = soft delete. Bootstrap superadmin
 pertama `calysta@temora.com` via Admin API + SQL `raw_app_meta_data`
 (runbook §6). Tanpa perubahan skema public / policy RLS baru.

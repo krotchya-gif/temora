@@ -56,7 +56,7 @@ Limit event/foto dicek server-side di API events & upload route — baca tier da
 | `src/lib/xendit.ts` | baru — client wrapper + signature verify |
 | `src/app/api/cron/subscription-expiry/route.ts` | baru |
 | `src/app/api/cron/wa-reminders/route.ts` | baru — H-3/H-0 |
-| `vercel.json` | tambah cron §12 (koordinasi task 006/009/015) |
+| `vercel.json` | cron §12 (referensi; dieksekusi pinger eksternal — architecture.md §12) |
 
 ## 6. Acceptance Criteria
 

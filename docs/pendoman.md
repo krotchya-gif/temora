@@ -113,11 +113,11 @@ Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilk
 1. **Aktivasi & onboarding vendor** — calon vendor menghubungi via tombol WA di landing/pricing (`wa.me/<NEXT_PUBLIC_WA_ADMIN_NUMBER>`).
 2. **Upgrade paket** — vendor bayar sendiri via `/dashboard/billing` (Xendit); admin hanya menangani kasus khusus. Webhook Xendit otomatis menaikkan tier.
 3. **Perpanjangan** — manual: sistem antre reminder WA H-3 dan H-0 (cron `wa-reminders`), worker kirim tiap 5 menit (`wa-queue`, quiet hours 22:00–07:00 WIB).
-4. **Monitoring** — Sentry (error), UptimeRobot (ping `/api/health`), Vercel Analytics.
+4. **Monitoring** — Sentry (error), UptimeRobot (ping `/api/health`); analitik web nonaktif sementara di prototipe (Vercel Analytics no-op di luar Vercel — architecture.md §9).
 
 ---
 
-## 6. Operasional Otomatis (Vercel Cron)
+## 6. Operasional Otomatis (Cron — Pinger Eksternal)
 
 | Job | Jadwal | Fungsi |
 |---|---|---|
@@ -128,6 +128,11 @@ Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilk
 
 Semua route cron diproteksi `Authorization: Bearer CRON_SECRET`.
 
+> Hostinger shared (prototipe) tidak punya scheduler HTTP bawaan — keempat job
+> dipicu **pinger eksternal gratis** (cron-job.org / UptimeRobot) sesuai jadwal
+> di atas, dengan header `Authorization: Bearer $CRON_SECRET`. Saat launch
+> (task 015), pindah ke scheduler native (Vercel Cron / systemd timer).
+
 ---
 
 ## 7. Pengujian
@@ -135,7 +140,7 @@ Semua route cron diproteksi `Authorization: Bearer CRON_SECRET`.
 ```bash
 npm run lint          # ESLint
 npm run typecheck     # tsc --noEmit
-npm test              # vitest unit (26 test)
+npm test              # vitest unit (38 test)
 npm run build         # production build
 npm run test:e2e      # Playwright — butuh E2E_ENABLED=1 + env (lihat .env.example)
 ```

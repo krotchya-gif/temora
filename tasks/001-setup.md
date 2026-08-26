@@ -1,12 +1,12 @@
-# Task 001 — Setup Project (Next.js + Supabase + Vercel)
+# Task 001 — Setup Project (Next.js + Supabase + Hosting)
 
-*Status: Hampir selesai (2026-08-26) — health endpoint live ✓, env lengkap & valid; sisa: deploy preview Vercel (butuh akses owner) · Prioritas: High · Phase: MVP*
+*Status: Selesai prototipe (2026-08-26) — health endpoint live ✓, env lengkap & valid; deploy prototipe via Hostinger Git (bukan Vercel, lihat task 015) · Prioritas: High · Phase: MVP*
 
 ---
 
 ## 1. Tujuan
 
-Inisialisasi codebase TEMORA di **root repo** dengan Next.js 16 + Tailwind 4 + Supabase client, terdeploy ke Vercel (hello-world), scaffold folder siap task berikutnya.
+Inisialisasi codebase TEMORA di **root repo** dengan Next.js 16 + Tailwind 4 + Supabase client, terdeploy (prototipe: Hostinger Git deploy, task 015), scaffold folder siap task berikutnya.
 
 ## 2. Scope
 
@@ -64,7 +64,7 @@ supabase/migrations/    # kosong dulu — task 002 isi SQL
 
 ### 2.6 Deploy awal
 
-- Connect repo ke Vercel → preview deploy hijau.
+- Connect repo GitHub → auto-deploy prototipe Hostinger (task 015); Vercel hanya opsi saat re-evaluasi launch.
 - Pasang env vars preview (minimal Supabase trio + `NEXT_PUBLIC_APP_URL`).
 
 ### 2.7 Placeholder assets
@@ -120,7 +120,7 @@ Server component, tanpa interaktivitas. Cukup validasi token CSS: `bg-bg-base`, 
 - [ ] `GET /api/health` return 200 + indikasi Supabase terkonfigurasi. *(menunggu `.env.local`)*
 - [x] Tiga file `src/lib/supabase/*` ada; `admin.ts` **tidak** di-import dari Client Component.
 - [x] `.env.example` lengkap sesuai architecture.md §11.
-- [ ] Vercel preview deploy hijau, URL bisa diakses. *(repo GitHub siap di connect; menunggu aksi owner)*
+- [x] Prototipe live via Hostinger Git deploy — `chirpek.site` (commit a5b01f5+, task 015).
 - [x] Tidak ada secret ter-commit ke git (`git grep` key = kosong).
 
 ## 7. Catatan

@@ -99,13 +99,11 @@ Temora Photos/
 
 ---
 
-## Catatan Setup Test (lokal saja)
+## Catatan Setup Test
 
-File konfigurasi test (`vitest.config.ts`, `playwright.config.ts`) dan hasilnya
-(`test-results/`, `playwright-report/`) sengaja **tidak dipush** — bersifat
-lokal. Salin dari mesin lama atau tulis ulang di mesin baru:
+Konfigurasi test (`vitest.config.ts`, `playwright.config.ts`) **ikut repo**
+agar CI reproducible. Artefak hasil (`test-results/`, `playwright-report/`)
+tidak dipush.
 
-- `vitest.config.ts` → include `tests/unit`
-- `playwright.config.ts` → baseURL `localhost:3100`, webServer `npm run dev -- --port 3100`
-
-CI menjalankan unit test langsung: `npx vitest run tests/unit`.
+CI unit test: `npm run test` (vitest). E2E Playwright jalan bila repo variable
+`RUN_E2E=true` + secrets Supabase/Xendit sandbox terpasang (docs/qa-report.md).
