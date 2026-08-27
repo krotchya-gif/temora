@@ -1,6 +1,6 @@
 # Task 007 — Dashboard Vendor (CRUD Events)
 
-*Status: Kode selesai · create event + generate meja + delete (purge storage) terverifikasi live; overview dashboard kini wired data nyata (2026-08-26); sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
+*Status: Selesai (2026-08-28) — seluruh AC terverifikasi manual (owner, termasuk RLS 2 akun) · Prioritas: High · Phase: MVP*
 
 Depends on: 003, 002
 
@@ -52,14 +52,16 @@ Satu kolom, mobile-friendly. Frame upload dengan preview instan (drag-drop atau 
 
 ## 6. Acceptance Criteria
 
-- [ ] CRUD lengkap berfungsi end-to-end dengan data dummy seed.
-- [ ] Free tier diblokir bikin event aktif kedua (pesan ramah + CTA upgrade).
-- [ ] Frame PNG transparan tampil sempurna overlay di halaman photobooth.
-- [ ] Event nonaktif → halaman tamu menampilkan "acara sudah berakhir".
-- [ ] Semua form tervalidasi (zod) dengan pesan error human.
-- [ ] RLS: vendor B tidak bisa akses API event milik vendor A (test manual).
-- [ ] Custom slug bisa dipakai membuka photobooth; slug bentrok ditolak dengan pesan ramah.
-- [ ] Block activate/create event baru jika downgrade ke Free dengan >1 event aktif (event aktif existing tetap jalan).
+- [x] CRUD lengkap berfungsi end-to-end dengan data dummy seed.
+- [x] Free tier diblokir bikin event aktif kedua (pesan ramah + CTA upgrade).
+- [x] Frame PNG transparan tampil sempurna overlay di halaman photobooth.
+- [x] Event nonaktif → halaman tamu menampilkan "acara sudah berakhir".
+- [x] Semua form tervalidasi (zod) dengan pesan error human.
+- [x] RLS: vendor B tidak bisa akses API event milik vendor A (test manual 2 akun).
+- [x] Custom slug bisa dipakai membuka photobooth; slug bentrok ditolak dengan pesan ramah.
+- [x] Block activate/create event baru jika downgrade ke Free dengan >1 event aktif (event aktif existing tetap jalan).
+
+> Terverifikasi manual oleh owner (2026-08-28): seluruh AC di atas lulus uji nyata (CRUD, frame, slug, RLS 2 akun).
 
 ## 7. Catatan
 

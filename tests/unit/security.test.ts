@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  isImageBuffer,
   isJpegBuffer,
+  isPngBuffer,
   isSameOrigin,
   sanitizeSearchQuery,
   timingSafeEqualStr,
@@ -46,6 +48,35 @@ describe("isJpegBuffer", () => {
 
   it("menolak buffer terlalu pendek", () => {
     expect(isJpegBuffer(new Uint8Array([0xff, 0xd8]))).toBe(false);
+  });
+});
+
+describe("isPngBuffer", () => {
+  it("menerima PNG asli (89504E47)", () => {
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+    expect(isPngBuffer(png)).toBe(true);
+  });
+
+  it("menolak non-PNG & buffer pendek", () => {
+    expect(isPngBuffer(new Uint8Array([0x89, 0x50, 0x4e]))).toBe(false);
+    expect(isPngBuffer(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]))).toBe(false);
+  });
+
+  it("menerima ArrayBuffer (bukan cuma Uint8Array)", () => {
+    const ab = new Uint8Array([0x89, 0x50, 0x4e, 0x47]).buffer;
+    expect(isPngBuffer(ab)).toBe(true);
+  });
+});
+
+describe("isImageBuffer", () => {
+  it("true untuk JPEG atau PNG", () => {
+    expect(isImageBuffer(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]))).toBe(true);
+    expect(isImageBuffer(new Uint8Array([0x89, 0x50, 0x4e, 0x47]))).toBe(true);
+  });
+
+  it("false untuk HTML / teks / buffer pendek", () => {
+    expect(isImageBuffer(new Uint8Array([0x3c, 0x68, 0x74, 0x6d]))).toBe(false);
+    expect(isImageBuffer(new Uint8Array([0x41, 0x42]))).toBe(false);
   });
 });
 

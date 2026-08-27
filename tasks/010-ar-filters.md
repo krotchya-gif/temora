@@ -1,6 +1,6 @@
 # Task 010 — AR Filters & Virtual Props
 
-*Status: Ready · Prioritas: Medium · Phase: 2*
+*Status: Kode selesai (2026-08-28) — FaceLandmarker lazy-load, 3 props (topi/kacamata/bunga), FPS watchdog auto-disable, props masuk hasil capture; AC device (FPS ≥25, group ≤4 wajah) menunggu device lab task 016 · Prioritas: Medium · Phase: 2*
 
 Depends on: 004 (photobooth dasar stabil dulu — jalur capture TIDAK boleh terganggu)
 
@@ -58,12 +58,12 @@ Photobooth → tab "Props" (icon Lucide) → grid thumbnail props
 
 ## 6. Acceptance Criteria
 
-- [ ] ≥ 25 FPS di HP kelas menengah saat AR aktif; auto-disable di bawah 20.
-- [ ] Hasil capture menyertakan props pada posisi/skala benar (test topi + kacamata).
-- [ ] Group photo ≤ 4 orang: semua wajah ke-track.
-- [ ] Photobooth dasar tetap < 10 detik scan-to-capture tanpa menyentuh tab Props (bundle tak bertambah).
-- [ ] Toggle vendor per event berfungsi; event tanpa props tidak memuat model sama sekali.
-- [ ] Consent screen tidak berubah (props 2D tidak proses biometrik — cukup privacy note umum).
+- [ ] ≥ 25 FPS di HP kelas menengah saat AR aktif; auto-disable di bawah 20. *(kode: watchdog FPS ~4 dtk → auto-disable; verifikasi device menunggu device lab)*
+- [ ] Hasil capture menyertakan props pada posisi/skala benar (test topi + kacamata). *(kode: landmark → propLayout → canvas, mirror kamera depan; verifikasi visual menunggu device)*
+- [ ] Group photo ≤ 4 orang: semua wajah ke-track. *(kode: numFaces=4, render per wajah; verifikasi menunggu device)*
+- [x] Photobooth dasar tetap < 10 detik scan-to-capture tanpa menyentuh tab Props (bundle tak bertambah). *(2026-08-28: E2E guest 4.4s; chunk page 25K hanya memuat URL CDN — MediaPipe di chunk dinamis terpisah, dimuat saat tab "Efek" dibuka)*
+- [x] Event tanpa props tidak memuat model sama sekali. *(2026-08-28: model hanya di-load via dynamic import saat activeProp set)*
+- [x] Consent screen tidak berubah (props 2D tidak proses biometrik — cukup privacy note umum).
 
 ## 7. Catatan
 

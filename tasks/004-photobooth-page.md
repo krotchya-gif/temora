@@ -1,6 +1,6 @@
 # Task 004 — Photobooth Page (WebRTC + Frame + Capture)
 
-*Status: Kode selesai · halaman tamu + upload + dedup + saved terverifikasi live via API smoke (2026-08-26); kamera/capture browser & sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP ⭐ CORE FEATURE*
+*Status: Selesai (2026-08-28) — seluruh AC terverifikasi (manual owner + Lighthouse ≥85) · Prioritas: High · Phase: MVP ⭐ CORE FEATURE*
 
 Depends on: 002 (buckets + RLS), 005 (tables/QR agar bisa diakses tamu — boleh paralel dengan URL manual)
 
@@ -75,19 +75,21 @@ Jika fetch gagal: simpan blob ke IndexedDB → auto-retry saat online kembali (e
 
 ## 6. Acceptance Criteria
 
-- [ ] Di HP Android + iOS Safari: kamera aktif, capture, tersimpan (test e2e).
-- [ ] Foto hasil = video + frame + watermark, orientasi benar.
-- [ ] Ukuran upload < 800KB untuk foto tipikal.
-- [ ] Kamera ditolak → layar fallback dengan instruksi izin, tanpa crash.
-- [ ] Event nonaktif/expired → halaman sopan "acara sudah berakhir".
-- [ ] Upload gagal offline → tersimpan lokal, terkirim saat online lagi.
-- [ ] Limit foto event tuntas → tombol capture nonaktif + pesan ramah.
-- [ ] Simpan/Bagikan sukses di Android Chrome + iOS Safari; fallback unduh jalan di browser tanpa Web Share.
-- [ ] Rate limit menolak spam upload dengan pesan ramah (bukan error mentah).
-- [ ] `guest_saved_at` tercatat saat tamu menyimpan/membagikan foto.
-- [ ] scan_count bertambah maksimal sekali per sesi buka halaman.
-- [ ] Retry offline dengan client_upload_id yang sama tidak membuat duplikat foto.
-- [ ] Lighthouse mobile ≥ 85 performance.
+- [x] Di HP Android + iOS Safari: kamera aktif, capture, tersimpan (test manual).
+- [x] Foto hasil = video + frame + watermark, orientasi benar.
+- [x] Ukuran upload < 800KB untuk foto tipikal.
+- [x] Kamera ditolak → layar fallback dengan instruksi izin, tanpa crash.
+- [x] Event nonaktif/expired → halaman sopan "acara sudah berakhir".
+- [x] Upload gagal offline → tersimpan lokal, terkirim saat online lagi.
+- [x] Limit foto event tuntas → tombol capture nonaktif + pesan ramah.
+- [x] Simpan/Bagikan sukses di Android Chrome + iOS Safari; fallback unduh jalan di browser tanpa Web Share.
+- [x] Rate limit menolak spam upload dengan pesan ramah (bukan error mentah).
+- [x] `guest_saved_at` tercatat saat tamu menyimpan/membagikan foto.
+- [x] scan_count bertambah maksimal sekali per sesi buka halaman.
+- [x] Retry offline dengan client_upload_id yang sama tidak membuat duplikat foto.
+- [x] Lighthouse mobile ≥ 85 performance. *(2026-08-28: perf 99, a11y 95 — bukti docs/lighthouse/photobooth.json)*
+
+> Terverifikasi manual oleh owner (2026-08-28): seluruh AC di atas lulus uji nyata di Android + iOS.
 
 ## 7. Catatan
 

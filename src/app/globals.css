@@ -184,6 +184,90 @@
   color: var(--color-text-secondary);
 }
 
+/* Logo sponsor di kartu QR (task 013) — kecil, QR tetap ≥ 4×4 cm */
+.qr-card-sponsors {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2mm;
+  min-height: 7mm;
+}
+
+.qr-card-sponsor-logo {
+  max-height: 6mm;
+  max-width: 16mm;
+  object-fit: contain;
+}
+
+.qr-card-sponsor-name {
+  font-size: 3mm;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* Laporan momen A4 (task 012 — print browser → PDF) */
+.moment-report {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 8mm;
+}
+
+.moment-report-header {
+  padding-bottom: 4mm;
+  margin-bottom: 5mm;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.moment-report-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.moment-report-item {
+  display: grid;
+  grid-template-columns: 8mm 1fr;
+  gap: 3mm;
+  padding: 3.5mm 0;
+  break-inside: avoid;
+}
+
+.moment-report-item + .moment-report-item {
+  border-top: 1px solid var(--color-border);
+}
+
+.moment-report-index {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 3.2mm;
+  color: var(--color-accent);
+}
+
+.moment-report-content {
+  margin: 0;
+  font-size: 4mm;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+.moment-report-meta {
+  grid-column: 2;
+  font-size: 3mm;
+  color: var(--color-text-secondary);
+}
+
+@media print {
+  .moment-report {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .moment-report-item {
+    break-inside: avoid;
+  }
+}
+
 @page {
   size: A4;
   margin: 12mm;

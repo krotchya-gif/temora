@@ -54,7 +54,7 @@ export function DashboardShell({
         <p className="mt-1 text-xs text-text-secondary">Dashboard vendor</p>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
         {DASHBOARD_NAV.map((item) => {
           const Icon = iconMap[item.icon];
           const active =
@@ -97,7 +97,7 @@ export function DashboardShell({
 
   return (
     <div className="min-h-dvh bg-bg-base">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-bg-card lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-bg-card lg:block print:hidden">
         {sidebar}
       </aside>
 
@@ -112,11 +112,11 @@ export function DashboardShell({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 border-r border-border bg-bg-card transition-transform duration-200 lg:hidden motion-reduce:transition-none",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-bg-card transition-transform duration-200 lg:hidden motion-reduce:transition-none",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center justify-end p-3">
+        <div className="flex shrink-0 items-center justify-end p-3">
           <button
             type="button"
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-bg-warm"
@@ -126,11 +126,11 @@ export function DashboardShell({
             <X className="h-5 w-5" />
           </button>
         </div>
-        {sidebar}
+        <div className="min-h-0 flex-1">{sidebar}</div>
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between border-b border-border bg-bg-base/90 px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between border-b border-border bg-bg-base/90 px-4 backdrop-blur-md sm:px-6 print:hidden">
           <button
             type="button"
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-bg-warm lg:hidden"
@@ -147,7 +147,7 @@ export function DashboardShell({
           </Button>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 print:max-w-none print:p-0">{children}</main>
       </div>
     </div>
   );

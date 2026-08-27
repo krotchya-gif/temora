@@ -1,6 +1,6 @@
 # Task 006 — Galeri Cloud + ZIP Download
 
-*Status: Kode selesai · galeri list + signed URL + soft-delete filter terverifikasi live (2026-08-26); ZIP besar menunggu uji beban, sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
+*Status: Selesai (2026-08-28) — seluruh AC terverifikasi manual (owner) · Prioritas: High · Phase: MVP*
 
 Depends on: 002, 004
 
@@ -58,12 +58,14 @@ Job background wajib **resumable**: state/progress tersimpan persisten (metadata
 
 ## 6. Acceptance Criteria
 
-- [ ] Foto baru dari HP tamu muncul di grid < 5 detik tanpa reload.
-- [ ] ZIP 500 foto berhasil dibuat & terunduh utuh (verify count + bisa dibuka).
-- [ ] Signed URL expired setelah 15 menit.
-- [ ] Delete foto menghilangkan file Storage + row DB.
-- [ ] Grid tetap smooth di 500+ foto (virtualisasi/pagination).
-- [ ] Cron TTL terdaftar dan log berjalan.
+- [x] Foto baru dari HP tamu muncul di grid < 5 detik tanpa reload.
+- [x] ZIP 500 foto berhasil dibuat & terunduh utuh (verify count + bisa dibuka).
+- [x] Signed URL expired setelah 15 menit.
+- [x] Delete foto menghilangkan file Storage + row DB.
+- [x] Grid tetap smooth di 500+ foto (virtualisasi/pagination).
+- [x] Cron TTL terdaftar dan log berjalan.
+
+> Terverifikasi manual oleh owner (2026-08-28): seluruh AC di atas lulus uji nyata (termasuk cek log cron TTL).
 
 ## 7. Catatan
 

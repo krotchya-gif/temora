@@ -82,16 +82,21 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 
 ### SHOULD — Phase 2
 
-8. **Fitur Moments** — caption/title per foto, guestbook digital.
-9. **AR Filters & Virtual Props** — MediaPipe Tasks Vision / TensorFlow.js.
-10. **Green Screen** — background replacement client-side (segmentation).
+> *Status 2026-08-28: fase 2/3 (item 8–14) masuk roadmap aktif — dikerjakan
+> berurutan task 010–014 (docs + migrasi + kode + verifikasi). Keputusan
+> terkunci #9 diperbarui: tabel `moments`/`sponsors` kini dibuat saat task-nya
+> dieksekusi.*
+
+8. **Fitur Moments** — caption/title per foto, guestbook digital. *(task 012, ⭐ differentiator)*
+9. **AR Filters & Virtual Props** — MediaPipe Tasks Vision (task 010).
+10. **Green Screen** — background replacement client-side (segmentation) (task 011).
 11. **AI Frame Suggestions**.
-12. **Analytics Dashboard** — foto per meja, heatmap waktu puncak.
+12. **Analytics Dashboard** — foto per meja, heatmap waktu puncak (task 014).
 13. **Live Photo Wall** — slideshow real-time di layar besar venue.
 
 ### COULD — Phase 3
 
-14. Sponsorship slots (logo sponsor di frame/QR/slideshow).
+14. Sponsorship slots (logo sponsor di frame/QR/slideshow) — *(task 013, ditarik ke roadmap aktif).*
 15. AI Slideshow (video recap otomatis).
 16. Lead capture → CRM export.
 17. Multi-device sync.
@@ -156,7 +161,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 ### Resolved (v1.2)
 
 4. ~~Guest data (nama/email) wajib atau tetap anonim?~~ → **Tamu anonim sepenuhnya di MVP** (tanpa nama/email wajib). Lihat database.md §7.
-5. **Showcase Moments** (enhancement pasca-MVP, 2026-08-26): galeri kurasi platform yang diinput superadmin — tampil di landing (rope interaktif "tali momen") dan halaman publik `/moments`. Konten eksklusif kurasi admin; foto tamu vendor tetap privat (keputusan #8). Detail: `docs/qa-report.md` §7.
+5. **Showcase Moments** (enhancement pasca-MVP, 2026-08-26): galeri kurasi platform yang diinput superadmin — tampil di landing (rope interaktif "tali momen") dan halaman publik `/moments`. Konten eksklusif kurasi admin; foto tamu vendor tetap privat (keputusan #8). Detail: `docs/qa-report.md` §8.
 
 ---
 

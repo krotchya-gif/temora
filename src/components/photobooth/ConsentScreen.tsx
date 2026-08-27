@@ -7,11 +7,18 @@ import { Button } from "@/components/ui/Button";
 type ConsentScreenProps = {
   eventName: string;
   tableLabel: string;
+  /** Nama sponsor frame aktif (task 013) — kosong = tidak disebut. */
+  sponsorNames: string[];
   onAccept: () => void;
 };
 
 // Consent privasi tamu sebelum kamera aktif (design-system §3.7).
-export function ConsentScreen({ eventName, tableLabel, onAccept }: ConsentScreenProps) {
+export function ConsentScreen({
+  eventName,
+  tableLabel,
+  sponsorNames,
+  onAccept,
+}: ConsentScreenProps) {
   return (
     <main className="flex min-h-dvh flex-col bg-bg-base bg-glow-accent">
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-10">
@@ -31,6 +38,12 @@ export function ConsentScreen({ eventName, tableLabel, onAccept }: ConsentScreen
             dilihat oleh penyelenggara. Foto otomatis terhapus paling lambat 30
             hari setelah acara berakhir.
           </p>
+
+          {sponsorNames.length > 0 ? (
+            <p className="mt-3 rounded-lg bg-bg-warm px-3 py-2 text-xs leading-relaxed text-text-secondary">
+              Acara ini didukung oleh {sponsorNames.join(", ")}.
+            </p>
+          ) : null}
 
           <Link
             href="/privacy"

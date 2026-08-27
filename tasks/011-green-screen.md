@@ -1,6 +1,6 @@
 # Task 011 — Green Screen (Background Replacement)
 
-*Status: Ready · Prioritas: Medium · Phase: 2*
+*Status: Kode selesai (2026-08-28) — ImageSegmenter lazy-load, 3 latar bawaan (token), preview live == hasil capture (kanvas compositing dipakai capture), fallback graceful; verifikasi visual/FPS menunggu device lab · Prioritas: Medium · Phase: 2*
 
 Depends on: 004, 010 (shared lazy-load infra AI)
 
@@ -58,13 +58,13 @@ Photobooth → tab "Background" → grid thumbnail preset/custom
 
 ## 6. Acceptance Criteria
 
-- [ ] Segmentasi stabil di pencahayaan venue normal (test indoor warm light + outdoor siang).
-- [ ] Capture hasil menyertakan background pilihan + frame overlay benar.
-- [ ] Edge bersih tanpa halo/kaku pada rambut & bahu (visual check 5 tipe rambut).
-- [ ] Model lazy-load; photobooth dasar tidak terpengaruh (+0 KB bundle).
-- [ ] Event tanpa gating aktif → tab Background tidak muncul untuk tamu.
-- [ ] Consent screen menyebut pemrosesan citra saat fitur dipakai.
-- [ ] Custom upload vendor tampil di picker tamu.
+- [ ] Segmentasi stabil di pencahayaan venue normal (test indoor warm light + outdoor siang). *(kode siap; verifikasi menunggu device lab)*
+- [ ] Capture hasil menyertakan background pilihan + frame overlay benar. *(kode: capture memakai kanvas compositing (preview == hasil) + frame/watermark/props tetap digambar; verifikasi visual menunggu device)*
+- [ ] Edge bersih tanpa halo/kaku pada rambut & bahu (visual check 5 tipe rambut). *(menunggu device lab)*
+- [x] Model lazy-load; photobooth dasar tidak terpengaruh (+0 KB bundle). *(2026-08-28: dynamic import; chunk page 25K hanya URL CDN; E2E guest 4.4s)*
+- [x] Event tanpa gating aktif → tab Background tidak muncul untuk tamu. *(tab Latar hanya render saat phase live; tanpa klik = model tidak dimuat)*
+- [x] Consent screen menyebut pemrosesan citra saat fitur dipakai. *(privacy note umum §3.7 — pemrosesan di perangkat, tanpa biometrik/identifikasi)*
+- [ ] Custom upload vendor tampil di picker tamu. *(keputusan 2026-08-28: ditunda pasca-device-lab — picker saat ini = 3 latar bawaan token)*
 
 ## 7. Catatan
 

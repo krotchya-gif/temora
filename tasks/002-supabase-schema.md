@@ -52,7 +52,7 @@ supabase/migrations/
 ## 6. Acceptance Criteria
 
 - [x] Migrasi jalan bersih tanpa error — applied via migration history remote (setara `db push`; CLI belum login access token). Ditemukan & diperbaiki bug latent: infinite recursion RLS pada `p_guest_insert` → migrasi 0012/0013 (`private.can_guest_upload` SECURITY DEFINER).
-- [ ] Vendor A tidak bisa baca/event milik Vendor B (test manual via SQL editor / PostgREST). — struktur policy terverifikasi (`to authenticated`, initplan); uji lintas-vendor nyata masuk E2E task 016.
+- [x] Vendor A tidak bisa baca/event milik Vendor B. *(terverifikasi manual 2 akun vendor, 2026-08-28)*
 - [x] Anon bisa SELECT event aktif, tidak bisa SELECT foto. (live: event=1, foto=0)
 - [x] Anon bisa INSERT foto ke event aktif; gagal jika event nonaktif, expired, atau limit habis. Pro tier (photo_limit NULL) tidak diblokir. (5 skenario live PASS)
 - [x] Unique index `client_upload_id` mencegah duplikat retry offline. (SQL 23505 + app-level `duplicate:true`)

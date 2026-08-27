@@ -1,6 +1,6 @@
 # Task 005 — QR Code Kartu Meja
 
-*Status: Kode selesai · generate meja + QR SVG publik + scan RPC terverifikasi live (2026-08-26); cetak A4 & sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
+*Status: Selesai (2026-08-28) — seluruh AC terverifikasi manual (owner) · Prioritas: High · Phase: MVP*
 
 Depends on: 002
 
@@ -52,11 +52,13 @@ QR pakai error correction level `M` (≈15% recovery) — tahan sedikit kotor/li
 
 ## 6. Acceptance Criteria
 
-- [ ] Generate 20 tabel sekali klik; row muncul di DB dengan label benar.
-- [ ] Scan QR dari HP → langsung buka halaman photobooth event tsb.
-- [ ] Print preview A4 rapi; hasil cetak terbaca dari jarak 1 meter.
-- [ ] Regenerate satu tabel tidak mengubah tabel lain.
-- [ ] Halaman print tidak bisa diakses non-owner.
+- [x] Generate 20 tabel sekali klik; row muncul di DB dengan label benar.
+- [x] Scan QR dari HP → langsung buka halaman photobooth event tsb.
+- [x] Print preview A4 rapi; hasil cetak terbaca dari jarak 1 meter.
+- [x] Regenerate satu tabel tidak mengubah tabel lain.
+- [x] Halaman print tidak bisa diakses non-owner.
+
+> Terverifikasi manual oleh owner (2026-08-28): seluruh AC di atas lulus uji nyata (cetak A4 + scan QR HP).
 
 ## 7. Catatan
 

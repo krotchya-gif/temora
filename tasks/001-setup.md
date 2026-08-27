@@ -76,7 +76,7 @@ supabase/migrations/    # kosong dulu — task 002 isi SQL
 - ❌ Skema database & migrasi SQL (task 002).
 - ❌ Middleware auth / halaman login (task 003).
 - ❌ Halaman selain landing stub + `/api/health`.
-- ❌ Sentry, CI workflow lengkap (task 015 — tapi `.env.example` sudah siap).
+- ❌ CI workflow lengkap (task 015 — tapi `.env.example` sudah siap).
 
 ## 4. Desain
 
@@ -117,7 +117,7 @@ Server component, tanpa interaktivitas. Cukup validasi token CSS: `bg-bg-base`, 
 
 - [x] `npm run dev` + `npm run build` + `npm run lint` + `npm run typecheck` jalan tanpa error. *(terverifikasi 2026-08-26)*
 - [x] Landing stub menampilkan wordmark + tagline dengan token brand (bukan hex hardcode).
-- [ ] `GET /api/health` return 200 + indikasi Supabase terkonfigurasi. *(menunggu `.env.local`)*
+- [x] `GET /api/health` return 200 + indikasi Supabase terkonfigurasi. *(terverifikasi manual 2026-08-28)*
 - [x] Tiga file `src/lib/supabase/*` ada; `admin.ts` **tidak** di-import dari Client Component.
 - [x] `.env.example` lengkap sesuai architecture.md §11.
 - [x] Prototipe live via Hostinger Git deploy — `chirpek.site` (commit a5b01f5+, task 015).

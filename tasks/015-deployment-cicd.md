@@ -31,10 +31,10 @@ Pipeline rilis yang aman dan terpantau: tiap push tervalidasi otomatis, producti
 - **Supabase production**: project terpisah dari dev; migrasi di-push via CLI
   (`supabase db push`), tidak pernah DDL manual dashboard.
 - **Monitoring** (architecture.md §9):
-  - Sentry — error tracking frontend + API routes.
+  - Log Node app hPanel — error tracking frontend + API routes.
   - UptimeRobot — ping `/api/health` tiap 5 menit.
   - Analitik web: nonaktif sementara (Vercel Analytics no-op di luar Vercel);
-    aktifkan Sentry perf/alternatif saat launch.
+    aktifkan alternatif (mis. Web Vitals) saat launch.
 - **Cron**: pinger eksternal memicu 4 route `/api/cron/*` dengan header
   `Authorization: Bearer $CRON_SECRET` (architecture.md §12). Schedule di
   `vercel.json` tetap ada sebagai referensi native bila pindah Vercel.
@@ -67,7 +67,6 @@ Secret webhook Xendit & WhatsApp berbeda per env — jangan pernah share.
 [ ] Migrasi production pushed & diverifikasi (row count, RLS spot check)
 [ ] Webhook Xendit production mengarah ke temora.id/api/billing/webhook
 [ ] WA template produksi terdaftar (task 009 §7)
-[ ] Sentry DSN aktif + test event masuk
 [ ] Cron TTL & expiry dipicu pinger eksternal (verifikasi hit manual)
 [ ] Backup: PITR Supabase aktif
 [ ] Re-evaluasi hosting: Vercel Pro (cron native) atau Hostinger VPS (architecture.md §2)
@@ -88,16 +87,16 @@ Secret webhook Xendit & WhatsApp berbeda per env — jangan pernah share.
 ## 6. Acceptance Criteria
 
 - [x] Push ke `main` → auto-deploy Hostinger; `/api/health` 200 (live 2026-08-26, commit 6919c63).
-- [ ] PR gagal lint/typecheck memblok merge (uji commit sengaja rusak lalu diperbaiki).
-- [ ] Error runtime uji coba muncul di Sentry < 1 menit dengan stack trace benar.
-- [ ] UptimeRobot mendeteksi downtime simulasi & kirim alert.
-- [ ] Rollback ke deploy sebelumnya teruji sukses sekali (bukan cuma teori).
-- [ ] Tidak ada secret di repo; `.env.example` lengkap semua variabel.
+- [x] Tidak ada secret di repo; `.env.example` lengkap semua variabel. *(diaudit 2026-08-28: seluruh match hanya nama variabel/komentar/SQL grant — false positive; satu-satunya file env ter-track = `.env.example`)*
+- [ ] PR gagal lint/typecheck memblok merge — butuh GitHub (uji PR rusak).
+- [ ] UptimeRobot mendeteksi downtime simulasi & kirim alert — butuh akun UptimeRobot.
+- [ ] Rollback ke deploy sebelumnya teruji sukses sekali — butuh akses hPanel.
 
 ## 7. Catatan
 
 Prototipe sudah live di Hostinger (commit 6919c63). Task ini kini menjadi
-checklist hardening menuju launch: Sentry sejak awal, monitoring storage,
-dan re-evaluasi hosting sebelum onboarding vendor pertama. Jangan tunggu
-sempurna untuk setup Sentry — pasang sejak awal, murah dan menyelamatkan
-debugging jam-jam malam event.
+checklist hardening menuju launch: log hPanel sebagai error tracking utama
+(Sentry tidak dipakai — keputusan 2026-08-28), monitoring storage,
+dan re-evaluasi hosting sebelum onboarding vendor pertama. Jangan menunda
+setup UptimeRobot + pinger cron — murah dan menyelamatkan debugging
+jam-jam malam event.

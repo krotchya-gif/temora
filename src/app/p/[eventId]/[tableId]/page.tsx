@@ -32,7 +32,7 @@ export default async function PhotoboothPage({ params }: PhotoboothPageProps) {
     return <InvalidLinkScreen />;
   }
 
-  const { event, table, remaining } = state;
+  const { event, table, remaining, frameSponsors } = state;
 
   return (
     <PhotoboothExperience
@@ -40,6 +40,7 @@ export default async function PhotoboothPage({ params }: PhotoboothPageProps) {
       tableId={table.id}
       tableLabel={table.label}
       remaining={remaining}
+      frameSponsors={frameSponsors}
     />
   );
 }
@@ -103,7 +104,21 @@ const loadPhotoboothState = cache(
     remaining = null;
   }
 
-  return { event, table, remaining };
+  // Sponsor aktif (task 013): frame → consent + capture; qr → kartu print.
+  // RLS sp_public_read: hanya baris aktif; gagal baca → tanpa sponsor (tidak memblok).
+  let frameSponsors: { id: string; name: string; logo_path: string | null }[] = [];
+  try {
+    const { data: sponsorRows } = await client
+      .from("sponsors")
+      .select("id, name, logo_path, position")
+      .eq("event_id", event.id)
+      .eq("is_active", true);
+    frameSponsors = (sponsorRows ?? []).filter((s) => s.position === "frame");
+  } catch {
+    // env tidak siap → tanpa sponsor, halaman tetap jalan.
+  }
+
+  return { event, table, remaining, frameSponsors };
   },
 );
 

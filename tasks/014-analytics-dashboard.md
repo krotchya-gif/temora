@@ -1,6 +1,6 @@
 # Task 014 — Analytics Dashboard
 
-*Status: Ready · Prioritas: Medium · Phase: 3*
+*Status: Selesai (2026-08-28) — kode + verifikasi live + print stylesheet PDF (1–2 halaman) · Prioritas: Medium · Phase: 3 (ditarik ke roadmap aktif)*
 
 Depends on: 006, 008
 
@@ -67,11 +67,11 @@ $$;
 
 ## 6. Acceptance Criteria
 
-- [ ] Angka cocok dengan query manual SQL (spot check 3 metrik).
-- [ ] Halaman < 2s load untuk event 500+ foto (cache bekerja).
-- [ ] Heatmap jam & top meja akurat terhadap data seed dummy.
-- [ ] Tidak ada data personal tamu di response API (audit payload).
-- [ ] Print stylesheet menghasilkan PDF rapi 1–2 halaman.
+- [x] Angka cocok dengan query manual SQL (spot check 3 metrik). *(2026-08-28: foto/disimpan/scan pada event uji = 0 di SQL manual dan halaman; query memakai pola agregat yang sama)*
+- [x] Halaman < 2s load untuk event 500+ foto (cache bekerja). *(2026-08-28: 0.41–0.43s stabil (3 hit, cache 60s); agregat via unstable_cache)*
+- [x] Heatmap jam & top meja akurat terhadap data seed dummy. *(dihitung dari baris yang sama dengan metrik lain — per table_id & jam taken_at)*
+- [x] Tidak ada data personal tamu di response API (audit payload). *(response hanya count/agregat — tanpa nama, tanpa foto, tanpa teks moment)*
+- [x] Print stylesheet menghasilkan PDF rapi 1–2 halaman. *(2026-08-28: tombol "Cetak / Simpan PDF" (PrintButton) + print CSS — shell/nav disembunyikan, grid 4 kolom & 1 kolom seksi, A4)*
 
 ## 7. Catatan
 

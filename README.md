@@ -21,7 +21,7 @@ Platform SaaS virtual photobooth untuk vendor event (WO, fotografer, EO): tamu s
 | Notifikasi | WhatsApp Business Cloud API |
 | AI (Phase 2) | MediaPipe Tasks Vision (client-side, lazy-load) |
 | CI/CD | GitHub Actions + Hostinger Git auto-deploy |
-| Monitoring | Sentry · UptimeRobot · cron-job.org (pinger cron) |
+| Monitoring | UptimeRobot · cron-job.org (pinger cron) · log hPanel |
 
 ## Struktur
 
@@ -35,6 +35,7 @@ Temora Photos/
 │   ├── database.md                 skema SQL, RLS, storage, retention
 │   ├── pendoman.md                 panduan pemakaian aplikasi (role, flow, ops)
 │   ├── qa-report.md                log QA + arsip spesifikasi fitur
+│   ├── runbook.md                  runbook operasional (rollback, restore, insiden)
 │   └── research/
 │       ├── competitor-analysis.md  riset Invrame, Photobooth.ID, Framebooth
 │       └── seo-admin-reference.md  referensi pola /admin/seo (project lain, adaptasi)
@@ -48,14 +49,16 @@ Temora Photos/
     ├── 007-dashboard-events.md     CRUD events                     [MVP]
     ├── 008-xendit-billing.md       tier + invoice + webhook        [MVP]
     ├── 009-whatsapp-integration.md notifikasi WA                   [MVP]
-    ├── 010-ar-filters.md           props face-tracking             [Phase 2]
-    ├── 011-green-screen.md         background replacement          [Phase 2]
-    ├── 012-moments-feature.md      caption + guestbook digital     [Phase 2] ⭐
-    ├── 013-sponsorship-slots.md    logo sponsor frame/QR           [Phase 3]
-    ├── 014-analytics-dashboard.md  agregat + heatmap               [Phase 3]
+    ├── 010-ar-filters.md           props face-tracking             [Phase 2 ✅ 2026-08-28]
+    ├── 011-green-screen.md         background replacement          [Phase 2 ✅ 2026-08-28]
+    ├── 012-moments-feature.md      caption + guestbook digital     [Phase 2 ✅ 2026-08-28] ⭐
+    ├── 013-sponsorship-slots.md    logo sponsor frame/QR           [Phase 3 ✅ 2026-08-28]
+    ├── 014-analytics-dashboard.md  agregat + heatmap               [Phase 3 ✅ 2026-08-28]
     ├── 015-deployment-cicd.md      production + monitoring         [MVP gate]
     ├── 016-testing-qa.md           e2e + device lab + bug bash     [MVP gate]
-    └── 017-marketing-pages.md      landing + pricing + how-it-works [MVP]
+    ├── 017-marketing-pages.md      landing + pricing + how-it-works [MVP]
+    ├── 018-super-admin.md          dashboard superadmin /admin      [MVP+ ✅]
+    └── 019-security-hardening.md   hardening + manajemen vendor     [MVP+ ✅]
 ```
 
 ## Urutan Kerja
@@ -66,7 +69,7 @@ Temora Photos/
 4. Desain berubah? Update docs dulu, baru kode.
 5. Catatan (2026-08-26): shell UI statis beberapa halaman dashboard (ringkasan event, galeri event) dibuat **mendahului** eksekusi task-nya sebagai keputusan visual — seluruh acceptance criteria task aslinya tetap wajib diverifikasi penuh saat wiring.
 
-> Docs inti saat ini **v1.2** (patch logika tier/limit/upload — lihat README §Keputusan Terkunci #13–17).
+> Docs inti saat ini **v1.2–1.3** (database/design-system/PRD v1.2; architecture v1.3 — Hostinger prototipe + SEO admin). Patch logika tier/limit/upload: README §Keputusan Terkunci #13–17.
 
 ## Keputusan Terkunci
 
@@ -80,7 +83,7 @@ Temora Photos/
 6. Tipografi: **Cormorant Garamond + Plus Jakarta Sans** (+ JetBrains Mono untuk data)
 7. Token warna kanonik: warm ivory `#F9F6F1` + earthy brown `#8B7355` (design-system §2.1)
 8. Privasi: tanpa facial recognition; tamu tak bisa baca foto/momen orang lain
-9. Skema DB: tabel Phase 2+ (`moments`, `sponsors`) tidak dibuat sebelum waktunya
+9. Skema DB: tabel fase 2 (`moments`, `sponsors`) **tidak dibuat sebelum waktunya** — *diperbarui 2026-08-28: dibuat saat task 012/013 dieksekusi (migrasi 0022+), bukan lebih awal*
 10. Fitur tamu simpan/bagikan foto sendiri masuk MVP (Web Share API, tracking `guest_saved_at`)
 11. Renewal subscription manual via WA reminder H-3/H-0 — tanpa auto-charge di MVP
 12. URL photobooth menerima UUID + slug kustom vendor; QR encode UUID sebagai bentuk kanonik

@@ -18,10 +18,27 @@ async function login(page: import("@playwright/test").Page) {
 test("vendor buat event, generate QR, buka galeri", async ({ page }) => {
   await login(page);
 
+  // Free tier = max 1 event aktif — nonaktifkan sisa event dari run sebelumnya
+  // lewat API (session sama), agar create event baru tidak diblokir.
+  const eventsRes = await page.request.get("/api/events");
+  const { events: existing } = (await eventsRes.json()) as {
+    events: Array<{ id: string; isActive: boolean }>;
+  };
+  for (const ev of existing) {
+    if (ev.isActive) {
+      await page.request.put(`/api/events/${ev.id}`, { data: { isActive: false } });
+    }
+  }
+
   await page.goto("/dashboard/events/new");
   await page.getByLabel("Nama event").fill(`QA Event ${Date.now()}`);
   await page.getByRole("button", { name: "Simpan Event" }).click();
-  await page.waitForURL("**/dashboard/events/**");
+  await page.waitForURL(
+    (url) =>
+      /\/dashboard\/events\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+        url.pathname,
+      ),
+  );
 
   const eventId = page.url().split("/").pop()!;
 

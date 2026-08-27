@@ -83,9 +83,12 @@ Daftar → Buat Event → Upload Frame → Generate QR → Cetak → Hari-H → 
 4. **Generate QR Meja** — tab QR → pilih jumlah meja (maks 50) → tiap meja dapat QR unik yang mengarah ke `/p/[eventId]/[tableId]`.
 5. **Cetak Kartu** — `/print/[eventId]/qr` → lembar A4 grid 2×4 siap potong → taruh di meja tamu.
 6. **Aktifkan Event** — toggle status. Tamu hanya bisa akses event **aktif & belum expired** (TTL default 30 hari).
-7. **Hari-H** — pantau galeri real-time `/dashboard/events/[eventId]/gallery` (foto masuk tanpa refresh, ada lightbox & hapus).
-8. **Unduh Hasil** — tombol ZIP di galeri: ≤100 foto langsung; >100 foto berjalan background dengan progress bar.
-9. **Selesai Acara** — nonaktifkan event (membebaskan slot event aktif Free tier).
+7. **Hari-H** — pantau galeri real-time `/dashboard/events/[eventId]/gallery` (foto masuk tanpa refresh, ada lightbox & hapus). Feed **Momen** (`…/moments`) menampilkan caption tamu real-time + moderasi hide/show + export CSV.
+8. **Sponsor (Pro)** — `…/sponsors`: logo partner muncul di hasil foto tamu & kartu QR meja.
+9. **Analitik** — `…/analytics`: total foto/disimpan/scan/momen, foto per meja, heatmap jam (cache 60 detik); tombol **Cetak / Simpan PDF**.
+10. **Unduh Hasil** — tombol ZIP di galeri: ≤100 foto langsung; >100 foto berjalan background dengan progress bar.
+11. **Laporan Momen (PDF)** — `/print/[eventId]/moments`: cetak A4, hanya momen tidak tersembunyi.
+12. **Selesai Acara** — nonaktifkan event (membebaskan slot event aktif Free tier).
 
 **Batasan tier** (terkunci, dicek server-side): Free 1 aktif/100 foto · Basic Rp99K 3 aktif/500 foto · Pro Rp299K unlimited.
 
@@ -102,7 +105,9 @@ Scan QR → Consent → Kamera → Ambil Foto → Simpan/Bagikan
 3. Izin kamera → ambil selfie/foto bersama; frame acara & watermark terpasang otomatis.
 4. Foto dikompres <800KB lalu tersimpan ke galeri vendor (jaringan lemah? foto masuk antrean offline dan terkirim otomatis saat online — tidak hilang).
 5. Preview instan → **Simpan ke HP** atau **Bagikan** (Web Share API ke WA/IG).
-6. Selesai — tamu tidak meninggalkan data pribadi apa pun.
+6. Opsional: tulis **momen** ("Apa yang sedang kamu rasakan?") — caption/guestbook acara (maks 1/60 detik).
+7. Opsional: pakai **Efek** (topi/kacamata/bunga, AR) atau **Latar** (green screen) sebelum capture — keduanya berjalan di perangkat tamu.
+8. Selesai — tamu tidak meninggalkan data pribadi apa pun.
 
 Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilkan layar ramah.
 
@@ -113,7 +118,7 @@ Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilk
 1. **Aktivasi & onboarding vendor** — calon vendor menghubungi via tombol WA di landing/pricing (`wa.me/<NEXT_PUBLIC_WA_ADMIN_NUMBER>`).
 2. **Upgrade paket** — vendor bayar sendiri via `/dashboard/billing` (Xendit); admin hanya menangani kasus khusus. Webhook Xendit otomatis menaikkan tier.
 3. **Perpanjangan** — manual: sistem antre reminder WA H-3 dan H-0 (cron `wa-reminders`), worker kirim tiap 5 menit (`wa-queue`, quiet hours 22:00–07:00 WIB).
-4. **Monitoring** — Sentry (error), UptimeRobot (ping `/api/health`); analitik web nonaktif sementara di prototipe (Vercel Analytics no-op di luar Vercel — architecture.md §9).
+4. **Monitoring** — Log Node app hPanel (error), UptimeRobot (ping `/api/health`); analitik web nonaktif sementara di prototipe (Vercel Analytics no-op di luar Vercel — architecture.md §9).
 5. **SEO, tracking & kampanye** (superadmin) — `/admin/seo` (5 tab): meta tag + robots/sitemap, ID GA4/GTM/Clarity/pixel, angka GA4/GSC real, event monitor (`wa_click`/`upgrade_click`/`payment_success`), builder link UTM + laporan konversi. Detail: `docs/research/seo-admin-reference.md`.
 
 ---
@@ -162,4 +167,4 @@ E2E memakai data seed: set `E2E_EVENT_ID` & `E2E_TABLE_ID` dari UUID seed di ata
 
 ---
 
-*Dibuat 2026-08-26 · sesuai implementasi MVP (task 001–009, 015–017).*
+*Dibuat 2026-08-26 · sesuai implementasi MVP (task 001–009, 015–019).*

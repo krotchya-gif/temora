@@ -17,6 +17,10 @@
 
 ## 2. Skema
 
+> **Fase 2/3 aktif (2026-08-28):** tabel `moments` (task 012) & `sponsors`
+> (task 013) kini dibuat via migrasi — keputusan terkunci #9 diperbarui.
+> Semua tabel fase 2+ memakai pola isolasi yang sama (vendor-owned + RLS).
+
 ### 2.1 vendors
 ```sql
 CREATE TABLE vendors (
@@ -127,7 +131,7 @@ CREATE TABLE whatsapp_logs (
 );
 ```
 
-> Phase 2+ (buat migrasinya nanti, jangan sekarang): `moments` (task 012 — caption + guestbook), `sponsors` (task 013). Tidak dibuat di MVP agar skema tetap ramping.
+> Fase 2+ sudah aktif (2026-08-28): `moments` (task 012) & `sponsors` (task 013) dibuat di §2.8.
 
 ### 2.6c admin_audit_logs (task 019)
 ```sql
@@ -152,18 +156,17 @@ CREATE INDEX idx_audit_target ON admin_audit_logs(target_type, target_id);
 ```sql
 CREATE TABLE showcase_photos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  storage_path TEXT NOT NULL,          -- bucket publik 'showcase'
-  title TEXT NOT NULL,                 -- label acara/kota (marketing)
-  caption TEXT,                        -- kutipan singkat opsional
-  storage_path TEXT,                  -- nullable bila sumbernya external_url
+  storage_path TEXT,                  -- bucket publik 'showcase'; NULL bila sumbernya external_url
+  title TEXT NOT NULL,                -- label acara/kota (marketing)
+  caption TEXT,                       -- kutipan singkat opsional
   external_url TEXT,                  -- placeholder/kurasi via URL (Unsplash/Wikimedia/picsum)
   sort_order INT NOT NULL DEFAULT 0,
   created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  deleted_at TIMESTAMPTZ,              -- soft delete oleh admin (purge objek langsung)
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  deleted_at TIMESTAMPTZ,             -- soft delete oleh admin (purge objek langsung)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT one_source CHECK (storage_path IS NOT NULL OR external_url IS NOT NULL)
 );
 CREATE INDEX idx_showcase_order ON showcase_photos(sort_order, created_at DESC);
-CONSTRAINT: minimal satu sumber — CHECK (storage_path IS NOT NULL OR external_url IS NOT NULL);
 ```
 > Konten kurasi milik platform — diinput **superadmin** lewat `/admin/showcase`, BUKAN foto tamu vendor (privasi, keputusan terkunci #8). RLS: SELECT anon/authenticated hanya baris `deleted_at IS NULL`; tanpa policy tulis → mutasi eksklusif service role dari API admin. Bucket `showcase` PUBLIC + storage policy select. Dipakai: rope landing (24 terbaru) & halaman `/moments`.
 
@@ -200,6 +203,52 @@ CREATE TABLE platform_settings (
 
 **Validasi upload (API wajib):** `table_id` harus milik `event_id`; `client_upload_id` (UUID per capture) untuk dedup retry offline — jika duplikat, return row existing (200), bukan insert baru.
 
+### 2.8 moments & sponsors (task 012–013, migrasi 0022)
+
+```sql
+-- Moments: caption + guestbook digital per foto (task 012)
+CREATE TABLE moments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  table_id UUID REFERENCES tables(id) ON DELETE SET NULL,
+  photo_id UUID REFERENCES photos(id) ON DELETE CASCADE, -- nullable: moment tanpa foto
+  content TEXT NOT NULL CHECK (char_length(content) BETWEEN 1 AND 280),
+  is_hidden BOOLEAN NOT NULL DEFAULT FALSE,              -- moderasi vendor
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_moments_event_time ON moments(event_id, created_at DESC);
+CREATE INDEX idx_moments_event_hidden ON moments(event_id) WHERE is_hidden = FALSE;
+
+-- Sponsors: logo partner di frame & kartu QR (task 013, tier Pro)
+CREATE TABLE sponsors (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  name TEXT NOT NULL CHECK (char_length(name) BETWEEN 1 AND 80),
+  logo_path TEXT,                   -- {bucket}/{key} — bucket publik 'sponsors'
+  position TEXT NOT NULL CHECK (position IN ('frame','qr')),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_sponsors_event ON sponsors(event_id, is_active);
+```
+
+**Aturan moments (task 012):**
+- Anon INSERT (guard cadangan, API route jalur utama) — hanya event aktif & belum expired,
+  rate limit 1 moment/60 detik per `table_id` (+IP) — validasi otoritatif di API.
+- Tamu **tidak bisa** SELECT moments (privasi, pola sama dengan photos).
+- Vendor baca/kelola semua moments eventnya; `is_hidden` menyembunyikan dari feed
+  publik vendor & export — hard delete mengikuti cascade event.
+- Realtime publication `moments` untuk feed dashboard live.
+
+**Aturan sponsors (task 013):**
+- Hanya tier **Pro** (dan superadmin) — API menolak 403 untuk Free/Basic (tier dibaca
+  dari DB, bukan client).
+- Logo aktif `position='frame'` digambar ke hasil capture berikutnya (tanpa re-process
+  foto lama); `position='qr'` tampil di kartu print QR meja.
+- Consent screen photobooth menyebut sponsor saat ada sponsor frame aktif; tidak
+  menyebut bila tidak ada.
+- Deactivate/hapus sponsor → propagasi < 30 detik (dibaca per-capture, bukan cache).
+
 ## 3. Triggers
 
 ```sql
@@ -233,6 +282,8 @@ ALTER TABLE tables  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE photos  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whatsapp_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE moments ENABLE ROW LEVEL SECURITY;   -- task 012
+ALTER TABLE sponsors ENABLE ROW LEVEL SECURITY;  -- task 013
 
 -- Vendor kelola dirinya
 CREATE POLICY v_self ON vendors FOR ALL
@@ -278,6 +329,20 @@ CREATE POLICY s_owner ON subscriptions FOR ALL
 -- Log WhatsApp hanya milik vendor (ditulis service role; tanpa akses anon)
 CREATE POLICY w_owner ON whatsapp_logs FOR ALL
   USING (auth.uid() = vendor_id);
+
+-- Moments (task 012): tamu tulis (guard cadangan), vendor baca/kelola
+CREATE POLICY m_public_insert ON moments FOR INSERT TO anon
+  WITH CHECK (private.can_guest_upload(event_id));
+CREATE POLICY m_owner_all ON moments FOR ALL
+  USING (EXISTS (SELECT 1 FROM events e
+                 WHERE e.id = event_id AND e.vendor_id = auth.uid()));
+
+-- Sponsors (task 013): baca publik baris aktif (consent + QR card); kelola vendor
+CREATE POLICY sp_public_read ON sponsors FOR SELECT TO anon, authenticated
+  USING (is_active = TRUE);
+CREATE POLICY sp_owner_all ON sponsors FOR ALL
+  USING (EXISTS (SELECT 1 FROM events e
+                 WHERE e.id = event_id AND e.vendor_id = auth.uid()));
 ```
 
 **Catatan penting:** limit foto via subquery di policy adalah guard pertama; validasi kedua tetap dilakukan di API route (defense in depth). Service role bypass RLS — **hanya** boleh dipakai di server/API routes, never di client.
@@ -294,6 +359,7 @@ Galeri vendor live-update (task 006): foto baru muncul tanpa reload.
 
 ```sql
 ALTER PUBLICATION supabase_realtime ADD TABLE photos;
+ALTER PUBLICATION supabase_realtime ADD TABLE moments;  -- task 012
 ```
 
 Client subscribe dengan filter per event:
@@ -315,6 +381,7 @@ supabase.channel(`photos:${eventId}`)
 | `frames` | Public read | Frame PNG vendor |
 | `zips` | Private — signed URL 15 menit | Hasil export ZIP |
 | `showcase` | Public read | Foto kurasi platform (input superadmin) |
+| `sponsors` | Public read | Logo sponsor (input vendor Pro, task 013) |
 
 Path convention:
 ```
@@ -322,6 +389,7 @@ photos/{event_id}/{table_id}/{ulid}.jpg
 thumbs/{event_id}/{ulid}_320.jpg
 frames/{vendor_id}/{event_id}/frame.png
 zips/{event_id}/temora-{slug}.zip
+sponsors/{event_id}/{ulid}.png
 ```
 
 > ⚠️ **Konvensi path (2 aturan berbeda — jangan tertukar):**
@@ -380,7 +448,7 @@ zips/{event_id}/temora-{slug}.zip
 - RLS policies ditaruh di migration yang sama dengan tabelnya.
 - Simpan snapshot baseline via `supabase db dump` setelah skema stabil.
 
-## 10. Performance Considerations
+## 11. Performance Considerations
 
 1. Pagination galeri (20 foto/load) — index `(event_id, taken_at DESC)` sudah mendukung.
 2. ZIP export: streaming server-side, tidak load semua ke memory sekaligus.
@@ -388,7 +456,7 @@ zips/{event_id}/temora-{slug}.zip
 4. Realtime: filter channel per `event_id`.
 5. Analytics (Phase 3): query agregat murni SQL + cache 60s, tanpa service tambahan.
 
-## 11. API Akses (kode)
+## 12. API Akses (kode)
 
 | Module | Fungsi |
 |---|---|

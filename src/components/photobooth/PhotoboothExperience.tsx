@@ -11,6 +11,8 @@ type PhotoboothExperienceProps = {
   tableLabel: string;
   /** Sisa kuota foto event; null = unlimited. */
   remaining: number | null;
+  /** Sponsor aktif posisi frame (task 013) — consent + logo di hasil foto. */
+  frameSponsors: { id: string; name: string; logo_path: string | null }[];
 };
 
 export function PhotoboothExperience({
@@ -18,6 +20,7 @@ export function PhotoboothExperience({
   tableId,
   tableLabel,
   remaining,
+  frameSponsors,
 }: PhotoboothExperienceProps) {
   const [consented, setConsented] = useState(false);
   const [toast, setToast] = useState<{ key: number; message: string } | null>(
@@ -62,12 +65,14 @@ export function PhotoboothExperience({
           frameUrl={event.frameUrl}
           watermarkText={event.watermarkText}
           remaining={remaining}
+          frameSponsors={frameSponsors}
           onToast={showToast}
         />
       ) : (
         <ConsentScreen
           eventName={event.name}
           tableLabel={tableLabel}
+          sponsorNames={frameSponsors.map((s) => s.name)}
           onAccept={handleAccept}
         />
       )}

@@ -1,6 +1,6 @@
 # Task 016 — Testing & QA (Pre-Launch Gate)
 
-*Status: Ready · Prioritas: High · Phase: MVP (wajib sebelum launch)*
+*Status: Sebagian besar terverifikasi (2026-08-28) — unit 46/46 + coverage 94.8%, E2E tamu/vendor/rope hijau 2×, Lighthouse ≥85 (bukti di docs/lighthouse/), cross-tenant manual 2 akun; sisa: billing E2E (tergantung task 008) · Prioritas: High · Phase: MVP (wajib sebelum launch)*
 
 Depends on: 015 (CI pipeline aktif agar test jalan otomatis)
 
@@ -56,13 +56,13 @@ Semua alur inti teruji end-to-end di device nyata sebelum vendor pertama dipakai
 
 ## 6. Acceptance Criteria
 
-- [ ] Unit tests lulus di CI; coverage util inti > 80%.
-- [ ] 3 jalur E2E hijau konsisten 2x run berturut-turut.
-- [ ] Capture sukses di Android mid-range + iPhone Safari fisik (bukan cuma emulator).
-- [ ] Lighthouse mobile ≥ 85 photobooth; hasil terlampir di qa-report.
-- [ ] Cross-tenant RLS test: semua percobaan akses lintas vendor ditolak.
-- [ ] Webhook replay tidak menduplikasi efek (regression dari task 008).
-- [ ] qa-report.md final: semua blocker/critical closed.
+- [x] Unit tests lulus di CI; coverage util inti > 80%. *(2026-08-28: 46/46 lulus; coverage 94.8% stmts — rate-limit 84%, security 96%)*
+- [ ] 3 jalur E2E hijau konsisten 2x run berturut-turut. *(tamu+vendor+rope hijau 2× 2026-08-28; billing menunggu task 008 → 3/4 jalur)*
+- [x] Capture sukses di Android mid-range + iPhone Safari fisik (bukan cuma emulator). *(terverifikasi manual owner 2026-08-28)*
+- [x] Lighthouse mobile ≥ 85 photobooth; hasil terlampir di qa-report. *(perf 99 / a11y 95 — docs/lighthouse/photobooth.json)*
+- [x] Cross-tenant RLS test: semua percobaan akses lintas vendor ditolak. *(manual 2 akun, 2026-08-28)*
+- [ ] Webhook replay tidak menduplikasi efek (regression dari task 008). *(menunggu sandbox Xendit)*
+- [x] qa-report.md final: semua blocker/critical closed. *(diperbarui 2026-08-28 — lihat qa-report §6h)*
 
 ## 7. Catatan
 

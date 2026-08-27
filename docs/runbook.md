@@ -42,7 +42,7 @@ Ambang upgrade: free tier Supabase = 1 GB; **≥ 80% → langsung upgrade Supaba
 | Gejala | Cek pertama | Aksi |
 |---|---|---|
 | Tamu "acara sudah selesai" padahal belum | `events.expires_at` | Perpanjang `expires_at` (SQL via CLI, bukan DDL) |
-| Upload gagal massal | Sentry + Log Node app hPanel (route upload) | Lihat error storage; cek kuota bucket & status Supabase |
+| Upload gagal massal | Log Node app hPanel (route upload) | Lihat error storage; cek kuota bucket & status Supabase |
 | Webhook Xendit tidak masuk | Xendit Dashboard → Webhooks log | Pastikan URL `temora.id/api/billing/webhook` & token per-env |
 | WA tidak terkirim | `whatsapp_logs` (status/error) | Token Meta expired → refresh; quiet hours menahan sampai pagi |
 | Cron tidak jalan | Riwayat job di cron-job.org / UptimeRobot | Header `Authorization: Bearer $CRON_SECRET` mismatch pemicu paling sering |
@@ -58,7 +58,6 @@ Ambang upgrade: free tier Supabase = 1 GB; **≥ 80% → langsung upgrade Supaba
 - [ ] Migrasi production pushed (`supabase db push`) & diverifikasi
 - [ ] Webhook Xendit produksi → `temora.id/api/billing/webhook`
 - [ ] Template WA produksi terdaftar di Meta (task 009 §7)
-- [ ] Sentry DSN aktif + test event masuk < 1 menit
 - [ ] Cron TTL & expiry dipicu pinger eksternal (verifikasi hit manual dengan `CRON_SECRET` / log cron-job.org)
 - [ ] Backup: PITR Supabase aktif
 

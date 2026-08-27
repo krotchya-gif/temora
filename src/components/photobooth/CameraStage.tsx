@@ -1,8 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, SwitchCamera } from "lucide-react";
+import { CameraOff, ImageOff, Sparkles, SwitchCamera, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
+import { PropsOverlay } from "@/components/photobooth/PropsOverlay";
+import { GreenScreenCanvas } from "@/components/photobooth/GreenScreenCanvas";
+import { MomentComposer } from "@/components/photobooth/MomentComposer";
+import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
+import { PROPS, propLayout, type PropId } from "@/lib/ai/props";
+import type { FaceBox } from "@/lib/ai/faceLandmark";
 import {
   getPendingUploads,
   queuePendingUpload,
@@ -21,6 +28,8 @@ export type CameraStageProps = {
   watermarkText: string;
   /** Sisa kuota foto event; null = unlimited. 0 → capture dinonaktifkan. */
   remaining: number | null;
+  /** Sponsor aktif posisi frame (task 013) — logo digambar ke hasil foto. */
+  frameSponsors: { id: string; name: string; logo_path: string | null }[];
   onToast: (message: string) => void;
 };
 
@@ -52,6 +61,7 @@ const COPY = {
   quotaFull:
     "Kuota momen acara ini sudah penuh. Terima kasih sudah jadi bagian dari momennya!",
   connection: "Koneksi lagi ngambek. Coba sekali lagi?",
+  aiFallback: "Efek butuh tenaga lebih. Kamu tetap bisa ambil momen tanpa efek ya.",
 };
 
 function stopStream(stream: MediaStream | null) {
@@ -73,17 +83,23 @@ export function CameraStage({
   frameUrl,
   watermarkText,
   remaining,
+  frameSponsors,
   onToast,
 }: CameraStageProps) {
   const cameraEnabled = remaining === null || remaining > 0;
 
   const [phase, setPhase] = useState<Phase>("starting");
+  const [videoReady, setVideoReady] = useState(false);
   const [facing, setFacing] = useState<Facing>("user");
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [strip, setStrip] = useState<StripItem[]>([]);
+  const [activeProp, setActiveProp] = useState<PropId | null>(null);
+  const [activeBg, setActiveBg] = useState<BgId | null>(null);
+  const facesRef = useRef<FaceBox[] | null>(null);
+  const gsCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -113,6 +129,7 @@ export function CameraStage({
       return;
     }
     setPhase("starting");
+    setVideoReady(false);
     stopStream(streamRef.current);
     streamRef.current = null;
 
@@ -292,13 +309,18 @@ export function CameraStage({
       return;
     }
 
+    // Sumber frame: video asli, atau kanvas green screen (task 011) bila aktif
+    // — dimensi sama dengan video, jadi crop sx/sy/sw/sh tetap berlaku.
+    const source =
+      activeBg && gsCanvasRef.current ? gsCanvasRef.current : video;
+
     ctx.save();
     if (facing === "user") {
       // Mirror konsisten dengan preview kamera depan.
       ctx.translate(cw, 0);
       ctx.scale(-1, 1);
     }
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+    ctx.drawImage(source, sx, sy, sw, sh, 0, 0, cw, ch);
     ctx.restore();
 
     // Frame PNG transparan, object-contain center.
@@ -325,7 +347,63 @@ export function CameraStage({
     ctx.fillText(watermarkText, cw - cw * 0.04, ch - ch * 0.045);
     ctx.shadowBlur = 0;
 
+    // Props AR (task 010): gambar di kanvas — posisi landmark TERMIRROR untuk
+    // kamera depan (mirror aktif saat drawImage), environment tanpa mirror.
+    // Preload image di blok async bawah supaya SVG data-URI siap saat digambar.
+    const propFaces =
+      activeProp && facesRef.current?.length
+        ? { layout: (facesRef.current).map((f) => propLayout(activeProp, f)) }
+        : null;
+
     void (async () => {
+      // Props AR — gambar setelah image SVG siap (kanvas sudah berisi
+      // video+frame+watermark dari blok sinkron di atas).
+      if (propFaces) {
+        const prop = PROPS.find((p) => p.id === activeProp);
+        if (prop) {
+          const img = new Image();
+          img.src = prop.dataUri;
+          try {
+            await img.decode();
+            for (const layout of propFaces.layout) {
+              const dx =
+                facing === "user" ? cw * (1 - layout.x - layout.w) : cw * layout.x;
+              ctx.drawImage(img, dx, ch * layout.y, cw * layout.w, ch * layout.h);
+            }
+          } catch {
+            // Prop gagal digambar → foto tetap tersimpan tanpa prop.
+          }
+        }
+      }
+
+      // Sponsor frame (task 013): logo kecil berjajar di tengah bawah —
+      // decode dulu; gagal = foto tetap tersimpan.
+      const sponsorLogos = frameSponsors.filter((s) => s.logo_path);
+      if (sponsorLogos.length) {
+        const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+        const logoH = Math.round(ch * 0.055);
+        const gap = Math.round(logoH * 0.3);
+        const totalW = sponsorLogos.length * (logoH * 2 + gap) - gap;
+        let x = Math.round((cw - totalW) / 2);
+        const y = ch - logoH - Math.round(ch * 0.035);
+        for (const s of sponsorLogos) {
+          try {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = `${base}/storage/v1/object/public/${s.logo_path}`;
+            await img.decode();
+            const w = Math.min(
+              logoH * 2,
+              Math.round((logoH * img.width) / Math.max(img.height, 1)),
+            );
+            ctx.drawImage(img, x, y, w, logoH);
+            x += w + gap;
+          } catch {
+            // Logo gagal dimuat (CORS/offline) → lanjut sponsor berikutnya.
+          }
+        }
+      }
+
       // Kompres bertahap sampai < ~800KB.
       let quality = 0.85;
       let blob = await canvasToBlob(canvas, quality);
@@ -367,7 +445,7 @@ export function CameraStage({
       setPhase("preview");
       setBusy(false);
     })();
-  }, [phase, busy, facing, watermarkText, eventId, tableId]);
+  }, [phase, busy, facing, watermarkText, eventId, tableId, activeProp, activeBg, frameSponsors]);
 
   const retake = useCallback(() => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -508,6 +586,7 @@ export function CameraStage({
             autoPlay
             playsInline
             muted
+            onLoadedData={() => setVideoReady(true)}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
               phase === "live" || phase === "starting" ? "opacity-100" : "opacity-0"
             } ${facing === "user" ? "-scale-x-100" : ""}`}
@@ -556,6 +635,36 @@ export function CameraStage({
               <span className="h-10 w-10 animate-pulse rounded-full border-2 border-white/70 border-t-transparent" />
               <p className="text-sm text-white/85">Menyiapkan kamera…</p>
             </div>
+          ) : null}
+
+          {/* Props AR (task 010) — hanya saat live; lazy-load MediaPipe */}
+          {phase === "live" && activeProp ? (
+            <PropsOverlay
+              videoRef={videoRef}
+              activeProp={activeProp}
+              onFaces={(faces) => {
+                facesRef.current = faces;
+              }}
+              onAutoDisable={() => {
+                setActiveProp(null);
+                setBanner(COPY.aiFallback);
+              }}
+            />
+          ) : null}
+
+          {/* Green screen (task 011) — hanya saat live; lazy-load; mirror
+              konsisten dengan video & capture */}
+          {phase === "live" && activeBg ? (
+            <GreenScreenCanvas
+              videoRef={videoRef}
+              activeBg={activeBg}
+              canvasRef={gsCanvasRef}
+              mirror={facing === "user"}
+              onFail={() => {
+                setActiveBg(null);
+                setBanner(COPY.aiFallback);
+              }}
+            />
           ) : null}
 
           {phase === "denied" || phase === "error" ? (
@@ -614,13 +723,132 @@ export function CameraStage({
               <button
                 type="button"
                 onClick={capture}
-                disabled={phase !== "live" || busy}
+                disabled={phase !== "live" || busy || !videoReady}
                 aria-label="Ambil Momen"
                 className="h-20 w-20 rounded-full shadow-card ring-4 ring-bg-card transition-transform duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
                 style={{ backgroundColor: "var(--event-accent)" }}
               />
               <p className="text-xs text-text-secondary">Tap untuk ambil momen</p>
             </>
+          ) : null}
+
+          {/* Selektor Efek (task 010) + Latar (task 011) — lazy: model dimuat saat tab dibuka */}
+          {phase === "live" ? (
+            <div
+              role="group"
+              aria-label="Efek dan latar"
+              className="flex w-full max-w-sm items-center gap-2 overflow-x-auto py-1"
+            >
+              <button
+                type="button"
+                onClick={() => setActiveProp(null)}
+                aria-pressed={activeProp === null}
+                className={cn(
+                  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+                  activeProp === null
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border text-text-secondary hover:bg-bg-warm",
+                )}
+              >
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                Tanpa Efek
+              </button>
+              {PROPS.map((prop) => (
+                <button
+                  key={prop.id}
+                  type="button"
+                  onClick={() => setActiveProp(prop.id)}
+                  aria-pressed={activeProp === prop.id}
+                  className={cn(
+                    "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+                    activeProp === prop.id
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border text-text-secondary hover:bg-bg-warm",
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- SVG inline data-URI */}
+                  <img
+                    src={prop.dataUri}
+                    alt=""
+                    aria-hidden
+                    className="h-5 w-5"
+                  />
+                  {prop.label}
+                </button>
+              ))}
+              {activeProp ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveProp(null)}
+                  aria-label="Matikan efek"
+                  className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Selektor Latar (task 011) */}
+          {phase === "live" ? (
+            <div
+              role="group"
+              aria-label="Latar"
+              className="flex w-full max-w-sm items-center gap-2 overflow-x-auto py-1"
+            >
+              <button
+                type="button"
+                onClick={() => setActiveBg(null)}
+                aria-pressed={activeBg === null}
+                className={cn(
+                  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+                  activeBg === null
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border text-text-secondary hover:bg-bg-warm",
+                )}
+              >
+                <ImageOff className="h-3.5 w-3.5" aria-hidden />
+                Tanpa Latar
+              </button>
+              {BACKGROUNDS.map((bg) => (
+                <button
+                  key={bg.id}
+                  type="button"
+                  onClick={() => setActiveBg(bg.id)}
+                  aria-pressed={activeBg === bg.id}
+                  className={cn(
+                    "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+                    activeBg === bg.id
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border text-text-secondary hover:bg-bg-warm",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "h-5 w-5 rounded-full border border-border",
+                      bg.id === "warm" &&
+                        "bg-[linear-gradient(135deg,var(--color-bg-base),var(--color-accent-secondary),var(--color-accent))]",
+                      bg.id === "dots" &&
+                        "bg-[radial-gradient(var(--color-dusty-blue)_20%,transparent_22%)] bg-[length:14px_14px] bg-[color:var(--color-bg-base)]",
+                      bg.id === "cream" &&
+                        "bg-[radial-gradient(circle_at_80%_20%,var(--color-accent-secondary),var(--color-muted-mauve))]",
+                    )}
+                  />
+                  {bg.label}
+                </button>
+              ))}
+              {activeBg ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveBg(null)}
+                  aria-label="Matikan latar"
+                  className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              ) : null}
+            </div>
           ) : null}
 
           {phase === "preview" ? (
@@ -648,6 +876,12 @@ export function CameraStage({
               <p className="text-xs text-text-secondary">
                 Momen tersimpan ke galeri acara ✨
               </p>
+              <MomentComposer
+                eventId={eventId}
+                tableId={tableId}
+                getPhotoId={() => activeMetaRef.current?.photoId ?? null}
+                onToast={onToast}
+              />
             </>
           ) : null}
         </div>

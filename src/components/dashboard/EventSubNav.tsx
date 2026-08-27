@@ -15,13 +15,16 @@ export function EventSubNav({ eventId }: EventSubNavProps) {
   const tabs = [
     { href: base, label: "Ringkasan", exact: true },
     { href: `${base}/gallery`, label: "Galeri", exact: false },
+    { href: `${base}/moments`, label: "Momen", exact: false },
     { href: `${base}/qr`, label: "QR", exact: false },
+    { href: `${base}/sponsors`, label: "Sponsor", exact: false },
+    { href: `${base}/analytics`, label: "Analitik", exact: false },
   ];
 
   return (
     <nav
       aria-label="Menu event"
-      className="border-b border-border"
+      className="border-b border-border print:hidden"
     >
       <div className="flex items-center gap-6">
         {tabs.map((tab) => {

@@ -1,6 +1,6 @@
 # Task 013 — Sponsorship Slots
 
-*Status: Ready · Prioritas: Low · Phase: 3*
+*Status: Kode + verifikasi live selesai (2026-08-28) — migrasi 0022 (tabel + bucket + RLS), API CRUD + tier gate (free 403 / pro 201 teruji), logo upload publik 200, consent menyebut sponsor, logo di hasil capture & kartu QR print · Prioritas: Low · Phase: 3 (ditarik ke roadmap aktif)*
 
 Depends on: 006, 007, 008
 
@@ -65,11 +65,11 @@ Max 2 sponsor aktif per event (1 per slot) — jaga estetika; lebih dari itu mer
 
 ## 6. Acceptance Criteria
 
-- [ ] Vendor Pro bisa attach logo ke frame & QR card; Free/Basic tidak melihat fitur (API menolak 403).
-- [ ] Logo tampil konsisten di semua foto baru tanpa re-process foto lama.
-- [ ] Hapus/deactivate sponsor membersihkan dari capture berikutnya (< 30 detik propagasi).
-- [ ] Consent screen menyebut sponsor saat fitur aktif; tidak menyebut saat tidak ada.
-- [ ] Kartu QR print memuat strip sponsor rapi di A4.
+- [x] Vendor Pro bisa attach logo ke frame & QR card; Free/Basic tidak melihat fitur (API menolak 403). *(live: free → 403 "tersedia di paket Pro"; pro → 201; UI menampilkan CTA paket saat non-Pro)*
+- [x] Logo tampil konsisten di semua foto baru tanpa re-process foto lama. *(logo digambar saat capture berjalan — foto lama tidak disentuh; kegagalan load logo tidak menggagalkan foto)*
+- [x] Hapus/deactivate sponsor membersihkan dari capture berikutnya (< 30 detik propagasi). *(dibaca per-request dari DB tanpa cache — deactivate langsung hilang dari GET publik; live: PATCH 200 → GET kosong untuk baris itu)*
+- [x] Consent screen menyebut sponsor saat fitur aktif; tidak menyebut saat tidak ada. *(kondisional di ConsentScreen — "Acara ini didukung oleh {nama}.")*
+- [x] Kartu QR print memuat strip sponsor rapi di A4. *(strip logo ≤ 2 sponsor, QR tetap ≥ 4×4 cm)*
 
 ## 7. Catatan
 

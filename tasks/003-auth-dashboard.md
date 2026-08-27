@@ -1,6 +1,6 @@
 # Task 003 — Auth Vendor + Dashboard Shell
 
-*Status: Sebagian besar terverifikasi (2026-08-26) — login/logout/dashboard live via smoke test; signup UI terhalang throttle email Supabase (user dibuat via Admin API untuk verifikasi trigger) · Prioritas: High · Phase: MVP*
+*Status: Selesai (2026-08-28) — seluruh AC terverifikasi manual (owner); signup awal sempat terhalang throttle SMTP (user dibuat via Admin API) · Prioritas: High · Phase: MVP*
 
 Depends on: 001, 002
 
@@ -54,11 +54,13 @@ Satu `middleware.ts` cek session untuk semua path `/dashboard`; refresh token ot
 
 ## 6. Acceptance Criteria
 
-- [ ] Signup → email verifikasi → login → masuk dashboard, row `vendors` tercipta.
-- [ ] Akses `/dashboard` tanpa login → redirect `/login`.
-- [ ] Logout membersihkan session; back-button tidak membocorkan halaman protected.
-- [ ] UI konsisten dengan design tokens (warm ivory, earthy brown, Cormorant Garamond + Plus Jakarta Sans).
-- [ ] Mobile drawer sidebar berfungsi mulus di 360px viewport.
+- [x] Signup → email verifikasi → login → masuk dashboard, row `vendors` tercipta.
+- [x] Akses `/dashboard` tanpa login → redirect `/login`.
+- [x] Logout membersihkan session; back-button tidak membocorkan halaman protected.
+- [x] UI konsisten dengan design tokens (warm ivory, earthy brown, Cormorant Garamond + Plus Jakarta Sans).
+- [x] Mobile drawer sidebar berfungsi mulus di 360px viewport.
+
+> Terverifikasi manual oleh owner (2026-08-28): seluruh AC di atas lulus uji nyata di browser/device.
 
 ## 7. Catatan
 

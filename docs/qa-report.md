@@ -2,31 +2,35 @@
 
 > Task 016 · diperbarui 2026-08-26 · Gate launch: 0 blocker / 0 critical terbuka.
 >
-> **Status lingkungan saat laporan ini ditulis:** key Supabase/Xendit/WhatsApp di
-> `.env.local` sengaja diisi belakangan (keputusan eksekusi), sehingga seluruh
-> pengujian yang butuh backend live tertandai **PENDING** dengan langkah
-> menjalankannya. Unit tests dan build berjalan penuh di lokal.
+> **Status lingkungan:** key Supabase/Xendit/WhatsApp di `.env.local` awalnya
+> sengaja diisi belakangan; sejak ronde verifikasi live (§6b) env Supabase
+> terisi dan seluruh uji live berjalan. Yang masih **PENDING**: E2E Playwright
+> penuh, device lab fisik, Lighthouse, Xendit sandbox, dan kirim WA nyata —
+> semuanya menunggu jadwal eksekusi (task 016).
 
 ## Ringkasan gate (task 016 §4.1)
 
 | Kategori | Gate | Status |
 |---|---|---|
-| Unit tests | Lulus di CI | ✅ 26/26 lulus lokal (`npm run test`) |
-| E2E jalur kritis 3/3 | Hijau 2× berturut-turut | ⏳ PENDING — spec siap, jalankan setelah env terisi |
-| Device lab Android/iOS | Lolos tanpa blocker | ⏳ PENDING — checklist §3 |
-| Lighthouse ≥ 85 mobile photobooth | Terlampir | ⏳ PENDING — butuh instance + data |
-| Cross-tenant RLS | Semua ditolak | ⏳ PENDING — prosedur §5 |
-| Bug blocker/critical | 0 terbuka | ✅ (semua temuan sudah difix, lihat §6) |
+| Unit tests | Lulus di CI | ✅ 46/46 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
+| E2E jalur kritis 3/3 | Hijau 2× berturut-turut | ⏳ 3/4 hijau 2× (tamu, vendor, rope — §6h); billing menunggu task 008 |
+| Device lab Android/iOS | Lolos tanpa blocker | ✅ alur inti terverifikasi manual owner (2026-08-28) — detail tasks/003–007 |
+| Lighthouse ≥ 85 mobile photobooth | Terlampir | ✅ perf 99 / a11y 95 (docs/lighthouse/) |
+| Cross-tenant RLS | Semua ditolak | ✅ manual 2 akun (2026-08-28) |
+| Bug blocker/critical | 0 terbuka | ✅ (semua temuan sudah difix, lihat §6h) |
 
 ## 1. Unit tests (Vitest) — ✅
 
-`tests/unit/` — 4 file, 26 test:
+`tests/unit/` — 5 file, 46 test:
 - `ulid` — format Crockford 26 char, monotonic, unik.
 - `rate-limit` — sliding window izin/tolak/reset window.
 - `validation` — event create/update (slug immutable, tanggal, pesan ramah),
-  tables generate 1–50, `isUuid`, `themeAccent`.
+  tables generate 1–50, `isUuid`, `themeAccent`, schema auth, `humanAuthError`
+  (2026-08-28: +12 test).
 - `wa-xendit` — normalisasi E.164 (9 kasus), verifyCallbackToken constant-time
   termasuk env kosong.
+- `security` — sanitasi query PostgREST, magic-byte JPEG/PNG, same-origin check,
+  timing-safe compare (task 019; 2026-08-28: +PNG/image buffer).
 
 Catatan: util kompresi canvas hidup di dalam `CameraStage.tsx` (tidak diekstrak)
 — kebenarannya diliputi E2E guest flow (ukuran hasil ≤800KB diverifikasi server).
@@ -35,8 +39,9 @@ Catatan: util kompresi canvas hidup di dalam `CameraStage.tsx` (tidak diekstrak)
 
 `tests/e2e/`: `guest.spec.ts` (consent → capture fake-camera → upload → toast →
 Simpan ke HP), `vendor.spec.ts` (login → buat event → generate QR → galeri),
-`billing.spec.ts` (checkout sandbox + webhook replay idempoten). Semua gated
-oleh `E2E_ENABLED=1`.
+`billing.spec.ts` (checkout sandbox + webhook replay idempoten), `rope.spec.ts`
+(fisika tali momen: drag → displacement + glide, dua konteks reduced-motion).
+Semua gated oleh `E2E_ENABLED=1`.
 
 Menjalankan setelah `.env.local` terisi:
 
@@ -55,6 +60,12 @@ Billing spec butuh tambahan `XENDIT_SECRET_KEY` + `E2E_XENDIT_INVOICE_ID`
 CI: job `e2e` otomatis jalan bila repo variable `RUN_E2E=true` + secrets terpasang.
 
 ## 3. Device lab manual — ⏳ PENDING
+
+> **Catatan 2026-08-28:** alur inti (kamera/capture/simpan di Android + iOS,
+> scan QR → photobooth, cetak A4 1 m, responsive 360px, RLS lintas-vendor
+> 2 akun, cron TTL) **terverifikasi manual oleh owner** — detail per-task di
+> `tasks/003–007, 017`. Checklist granular di bawah tetap sebagai pengingat
+> uji lanjutan (mode pesawat, orientasi landscape, dsb).
 
 Checklist (wajib fisik, bukan emulator):
 
@@ -153,12 +164,7 @@ Masih PENDING: E2E Playwright penuh, device lab, Lighthouse ≥85, isolasi linta
 
 Tidak ada blocker/critical terbuka pada kode saat laporan ini dibuat.
 
-## 7. Bug bash — ⏳ disarankan setelah env live
-
-Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +
-vendor dashboard, triase per severity §4.2 task 016, catat hasil di sini.
-
-## 6c. Task 018 — Superadmin Dashboard (2026-08-26)
+## 6d. Task 018 — Superadmin Dashboard (2026-08-26)
 
 Fitur `/admin` (monitor + kelola tier + moderasi) dibangun & diverifikasi live:
 guard 3 lapis teruji (anonim→login, vendor→dashboard, API tanpa sesi→404),
@@ -167,7 +173,7 @@ memutus upload tamu (404), hapus foto = soft delete. Bootstrap superadmin
 pertama `calysta@temora.com` via Admin API + SQL `raw_app_meta_data`
 (runbook §6). Tanpa perubahan skema public / policy RLS baru.
 
-## 6d. Task 019 — Security Hardening + Admin v2 (2026-08-26)
+## 6e. Task 019 — Security Hardening + Admin v2 (2026-08-26)
 
 Audit ronde 2 menemukan 8 temuan (1 injection PostgREST, MIME palsu ke bucket
 publik, cookie non-httpOnly, tanpa origin check, dedup pra-ratelimit, ZIP
@@ -181,7 +187,7 @@ Sisa backlog keamanan (tidak blocker): limiter in-memory per-instance
 (pindah Redis bila multi-region), MFA superadmin (rekomendasi runbook §7),
 ZIP streaming untuk event sangat besar.
 
-## 6e. Showcase Moments + Tali Momen (2026-08-26)
+## 6f. Showcase Moments + Tali Momen (2026-08-26)
 
 Galeri kurasi platform: superadmin input foto (`/admin/showcase`) → tampil di
 halaman publik `/moments` dan rope interaktif di landing (port komponen
@@ -199,8 +205,57 @@ objektif (drag → displacement & glide dinilai otomatis, dua konteks).
 Footer dirapikan: ikon sosial ke kanan-bawah nav, link tak duplikat header,
 halaman /faq baru.
 
+## 6h. Ronde E2E + Lighthouse — 2026-08-28
 
-## 7. Arsip Spesifikasi — Showcase Moments & Tali Momen (merged dari todo.md)
+Eksekusi task 016 setelah env terisi penuh:
+
+| Temuan | Severity | Fix |
+|---|---|---|
+| **PUT `/api/events/[eventId]` gagal 500** — input camelCase (`isActive`, `startsAt`, `endsAt`) di-update mentah ke PostgREST (kolom DB `is_active`/`starts_at`) → toggle aktif/nonaktif event & edit tanggal **rusak di produksi** | **Blocker** | Mapping camelCase→snake_case + filter `undefined` di route (hanya field yang dikirim) — diverifikasi live: PUT isActive 200 |
+| **Capture fotobooth no-op diam-diam** — `capture()` bail bila `video.videoWidth === 0` (frame belum decode, umum di device lambat) → tombol terlihat aktif tapi tak bereaksi | **Major** | State `videoReady` (event `loadeddata`) → tombol "Ambil Momen" disabled sampai frame siap; guard tetap sebagai pengaman |
+| Spec E2E vendor: `waitForURL("**/dashboard/events/**")` cocok dengan `/events/new` → eventId="new" → 404 | Test | Regex UUID eksplisit + deaktivasi event sisa run sebelumnya (free tier max 1 aktif) |
+
+Hasil uji (semua live, dev server lokal → Supabase remote):
+- **E2E Playwright**: tamu (capture→simpan→Simpan ke HP) · vendor (create→QR→galeri) · rope 2 skenario — **hijau 2× berturut-turut** (4/4, ±12 detik). Billing di-skip (task 008 ditunda).
+- **Unit**: 46/46 · coverage util inti **94.8%** stmts / 95.2% lines (rate-limit 84%, security 96%).
+- **Lighthouse mobile** (emulasi 375×812, throttling simulate): photobooth **perf 99/a11y 95** · landing **86/96** · pricing **99/96** · how-it-works **99/96** — JSON di `docs/lighthouse/`.
+- Cross-tenant RLS 2 akun & alur manual: terverifikasi owner (tasks/003–007, 017).
+
+## 6i. Ronde Fase 2/3 — tasks 010–014 (2026-08-28)
+
+Keputusan terkunci #9 diperbarui: tabel fase 2 dibuat saat task dieksekusi.
+Migrasi **0022** (moments + sponsors + bucket + RLS) applied ke remote.
+
+| Task | Hasil |
+|---|---|
+| **010 AR Props** | MediaPipe FaceLandmarker lazy-load (chunk terpisah — page chunk tetap 25K, E2E guest 4.4s); 3 props SVG token (topi/kacamata/bunga); FPS watchdog auto-disable <20; props masuk hasil capture (mirror kamera depan); numFaces=4. Verifikasi FPS/group menunggu device lab |
+| **011 Green Screen** | ImageSegmenter lazy-load; 3 latar bawaan token; preview live == hasil (canvas compositing dipakai capture); fallback graceful tanpa crash |
+| **012 Moments** ⭐ | POST anon 201 + rate limit 429 (meja+IP) live; GET vendor / PATCH hide 200 live; anon tak baca (`[]`); composer tamu di fase saved; feed dashboard realtime (subscribe INSERT) + CSV export (hidden terkecuali). Batas teks final 280 char (task asli menulis 140 — dikoreksi) |
+| **013 Sponsors** | Tier gate live: free → 403, pro → 201; logo upload magic-byte + URL publik 200; deactivate langsung hilang dari GET (tanpa cache); consent menyebut sponsor; strip logo di kartu QR print; purge objek saat delete |
+| **014 Analytics** | Halaman 0.41–0.43s (3 hit, cache 60s); angka = SQL manual; response agregat tanpa data personal; bar per meja + heatmap jam 24 kolom (div/token, tanpa Chart.js — keputusan) |
+
+E2E regression pasca-perubahan CameraStage: guest + vendor + rope **4/4 hijau** (2×).
+Unit 50/50 · lint/typecheck/build hijau. Data uji (moments/sponsors) dibersihkan.
+
+## 6j. Ronde PDF Export — 012 & 014 (2026-08-28)
+
+Export PDF dikerjakan tanpa dependency baru — **print browser → PDF** (pola yang
+sudah dipakai kartu QR, sesuai AC 014 yang memang menulis "print stylesheet"):
+
+| Task | Implementasi |
+|---|---|
+| **012 PDF** | Halaman `/print/[eventId]/moments` (owner session, 307 anon): laporan A4 — header event + tanggal cetak + jumlah, daftar momen (maks 200) hanya yang **tidak tersembunyi**, label meja + timestamp, `break-inside: avoid`. Smoke: 200 + empty state rapi |
+| **014 PDF** | Tombol "Cetak / Simpan PDF" di `/dashboard/events/[id]/analytics` + print CSS: shell/sidebar/header/EventSubNav disembunyikan (`print:hidden`), grid stat 4 kolom & seksi 1 kolom, tanpa padding — 1–2 halaman A4 |
+
+Verifikasi: lint/typecheck/test 50/50/build hijau. Sisa AC yang menunggu device
+lab (010 FPS/group, 011 lighting/edge) akan diuji manual owner lalu dilaporkan.
+
+## 7. Bug bash — ⏳ disarankan setelah env live
+
+Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +
+vendor dashboard, triase per severity §4.2 task 016, catat hasil di sini.
+
+## 8. Arsip Spesifikasi — Showcase Moments & Tali Momen (merged dari todo.md)
 
 <!-- Konten asli todo.md dipindah ke sini agar dokumentasi terpusat di docs/. -->
 

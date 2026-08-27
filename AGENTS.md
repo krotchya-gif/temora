@@ -24,7 +24,7 @@
 ## 2. Urutan Kerja Eksekusi
 
 1. Baca `docs/PRD.md`, lalu docs lain sesuai task yang dikerjakan.
-2. Kerjakan `tasks/001` → `tasks/017` **berurutan**. Jangan loncat; tiap task punya acceptance criteria — semua checklist harus ✅ sebelum lanjut.
+2. Kerjakan `tasks/001` → `tasks/017` **berurutan** (018–019 = MVP+ alat operasional, dikerjakan setelah 017). Jangan loncat; tiap task punya acceptance criteria — semua checklist harus ✅ sebelum lanjut.
 3. **Launch gate**: 015–017 wajib tuntas sebelum vendor pertama onboarding.
 4. Desain berubah saat pengerjaan? **Update `docs/` dulu, commit bersama kode** — tidak boleh ada kode yang menyimpang dari docs.
 

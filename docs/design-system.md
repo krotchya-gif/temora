@@ -197,6 +197,31 @@ Muncul sebelum kamera aktif:
 - QR min 4×4 cm, error correction level M.
 - Nama event font-display, nomor meja jelas, tagline kecil: *"Keep the moments close."*
 - Background warm ivory.
+- Sponsor QR aktif (task 013): logo kecil (≤ 28px tinggi) di pojok kartu, tidak
+  mengecilkan QR (QR tetap ≥ 4×4 cm).
+
+### 3.9 Props & Efek (task 010–011, Phase 2)
+- **Props AR**: aset SVG inline (stroke token, fill lembut) — bukan PNG foto.
+  Bundle awal: topi, kacamata, bunga, pita. Selektor horizontal (pola frame
+  selector §3.3), label ikon + nama pendek. Props hanya tampil saat live
+  preview (kanvas capture ikut menggambar) — tidak ada prop "stuck" di strip.
+- **Green screen**: pilihan background bawaan (warm gradient via `color-mix`,
+  pola titik, bingkai solid) + preview thumb. Efek menggantikan video area saat
+  live; hasil capture = composited background + subjek + frame.
+- Kedua fitur **lazy-load** (dynamic import MediaPipe) — tab hanya muncul bila
+  browser mendukung; tombol "Tanpa Efek" selalu tersedia (fallback, §8.3).
+
+### 3.10 Moments Feed (task 012)
+- Kartu moment: foto (bila ada) + caption italic display + timestamp kecil.
+- Feed dashboard: grid 2 kolom mobile → 4 desktop, realtime (pola PhotoGrid).
+- Toggle hide/show per kartu (ikon mata), hidden → blur preview + badge.
+- Promp tamu (setelah simpan foto): satu input + tombol, design-system §6 copy.
+
+### 3.11 Analytics (task 014)
+- Stat cards: angka display font + label kecil (total foto, momen, scan, simpan).
+- Heatmap jam: grid 24 kolom, intensitas via `color-mix(accent, transparent)` —
+  tanpa hex baru; tooltip teks.
+- Bar per meja: div dengan `bg-accent` + tinggi proporsional; label mono.
 
 ---
 
@@ -285,6 +310,16 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Kuota event aktif penuh | "Paketmu mengizinkan {n} event aktif. Nonaktifkan salah satu dulu, atau upgrade paketnya ya." |
 | Link kustom sudah dipakai | "Link kustom itu sudah dipakai. Coba yang lain, ya." |
 | Frame tidak valid | "File harus PNG transparan, ukurannya maksimal 8 MB." |
+| Prompt Moments (task 012) | "Apa yang sedang kamu rasakan?" |
+| Placeholder input moments | "Tulis momenmu… (opsional)" |
+| Button kirim moment | "Simpan Momen" |
+| Moment terkirim | "Momenmu tersimpan ✨" |
+| Rate limit moment | "Satu momen cukup, biar momen lainnya kebagian. Tunggu sebentar ya." |
+| Hidden moment (vendor) | "Moment disembunyikan dari feed" |
+| Sponsor consent (task 013) | "Acara ini didukung oleh {nama sponsor}." — ditambahkan di bawah teks consent standar; tidak disebut bila tidak ada sponsor |
+| AR tab label | "Efek" · "Tanpa Efek" |
+| Green screen tab label | "Latar" |
+| AI gagal dimuat (device lemah) | "Efek butuh tenaga lebih. Kamu tetap bisa ambil momen tanpa efek ya." |
 
 ---
 

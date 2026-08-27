@@ -36,6 +36,16 @@ export default async function PrintQrPage({ params }: PrintQrPageProps) {
     .eq("event_id", eventId)
     .order("created_at", { ascending: true });
 
+  // Sponsor posisi kartu QR (task 013) — logo kecil di pojok kartu.
+  const { data: qrSponsors } = await supabase
+    .from("sponsors")
+    .select("name, logo_path")
+    .eq("event_id", eventId)
+    .eq("position", "qr")
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .limit(2);
+
   return (
     <div className="min-h-dvh bg-bg-warm py-8 print:min-h-0 print:bg-white print:py-0">
       <div className="mx-auto max-w-[186mm] px-4 print:max-w-none print:p-0">
@@ -67,6 +77,25 @@ export default async function PrintQrPage({ params }: PrintQrPageProps) {
               <p className="qr-card-tagline font-display">
                 {SITE_TAGLINE}
               </p>
+              {qrSponsors?.length ? (
+                <div className="qr-card-sponsors">
+                  {qrSponsors.map((s) =>
+                    s.logo_path ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- URL publik Storage
+                      <img
+                        key={s.logo_path}
+                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/v1/object/public/${s.logo_path}`}
+                        alt={s.name}
+                        className="qr-card-sponsor-logo"
+                      />
+                    ) : (
+                      <span key={s.name} className="qr-card-sponsor-name">
+                        {s.name}
+                      </span>
+                    ),
+                  )}
+                </div>
+              ) : null}
             </li>
           ))}
         </ul>

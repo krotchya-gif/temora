@@ -103,7 +103,19 @@ export async function PUT(
   }
 
   // Slug sengaja tidak ada di schema update — immutable setelah dibuat.
-  const { error } = await supabase.from("events").update(input).eq("id", event.id);
+  // Mapping camelCase (API) → snake_case (kolom DB); hanya field yang dikirim.
+  const dbInput: Record<string, unknown> = {
+    name: input.name,
+    theme: input.theme,
+    starts_at: input.startsAt,
+    ends_at: input.endsAt,
+    location: input.location,
+    is_active: input.isActive,
+  };
+  const changes = Object.fromEntries(
+    Object.entries(dbInput).filter(([, v]) => v !== undefined),
+  );
+  const { error } = await supabase.from("events").update(changes).eq("id", event.id);
   if (error) {
     console.error("[events.update]", error.message);
     return NextResponse.json(

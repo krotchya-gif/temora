@@ -1,6 +1,6 @@
 # Task 012 — Fitur Moments (Guestbook Digital)
 
-*Status: Ready · Prioritas: High · Phase: 2*
+*Status: Selesai (2026-08-28) — kode + verifikasi live + export CSV & PDF (print browser, hidden terkecuali) · Prioritas: High · Phase: 2 ⭐*
 
 Depends on: 004, 006
 
@@ -66,13 +66,14 @@ Copy hangat sesuai design-system §6 — bukan "Add caption".
 
 ## 6. Acceptance Criteria
 
-- [ ] Tamu bisa kirim moment dengan/tanpa foto; skip tidak error.
-- [ ] Feed dashboard real-time (< 5 detik) seperti galeri.
-- [ ] Vendor bisa hide/show; hidden hilang dari feed & export.
-- [ ] Rate limit aktif: moment kedua dalam 60 detik ditolak ramah.
-- [ ] Anon tidak bisa membaca momen tamu lain (test PostgREST).
-- [ ] Message > 140 char ditolak di API (bukan cuma maxlength UI).
-- [ ] Export CSV & PDF berisi data benar, hidden terkecuali.
+- [x] Tamu bisa kirim moment dengan/tanpa foto; skip tidak error. *(2026-08-28: POST anon 201 live; composer hanya tampil di fase saved — skip = tidak menekan tombol; jalur dengan photoId memvalidasi kepemilikan foto)*
+- [x] Feed dashboard real-time (< 5 detik) seperti galeri. *(subscribe INSERT `moments` per event — pola identik galeri yang sudah live)*
+- [x] Vendor bisa hide/show; hidden hilang dari feed & export. *(PATCH live 200; GET feed filter `is_hidden=false`; CSV export menyaring hidden)*
+- [x] Rate limit aktif: moment kedua dalam 60 detik ditolak ramah. *(live: POST ke-2 → 429 "Satu momen cukup…" — bucket per meja + per IP)*
+- [x] Anon tidak bisa membaca momen tamu lain (test PostgREST). *(live: GET anon → []; RLS `m_owner_all` to authenticated)*
+- [x] Message > 280 char ditolak di API (bukan cuma maxlength UI). *(live: 281 char → 400. Catatan: batas final 280 char (database.md §2.8) — task ini awalnya menulis 140)*
+- [x] Export CSV berisi data benar, hidden terkecuali. *(tombol Unduh CSV di feed — kolom id/waktu/meja/foto/isi, BOM UTF-8)*
+- [x] Export PDF. *(2026-08-28: halaman cetak `/print/[eventId]/moments` — print browser → PDF A4; hanya momen tidak tersembunyi; break-inside avoid)*
 
 ## 7. Catatan
 

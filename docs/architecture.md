@@ -13,8 +13,9 @@
 │                    CLIENT BROWSER (Mobile-first)               │
 │                                                                 │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │
-│  │ WebRTC   │ │ Canvas   │ │ QR Code  │ │ Google Translate  │  │
-│  │ (Camera) │ │ (Frame)  │ │ (Scan)   │ │ (Widget)          │  │
+│  │ WebRTC   │ │ Canvas   │ │ IndexedDB│ │ Web Share        │  │
+│  │ (Camera) │ │ (Frame + │ │ (retry   │ │ (Simpan/Bagikan) │  │
+│  │          │ │  compress)│ │  queue)  │ │                  │  │
 │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────────┬─────────┘  │
 │       └────────────┴────────────┴────────────────┘              │
 │                           ↓                                     │
@@ -75,7 +76,8 @@
 | QR Code | `qrcode` (npm) | Ringan, generate SVG/PNG server-side |
 | ZIP Download | `jszip` (npm) | Server-side streaming untuk volume besar |
 | Camera | WebRTC `getUserMedia` | Universal, tanpa install, mobile-first |
-| Charts (Phase 3) | Chart.js | Ringan, cukup untuk agregat analytics dashboard |
+| Charts (task 014) | — (grid CSS + agregat SQL) | Visualisasi ringan tanpa dependency — heatmap/bar dari div + token |
+| AI (task 010–011) | MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) | FaceLandmarker (props) + ImageSegmenter (green screen) — client-side, lazy-load |
 | CI/CD | GitHub Actions | Lint + typecheck otomatis tiap push |
 
 ### Why Supabase, not Firebase?
@@ -147,9 +149,11 @@ supabase/
 | `/moments` | Galeri publik foto kurasi platform + lightbox | No |
 | (landing `/`) | Section tali momen interaktif — 24 showcase terbaru | No |
 | `/pricing` | Pricing tiers | No |
+| `/faq` | Pertanyaan umum (accordion `<details>`) | No |
 | `/privacy` | Kebijakan privasi (statis) | No |
 | `/terms` | Syarat & ketentuan (statis) | No |
 | `/print/[eventId]/qr` | Print kartu meja A4 (owner session) | Yes |
+| `/print/[eventId]/moments` | Print laporan momen A4 (owner session, task 012) | Yes |
 
 ### 3.2 Dashboard Pages (Vendor)
 
@@ -160,9 +164,11 @@ supabase/
 | `/dashboard/events/new` | Buat event baru | Yes |
 | `/dashboard/events/[eventId]` | Detail event | Yes |
 | `/dashboard/events/[eventId]/gallery` | Galeri foto + download ZIP | Yes |
+| `/dashboard/events/[eventId]/moments` | Feed moments real-time + moderasi (task 012) | Yes |
+| `/dashboard/events/[eventId]/sponsors` | Kelola logo sponsor (task 013, Pro) | Yes |
+| `/dashboard/events/[eventId]/analytics` | Analytics agregat + heatmap (task 014) | Yes |
 | `/dashboard/events/[eventId]/qr` | Generate + cetak QR meja | Yes |
 | `/dashboard/events/[eventId]/edit` | Edit event + upload frame kustom (slug immutable) | Yes |
-| `/dashboard/events/[eventId]/analytics` | Analytics (Phase 3) | Yes |
 | `/dashboard/settings` | Profil, WA opt-in, subscription | Yes |
 | `/dashboard/billing` | Invoice, pembayaran, history | Yes |
 
@@ -176,8 +182,8 @@ supabase/
 > | `/admin/events` | Semua event + moderasi status |
 > | `/admin/events/[eventId]` | Detail event + moderasi foto |
 > | `/admin/showcase` | Kurasi foto Moments: upload/edit/hapus/urutkan |
-| `/admin/settings` | Pengaturan platform (URL sosial media footer) |
-| `/admin/seo` | Hub SEO & analytics 5 tab (meta/robots/sitemap/tracking/event/UTM) — detail `docs/research/seo-admin-reference.md` |
+> | `/admin/settings` | Pengaturan platform (URL sosial media footer) |
+> | `/admin/seo` | Hub SEO & analytics 5 tab (meta/robots/sitemap/tracking/event/UTM) — detail `docs/research/seo-admin-reference.md` |
 > | `/admin/audit` | Feed jejak audit admin (terpaginasi) |
 >
 > Prinsip peran terpisah (task 019): superadmin **tidak** bisa membuka
@@ -201,6 +207,12 @@ supabase/
 | `/api/events/[eventId]/photos/zip` | POST | Generate ZIP download | Yes |
 | `/api/events/[eventId]/photos/[photoId]` | DELETE | Hapus foto | Yes |
 | `/api/events/[eventId]/frame` | POST | Upload frame kustom (multipart PNG) | Yes |
+| `/api/events/[eventId]/moments` | GET | List moments (vendor, hidden filter) | Yes |
+| `/api/events/[eventId]/moments` | POST | Kirim moment (caption ± foto; rate-limit 60 dtk) | No (event+table validated) |
+| `/api/events/[eventId]/moments/[momentId]` | PATCH | Hide/show moment (moderasi vendor) | Yes |
+| `/api/events/[eventId]/sponsors` | GET | List sponsor aktif (consent/QR card) | No |
+| `/api/events/[eventId]/sponsors` | POST | Tambah sponsor + logo (Pro only) | Yes (tier check) |
+| `/api/events/[eventId]/sponsors/[sponsorId]` | PATCH/DELETE | Edit/hapus/deactivate sponsor | Yes (tier check) |
 | `/api/settings/wa` | PUT | Nomor WhatsApp + opt-in notifikasi | Yes |
 | `/api/health` | GET | Health check (probe CI/UptimeRobot) | No |
 | `/api/events/[eventId]/photos/[photoId]` | GET | Signed URL resolusi penuh (lightbox) | Yes |
@@ -217,6 +229,7 @@ supabase/
 | `/api/admin/events/[eventId]/status` | PATCH | Set is_active event | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/photos/[photoId]` | DELETE | Soft delete foto (moderasi) | Superadmin (404 mask) |
 | `/api/admin/showcase` | POST/PATCH/DELETE | Kurasi foto Moments (upload/edit/hapus) | Superadmin (404 mask) |
+| `/api/admin/showcase/reorder` | POST | Ubah urutan kartu showcase (naik/turun) | Superadmin (404 mask) |
 | `/api/admin/settings` | PATCH | Simpan platform_settings (KV whitelist, validasi per-key) | Superadmin (404 mask) |
 | `/api/admin/secrets` | PUT | Simpan rahasia (service account GA4/GSC) — nilai tidak pernah dikembalikan | Superadmin (404 mask) |
 | `/api/admin/analytics/stats` | GET | Angka GA4 + GSC real (server-side, cache 5 mnt) | Superadmin (404 mask) |
@@ -348,7 +361,9 @@ Detail aturan terkunci: `docs/database.md` §2.7. Ringkas:
 
 ## 8. AI Implementation Reference (Phase 2 Prep)
 
-> Bagian ini adalah **referensi teknis**, bukan scope MVP. Semua model jalan client-side, lazy-load, dan wajib punya fallback graceful. Detail task: `tasks/010-ar-filters.md`, `tasks/011-green-screen.md`.
+> Bagian ini adalah **referensi implementasi aktif** (task 010–011, dikerjakan
+> 2026-08-28). Semua model jalan client-side, lazy-load, dan wajib punya fallback
+> graceful. Detail task: `tasks/010-ar-filters.md`, `tasks/011-green-screen.md`.
 >
 > ⚠️ Catatan versi: snippet memakai pola **MediaPipe Tasks Vision** (`@mediapipe/tasks-vision`) — penerus legacy `@mediapipe/selfie_segmentation` & `@mediapipe/pose` yang sudah deprecated. Verifikasi API terkini saat implementasi.
 
@@ -411,11 +426,10 @@ export async function createFaceLandmarker() {
 
 | Layer | Tool | Cakupan |
 |---|---|---|
-| Error tracking | Sentry | Frontend + API routes, alert critical errors |
-| Logs | Log Node app di hPanel (Hostinger) | Request, error, deployment |
-| DB logs | Supabase Logs | Query lambat, auth events |
+| Error tracking | Log Node app di hPanel (Hostinger) | Request, error, deployment |
+| Logs | Supabase Logs | Query lambat, auth events |
 | Uptime | UptimeRobot | Ping `temora.id` tiap 5 menit |
-| Performance | — (nonaktif sementara) | Vercel Analytics no-op di luar Vercel; aktifkan Sentry perf/alternatif saat upgrade hosting menjelang launch |
+| Performance | — (nonaktif sementara) | Vercel Analytics no-op di luar Vercel; aktifkan alternatif (mis. Web Vitals) saat upgrade hosting menjelang launch |
 | Billing alerts | Xendit Dashboard + cron reconciliation harian | Webhook gagal / invoice pending > 24 jam |
 
 ---
@@ -432,10 +446,10 @@ Storage:    Supabase Storage (photos, thumbs, frames, zips)
 Hosting:    Hostinger shared, Git deploy (prototipe; build --webpack)
 Payment:    Xendit (invoice, payment link, webhook)
 WhatsApp:   WhatsApp Business Cloud API
-Libraries:  qrcode, jszip, sharp, zod, @supabase/ssr, chart.js (Phase 3)
-Phase 2:    @mediapipe/tasks-vision (segmentation, face landmark)
+Libraries:  qrcode, jszip, sharp, zod, @supabase/ssr
+Phase 2:    @mediapipe/tasks-vision (segmentation, face landmark) — task 010–011 aktif
 CI/CD:      GitHub Actions (lint/typecheck/build/test) + Hostinger Git auto-deploy
-Monitoring: Sentry · UptimeRobot · cron-job.org (pinger cron)
+Monitoring: UptimeRobot · cron-job.org (pinger cron) · log Node app hPanel
 ```
 
 ---
@@ -459,7 +473,6 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `WHATSAPP_APP_SECRET` | server | 009 | App Secret Meta — verifikasi header `x-hub-signature-256` webhook |
 | `WA_GRAPH_BASE` | server | 009 | Base URL Graph API Meta (default `https://graph.facebook.com`) |
 | `NEXT_PUBLIC_WA_ADMIN_NUMBER` | client | 009/017 | Nomor admin aktivasi (format 62…, tanpa +) |
-| `NEXT_PUBLIC_SENTRY_DSN` | client + server | 015 | Error tracking (fallback `SENTRY_DSN` server-only) |
 | `CRON_SECRET` | server | 015 | Bearer token proteksi route `/api/cron/*` (dipanggil pinger eksternal) |
 
 Secret **tidak pernah** di-commit. Preview & production pakai nilai berbeda (task 015 §4.1).

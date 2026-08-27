@@ -1,6 +1,6 @@
 # Task 017 — Marketing Pages (Landing + Pricing + How It Works)
 
-*Status: Ready · Prioritas: High · Phase: MVP (syarat sebelum onboarding vendor pertama)*
+*Status: Selesai (2026-08-28) — seluruh AC terverifikasi (manual owner + Lighthouse ≥85) · Prioritas: High · Phase: MVP (syarat sebelum onboarding vendor pertama)*
 
 Depends on: 001 (design tokens + font siap)
 
@@ -47,11 +47,13 @@ Mulai dari draft BRAND.md §10 (homepage copy) dan §12 (bio IG versi ID/EN) seb
 
 ## 6. Acceptance Criteria
 
-- [ ] Ketiga halaman live; navigasi antar-halaman konsisten dengan design tokens.
-- [ ] Lighthouse mobile ≥ 85 performance & accessibility di ketiga halaman.
-- [ ] Title + meta description tiap halaman sesuai BRAND.md §9–10.
-- [ ] CTA WhatsApp membuka chat admin dengan pre-filled text benar.
-- [ ] Responsive mulus dari viewport 360px ke atas.
+- [x] Ketiga halaman live; navigasi antar-halaman konsisten dengan design tokens.
+- [x] Lighthouse mobile ≥ 85 performance & accessibility di ketiga halaman. *(2026-08-28: landing perf 86/a11y 96 · pricing 99/96 · how-it-works 99/96 — bukti docs/lighthouse/*.json)*
+- [x] Title + meta description tiap halaman sesuai BRAND.md §9–10.
+- [x] CTA WhatsApp membuka chat admin dengan pre-filled text benar.
+- [x] Responsive mulus dari viewport 360px ke atas.
+
+> Terverifikasi manual oleh owner (2026-08-28): seluruh AC di atas lulus uji nyata; pengecualian Lighthouse.
 
 ## 7. Catatan
 
