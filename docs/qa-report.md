@@ -288,6 +288,17 @@ Verifikasi: lint/typecheck/test 58/58/build hijau. Uji ulang visual live tetap
 manual owner (latar → orang utuh di depan bg; LUT → warna film; props →
 menempel stabil).
 
+## 6n. Regresi live ronde 2 — 2026-08-28
+
+| Severity | Temuan (uji live) | Root cause | Fix |
+|---|---|---|---|
+| **Critical** | Latar terbalik: wajah/badan customer yang diganti latar pilihan, lingkungan tetap video asli | `categoryMask.getAsFloat32Array()` pada build ini berperilaku seperti **confidence channel background** (nilai tinggi di area latar) → threshold `> 0.5` memberi alpha di latar, bukan person | `outputConfidenceMasks: true` + `confidenceMasks[0]` (background per model card) → **person = NOT background** (`1 - bgConf`), dengan **soft edge** ramp 0.3–0.7 |
+| **Major** | Filter LUT berfungsi tapi gambar terbalik (kepala ke bawah) | `texImage2D` dari canvas DOM tanpa `UNPACK_FLIP_Y_WEBGL=true` → texture v=0 = baris atas gambar, quad menaruh v=0 di bawah viewport. Pola yang sama dipakai MediaPipe sendiri (`gpuOriginForWebTexturesIsBottomLeft`) | `gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)` sebelum upload source di `LutRenderer.render()` |
+| **—** | Props AR: 6 aset diganti **Twemoji** (CC BY 4.0) agar look lebih "jadi"; 4 custom dipertahankan (topi, kelinci, kumis, halo) | — | `public/props/*.svg` + `props.ts` (`src`), kredit di `docs/research/lut-credits.md` |
+
+Verifikasi: lint/typecheck/test 58/58/build hijau. Uji visual kamera asli manual
+owner (latar utuh + soft edge, LUT tegak, props Twemoji menempel).
+
 ## 7. Bug bash — ⏳ disarankan setelah env live
 
 Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +

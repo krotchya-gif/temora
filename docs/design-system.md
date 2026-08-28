@@ -204,11 +204,12 @@ Muncul sebelum kamera aktif:
   mengecilkan QR (QR tetap ≥ 4×4 cm).
 
 ### 3.9 Props & Efek (task 010–011, Phase 2)
-- **Props AR**: aset SVG inline (stroke token, fill lembut) — bukan PNG foto.
-  **10 jenis** (2026-08-28): topi, kacamata, bunga, mahkota, telinga kelinci,
-  kumis, topi pesta, kacamata hitam, halo, pita. Selektor horizontal (pola
-  frame selector §3.3), label ikon + nama pendek. Props hanya tampil saat live
-  preview (kanvas capture ikut menggambar) — tidak ada prop "stuck" di strip.
+- **Props AR**: **10 jenis** — 6 aset **Twemoji** (CC BY 4.0, `public/props/`,
+  kredit lut-credits.md) + 4 SVG custom token warna (topi fedora, telinga
+  kelinci, kumis, halo): topi, kacamata, bunga, mahkota, kelinci, kumis, pesta,
+  kacamata hitam, halo, pita. Selektor horizontal (pola frame selector §3.3),
+  label ikon + nama pendek. Props hanya tampil saat live preview (kanvas
+  capture ikut menggambar) — tidak ada prop "stuck" di strip.
 - **Green screen**: pilihan background bawaan (warm gradient via `color-mix`,
   pola titik, bingkai solid) + preview thumb. Efek menggantikan video area saat
   live; hasil capture = composited background + subjek + frame.

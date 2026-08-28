@@ -376,7 +376,7 @@ export function CameraStage({
         const prop = PROPS.find((p) => p.id === activeProp);
         if (prop) {
           const img = new Image();
-          img.src = prop.dataUri;
+          img.src = prop.src;
           try {
             await img.decode();
             for (const layout of propFaces.layout) {
@@ -801,9 +801,9 @@ export function CameraStage({
                       : "border-border text-text-secondary hover:bg-bg-warm",
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- SVG inline data-URI */}
+                  {/* eslint-disable-next-line @next/next/no-img-element -- SVG inline data-URI / aset lokal */}
                   <img
-                    src={prop.dataUri}
+                    src={prop.src}
                     alt=""
                     aria-hidden
                     className="h-5 w-5"

@@ -42,8 +42,26 @@ all copies or substantial portions of the Software.
 
 ## Props AR (stiker wajah)
 
-Semua props di `src/lib/ai/props.ts` adalah **SVG custom buatan TEMORA** memakai
-token warna design-system §2.1 — tanpa aset pihak ketiga, tanpa kewajiban atribusi.
+Dua sumber (2026-08-28):
+
+1. **Twemoji** (CC BY 4.0) — 6 aset di `public/props/`, diunduh dari
+   [jdecked/twemoji v15.1.0](https://github.com/jdecked/twemoji) (assets/svg):
+
+   | File | Emoji | Props |
+   |---|---|---|
+   | `glasses.svg` | 1f453 (kacamata) | Kacamata |
+   | `flower.svg` | 1f337 (tulip) | Bunga |
+   | `crown.svg` | 1f451 (mahkota) | Mahkota |
+   | `party.svg` | 1f382 (topi pesta) | Pesta |
+   | `sunglasses.svg` | 1f576 (kacamata hitam) | Hitam |
+   | `bow.svg` | 1f380 (pita) | Pita |
+
+   Lisensi CC BY 4.0 — bebas dipakai/modifikasi komersial, wajib atribusi
+   (dipenuhi via dokumen ini): *Twemoji © Twitter/X, Inc / jdecked, CC BY 4.0*.
+
+2. **SVG custom TEMORA** — 4 aset di `src/lib/ai/props.ts` (topi fedora,
+   telinga kelinci, kumis, halo) memakai token warna design-system §2.1 —
+   tanpa kewajiban atribusi.
 
 ---
 

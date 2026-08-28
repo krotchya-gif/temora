@@ -40,6 +40,7 @@ export function getImageSegmenter(): Promise<ImageSegmenter> {
         },
         runningMode: "VIDEO",
         outputCategoryMask: true,
+        outputConfidenceMasks: true,
       });
     })();
   }
@@ -105,19 +106,34 @@ export function compositeGreenScreen(
   if (!vw || !vh) return;
 
   const result = segmenter.segmentForVideo(video, ts);
-  const mask = result.categoryMask;
-  if (!mask) return;
-  // MPMask.getAsFloat32Array() = SINGLE channel per pixel (0–1), sesuai
-  // docs resmi MediaPipe (tasks/web/vision/core/mask.ts). getAsUint8Array
-  // juga single-channel 0–255 — BUKAN RGBA; jangan pakai indeks i*4.
-  const maskData = mask.getAsFloat32Array();
-  const mw = mask.width;
-  const mh = mask.height;
+
+  // Confidence mask per label; confidenceMasks[0] = background (model card
+  // selfie_segmenter: label 0 = background, 1 = person). Revisi 2026-08-28
+  // (§6n): categoryMask pada build ini berperilaku seperti channel background
+  // — jadi person dihitung sebagai "BUKAN background" (1 - bgConf), bukan
+  // threshold langsung pada categoryMask.
+  let maskData: Float32Array | null = null;
+  let mw = 0;
+  let mh = 0;
+  const bgMask = result.confidenceMasks?.[0];
+  if (bgMask) {
+    maskData = bgMask.getAsFloat32Array();
+    mw = bgMask.width;
+    mh = bgMask.height;
+  } else {
+    const cat = result.categoryMask;
+    if (!cat) return;
+    maskData = cat.getAsFloat32Array();
+    mw = cat.width;
+    mh = cat.height;
+  }
+  if (!maskData) return;
 
   // 1) Latar bawaan di canvas utama.
   paintBackground(ctx, vw, vh, bg);
 
-  // 2) Mask RGBA: person = alpha penuh, latar = transparan.
+  // 2) Mask RGBA: person = alpha penuh, latar = transparan. Soft edge:
+  //    ramp 0.3–0.7 pada "person-ness" (1 - bgConf) → tepi lebih halus.
   const maskCanvas = document.createElement("canvas");
   maskCanvas.width = mw;
   maskCanvas.height = mh;
@@ -125,8 +141,9 @@ export function compositeGreenScreen(
   if (!mctx) return;
   const rgba = new Uint8ClampedArray(mw * mh * 4);
   for (let i = 0; i < mw * mh; i++) {
-    // Kategori 1 = person (selfie_segmenter); >0.5 utk toleransi float.
-    const alpha = maskData[i] > 0.5 ? 255 : 0;
+    const v = 1 - maskData[i]; // person-ness (bgConf rendah → person)
+    const alpha =
+      v <= 0.3 ? 0 : v >= 0.7 ? 255 : Math.round(((v - 0.3) / 0.4) * 255);
     rgba[i * 4 + 3] = alpha;
   }
   mctx.putImageData(new ImageData(rgba, mw, mh), 0, 0);

@@ -391,10 +391,12 @@ export async function createSegmenter() {
 // compositing: mask → replace bg (drawImage bg dulu) → draw video dengan alpha mask
 // feathering edge: blur ringan pada mask (ctx.filter = 'blur(2px)')
 
-// PENTING (2026-08-28, revisi §6l/§6m): MPMask.getAsUint8Array() adalah
+// PENTING (2026-08-28, revisi §6l–§6n): MPMask.getAsUint8Array() adalah
 // SINGLE-channel (1 nilai/pixel 0–255 = kelas*255), BUKAN RGBA — lihat
-// tasks/web/vision/core/mask.ts. Pemakaian aman: getAsFloat32Array()
-// (single-channel 0–1) lalu `> 0.5` untuk kelas person (1).
+// tasks/web/vision/core/mask.ts. categoryMask pada build ini berperilaku
+// seperti channel background → person dihitung sebagai BUKAN background:
+// `outputConfidenceMasks: true` + confidenceMasks[0] → person = 1 - bgConf,
+// soft edge ramp 0.3–0.7 (komposit: person = NOT background, §6n).
 ```
 
 ### 8.2 Face Landmark (AR Props)
@@ -440,6 +442,9 @@ export async function createFaceLandmarker() {
   (jaringan/WebGL mati) → fitur nonaktif tanpa crash.
 - Catatan (2026-08-28, §6m): uniform `uSize`/`uGrid` **wajib** di-set via
   `uniform1f` di `setLut()` — default 0 membuat lookup negatif → output gelap.
+- Catatan (§6n): upload source canvas wajib `UNPACK_FLIP_Y_WEBGL=true`
+  (pola MediaPipe `gpuOriginForWebTexturesIsBottomLeft`) — tanpa itu gambar
+  tampil terbalik (kepala ke bawah).
 
 ---
 

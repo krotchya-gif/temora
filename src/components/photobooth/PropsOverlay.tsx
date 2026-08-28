@@ -147,10 +147,10 @@ export function PropsOverlay({
             : propLayout(activeProp, face);
         const x = mirrored ? 1 - layout.x - layout.w : layout.x;
         return (
-          // eslint-disable-next-line @next/next/no-img-element -- SVG inline data-URI
+          // eslint-disable-next-line @next/next/no-img-element -- SVG inline data-URI / aset lokal
           <img
             key={i}
-            src={prop.dataUri}
+            src={prop.src}
             alt=""
             className="absolute"
             style={{

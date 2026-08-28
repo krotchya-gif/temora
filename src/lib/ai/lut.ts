@@ -276,6 +276,10 @@ export class LutRenderer {
     gl.viewport(0, 0, sw, sh);
     gl.useProgram(this.program);
 
+    // DOM source (canvas) di-upload baris-atas dulu; texture v=0 = baris atas.
+    // Tanpa FLIP_Y gambar tampil terbalik (kepala ke bawah) — pola yang sama
+    // dipakai MediaPipe sendiri (gpuOriginForWebTexturesIsBottomLeft).
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.bindTexture(gl.TEXTURE_2D, this.srcTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
