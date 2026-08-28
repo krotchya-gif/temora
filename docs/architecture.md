@@ -445,6 +445,13 @@ export async function createFaceLandmarker() {
 - Catatan (§6n): upload source canvas wajib `UNPACK_FLIP_Y_WEBGL=true`
   (pola MediaPipe `gpuOriginForWebTexturesIsBottomLeft`) — tanpa itu gambar
   tampil terbalik (kepala ke bawah).
+- Catatan (§6o): `UNPACK_FLIP_Y_WEBGL` adalah state global konteks — **wajib
+  di-scope**: set `true` hanya saat upload source DOM lalu reset `false`;
+  `setLut()` eksplisit `false` sebelum upload atlas. Bocor ke upload atlas →
+  warna LUT kacau (sumbu hijau terbalik).
+- Fitur yang di-OFF sementara via `src/lib/ai/feature-flags.ts` (§6o):
+  `ENABLE_PROPS=false`, `ENABLE_BACKGROUNDS=false` — kode utuh, balik flag
+  untuk uji ulang.
 
 ---
 

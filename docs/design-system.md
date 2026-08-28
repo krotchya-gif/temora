@@ -220,6 +220,9 @@ Muncul sebelum kamera aktif:
 - Ketiga fitur **lazy-load** (dynamic import MediaPipe / fetch `.cube`) — tab
   hanya muncul bila browser mendukung; tombol "Tanpa Efek"/"Warna Asli" selalu
   tersedia (fallback, §8.3).
+- **Status 2026-08-28 (§6o)**: Props AR & Green screen **di-OFF sementara**
+  (`feature-flags.ts`) karena masih bermasalah di uji live; hanya **Filter
+  warna aktif**. Balik flag untuk uji ulang.
 
 ### 3.10 Moments Feed (task 012)
 - Kartu moment: foto (bila ada) + caption italic display + timestamp kecil.

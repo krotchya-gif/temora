@@ -10,6 +10,7 @@ import { GradeCanvas } from "@/components/photobooth/GradeCanvas";
 import { MomentComposer } from "@/components/photobooth/MomentComposer";
 import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
 import { LUTS, type LutId } from "@/lib/ai/lut";
+import { ENABLE_BACKGROUNDS, ENABLE_PROPS } from "@/lib/ai/feature-flags";
 import { PROPS, propLayout, type PropId } from "@/lib/ai/props";
 import type { FaceBox } from "@/lib/ai/faceLandmark";
 import type { WatermarkPosition } from "@/lib/validation/event";
@@ -656,8 +657,8 @@ export function CameraStage({
             </div>
           ) : null}
 
-          {/* Props AR (task 010) — hanya saat live; lazy-load MediaPipe */}
-          {phase === "live" && activeProp ? (
+          {/* Props AR (task 010) — OFF sementara (feature-flags) */}
+          {ENABLE_PROPS && phase === "live" && activeProp ? (
             <PropsOverlay
               videoRef={videoRef}
               activeProp={activeProp}
@@ -672,9 +673,8 @@ export function CameraStage({
             />
           ) : null}
 
-          {/* Green screen (task 011) — hanya saat live; lazy-load; mirror
-              konsisten dengan video & capture */}
-          {phase === "live" && activeBg ? (
+          {/* Green screen (task 011) — OFF sementara (feature-flags); lazy-load */}
+          {ENABLE_BACKGROUNDS && phase === "live" && activeBg ? (
             <GreenScreenCanvas
               videoRef={videoRef}
               activeBg={activeBg}
@@ -767,8 +767,8 @@ export function CameraStage({
             </>
           ) : null}
 
-          {/* Selektor Efek (task 010) + Latar (task 011) — lazy: model dimuat saat tab dibuka */}
-          {phase === "live" ? (
+          {/* Selektor Efek (task 010) — OFF sementara (feature-flags) */}
+          {ENABLE_PROPS && phase === "live" ? (
             <div
               role="group"
               aria-label="Efek dan latar"
@@ -824,8 +824,8 @@ export function CameraStage({
             </div>
           ) : null}
 
-          {/* Selektor Latar (task 011) */}
-          {phase === "live" ? (
+          {/* Selektor Latar (task 011) — OFF sementara (feature-flags) */}
+          {ENABLE_BACKGROUNDS && phase === "live" ? (
             <div
               role="group"
               aria-label="Latar"

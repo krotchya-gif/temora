@@ -299,6 +299,16 @@ menempel stabil).
 Verifikasi: lint/typecheck/test 58/58/build hijau. Uji visual kamera asli manual
 owner (latar utuh + soft edge, LUT tegak, props Twemoji menempel).
 
+## 6o. Regresi live ronde 3 + keputusan feature flags — 2026-08-28
+
+| Severity | Temuan | Root cause | Fix |
+|---|---|---|---|
+| **Critical** | LUT warna benar saat pertama dipakai, **rusak setelah ganti/aktifkan ulang filter** | `UNPACK_FLIP_Y_WEBGL` adalah **state global** konteks WebGL — di-set `true` di `render()` tiap frame tanpa reset; saat `setLut()` meng-upload ulang atlas HALD (toggle/switching LUT), atlas ikut ter-flip vertikal → sumbu hijau terbalik → warna kacau (dibuktikan simulasi CPU: input kulit `1,0.95,0.85` → `1,0.24,0.63`) | FLIP_Y di-**scope ketat**: `true` → upload source DOM → `false` segera; `setLut()` eksplisit `FLIP_Y=false` sebelum upload atlas |
+| **Keputusan** | **Props AR & Green screen di-OFF sementara** — masih bermasalah di uji live; fokus ke LUT | — | `src/lib/ai/feature-flags.ts`: `ENABLE_PROPS=false`, `ENABLE_BACKGROUNDS=false` (UI disembunyikan, render di-guard; kode utuh). Fix terpasang di §6n/§6m (person=NOT bg + soft edge; FPS gate; Twemoji) — balik flag untuk uji ulang. Filter LUT tetap AKTIF |
+
+Verifikasi: lint/typecheck/test 58/58/build hijau; simulasi lookup LUT (Node)
+membuktikan mapping atlas benar dan atlas-flip menghasilkan warna menyimpang.
+
 ## 7. Bug bash — ⏳ disarankan setelah env live
 
 Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +

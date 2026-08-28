@@ -239,6 +239,10 @@ export class LutRenderer {
     const gl = this.gl;
     const hald = buildHald(lut);
     gl.bindTexture(gl.TEXTURE_2D, this.lutTex);
+    // PENTING: pixelStorei adalah state GLOBAL konteks. Pastikan FLIP_Y=false
+    // saat upload atlas (typed array) — render() men-scope FLIP_Y=true hanya
+    // untuk upload source DOM dan langsung di-reset (lihat §6o).
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
@@ -279,9 +283,12 @@ export class LutRenderer {
     // DOM source (canvas) di-upload baris-atas dulu; texture v=0 = baris atas.
     // Tanpa FLIP_Y gambar tampil terbalik (kepala ke bawah) — pola yang sama
     // dipakai MediaPipe sendiri (gpuOriginForWebTexturesIsBottomLeft).
+    // FLIP_Y di-scope ketat: reset ke false setelah upload, supaya state
+    // global tidak bocor ke upload lain (mis. atlas LUT di setLut — §6o).
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.bindTexture(gl.TEXTURE_2D, this.srcTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
