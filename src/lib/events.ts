@@ -1,6 +1,8 @@
 // Utilitas event bersama: resolusi [eventId] (UUID atau slug) + aksen tema
 // (design-system §2.2 — tema hanya menggeser accent, core palette tetap).
 
+import type { WatermarkPosition } from "@/lib/validation/event";
+
 export type PhotoboothEvent = {
   id: string;
   name: string;
@@ -8,6 +10,7 @@ export type PhotoboothEvent = {
   theme: string | null;
   frameUrl: string | null;
   watermarkText: string;
+  watermarkPosition: WatermarkPosition;
 };
 
 export type PhotoboothTable = {

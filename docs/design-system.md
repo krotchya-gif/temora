@@ -341,7 +341,7 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Monogram | "T" dalam lingkaran, `dusty-blue` di atas `bg-base` |
 | Favicon | Monogram 32×32px |
 | OG Image | 1200×630px, warm ivory bg, tagline display font |
-| Watermark | Teks vendor/TEMORA, opacity rendah, pojok bawah hasil foto |
+| Watermark | Teks vendor/TEMORA, opacity rendah, hasil foto. Posisi preset 4 arah (bottom-right default / bottom-left / top-right / top-left) — `events.watermark_position`; teks & posisi kustom = fitur Pro (task 008) |
 
 ---
 

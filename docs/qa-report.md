@@ -12,7 +12,7 @@
 
 | Kategori | Gate | Status |
 |---|---|---|
-| Unit tests | Lulus di CI | ✅ 46/46 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
+| Unit tests | Lulus di CI | ✅ 53/53 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
 | E2E jalur kritis 3/3 | Hijau 2× berturut-turut | ⏳ 3/4 hijau 2× (tamu, vendor, rope — §6h); billing menunggu task 008 |
 | Device lab Android/iOS | Lolos tanpa blocker | ✅ alur inti terverifikasi manual owner (2026-08-28) — detail tasks/003–007 |
 | Lighthouse ≥ 85 mobile photobooth | Terlampir | ✅ perf 99 / a11y 95 (docs/lighthouse/) |
@@ -21,7 +21,7 @@
 
 ## 1. Unit tests (Vitest) — ✅
 
-`tests/unit/` — 5 file, 46 test:
+`tests/unit/` — 5 file, 53 test:
 - `ulid` — format Crockford 26 char, monotonic, unik.
 - `rate-limit` — sliding window izin/tolak/reset window.
 - `validation` — event create/update (slug immutable, tanggal, pesan ramah),
@@ -251,6 +251,17 @@ sudah dipakai kartu QR, sesuai AC 014 yang memang menulis "print stylesheet"):
 
 Verifikasi: lint/typecheck/test 50/50/build hijau. Sisa AC yang menunggu device
 lab (010 FPS/group, 011 lighting/edge) akan diuji manual owner lalu dilaporkan.
+
+## 6k. Ronde bug momen + watermark kustom — 2026-08-28
+
+| Severity | Temuan | Fix (commit) |
+|---|---|---|
+| Major | Momen yang di-hide vendor **hilang dari feed** dashboard — GET moments default filter `is_hidden=false`, padahal UI feed didesain menampilkan hidden (badge "Disembunyikan" + tombol unhide); sekali di-hide tak bisa ditampilkan lagi | `?hidden=all` di API + MomentsFeed fetch memakainya (737cf7c) |
+| — | Watermark: posisi hardcode pojok kanan bawah; teks kustom Pro (`watermark_text`) ada di DB tapi tanpa jalur edit | Fitur lengkap: migrasi 0023 `watermark_position` (4 preset, CHECK), validation + gate Pro di API create/update (403 non-Pro), field teks+posisi di form event (disabled non-Pro), render 4 posisi di CameraStage |
+
+Verifikasi watermark: lint/typecheck/test 53/53/build hijau; migrasi 0023
+terpasang di remote (kolom + constraint). E2E manual (form Pro vs Free, hasil
+foto 4 posisi) menyusul saat sandbox/akun Pro tersedia.
 
 ## 7. Bug bash — ⏳ disarankan setelah env live
 

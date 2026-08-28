@@ -133,6 +133,14 @@ export async function POST(request: Request) {
 
   const tier = (vendor.subscription_tier ?? "free") as VendorTier;
 
+  // Watermark kustom (teks/posisi) khusus tier Pro — defense in depth (PRD §3).
+  if (tier !== "pro" && (input.watermarkText !== undefined || input.watermarkPosition !== undefined)) {
+    return NextResponse.json(
+      { error: "Watermark kustom (teks & posisi) tersedia di paket Pro ya." },
+      { status: 403 },
+    );
+  }
+
   if (input.isActive !== false) {
     const block = await activeLimitError(supabase, vendor.id, tier);
     if (block) {
@@ -203,6 +211,8 @@ export async function POST(request: Request) {
       is_active: input.isActive !== false,
       expires_at: expiresAt,
       photo_limit: TIER_PHOTO_LIMITS[tier],
+      watermark_text: input.watermarkText,
+      watermark_position: input.watermarkPosition,
     })
     .select("id")
     .single();

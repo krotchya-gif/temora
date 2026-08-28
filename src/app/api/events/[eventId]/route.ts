@@ -22,7 +22,7 @@ async function resolveOwnedEvent(eventId: string) {
   // RLS e_owner: event vendor lain tidak terlihat.
   const { data: event } = await supabase
     .from("events")
-    .select("id, vendor_id, name, slug, theme, starts_at, ends_at, location, is_active, photo_limit, expires_at")
+    .select("id, vendor_id, name, slug, theme, starts_at, ends_at, location, is_active, photo_limit, expires_at, watermark_text, watermark_position")
     .eq("id", eventId)
     .maybeSingle();
   if (!event) return { error: "notfound" as const };
@@ -73,6 +73,22 @@ export async function PUT(
     return NextResponse.json({ error: "Tidak ada perubahan." }, { status: 400 });
   }
 
+  // Watermark kustom (teks/posisi) khusus tier Pro — defense in depth (PRD §3).
+  if (input.watermarkText !== undefined || input.watermarkPosition !== undefined) {
+    const { data: vendor } = await supabase
+      .from("vendors")
+      .select("subscription_tier")
+      .eq("id", event.vendor_id)
+      .single();
+    const tier = (vendor?.subscription_tier ?? "free") as VendorTier;
+    if (tier !== "pro") {
+      return NextResponse.json(
+        { error: "Watermark kustom (teks & posisi) tersedia di paket Pro ya." },
+        { status: 403 },
+      );
+    }
+  }
+
   // Aktivasi ulang → cek kuota event aktif per tier (kecuali event ini sendiri sudah aktif).
   if (input.isActive === true && !event.is_active) {
     const { data: vendor } = await supabase
@@ -111,6 +127,8 @@ export async function PUT(
     ends_at: input.endsAt,
     location: input.location,
     is_active: input.isActive,
+    watermark_text: input.watermarkText,
+    watermark_position: input.watermarkPosition,
   };
   const changes = Object.fromEntries(
     Object.entries(dbInput).filter(([, v]) => v !== undefined),

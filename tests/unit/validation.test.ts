@@ -58,6 +58,23 @@ describe("eventCreateSchema", () => {
   it("tanggal invalid ditolak", () => {
     expect(eventCreateSchema.safeParse({ ...base, startsAt: "besok" }).success).toBe(false);
   });
+
+  it("watermark kustom: teks ≤60 char & posisi preset valid", () => {
+    expect(
+      eventCreateSchema.safeParse({ ...base, watermarkText: "Andi & Sinta 2026", watermarkPosition: "top-left" }).success,
+    ).toBe(true);
+    expect(
+      eventCreateSchema.safeParse({ ...base, watermarkText: "x".repeat(61) }).success,
+    ).toBe(false);
+    expect(
+      eventCreateSchema.safeParse({ ...base, watermarkPosition: "middle" }).success,
+    ).toBe(false);
+  });
+
+  it("watermark teks kosong ditransform ke undefined (pakai default DB)", () => {
+    const parsed = eventCreateSchema.parse({ ...base, watermarkText: "   " });
+    expect(parsed.watermarkText).toBeUndefined();
+  });
 });
 
 describe("eventUpdateSchema", () => {
@@ -72,6 +89,11 @@ describe("eventUpdateSchema", () => {
   it("menerima isActive boolean", () => {
     expect(eventUpdateSchema.safeParse({ isActive: false }).success).toBe(true);
     expect(eventUpdateSchema.safeParse({ isActive: "ya" }).success).toBe(false);
+  });
+
+  it("watermark position update divalidasi preset", () => {
+    expect(eventUpdateSchema.safeParse({ watermarkPosition: "bottom-left" }).success).toBe(true);
+    expect(eventUpdateSchema.safeParse({ watermarkPosition: "random" }).success).toBe(false);
   });
 });
 

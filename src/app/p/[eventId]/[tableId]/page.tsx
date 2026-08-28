@@ -57,7 +57,7 @@ const loadPhotoboothState = cache(
 
   const { data: row } = await client
     .from("events")
-    .select("id, name, slug, theme, frame_url, watermark_text")
+    .select("id, name, slug, theme, frame_url, watermark_text, watermark_position")
     .eq(isUuid(eventIdParam) ? "id" : "slug", eventIdParam)
     .maybeSingle();
 
@@ -70,6 +70,7 @@ const loadPhotoboothState = cache(
     theme: row.theme,
     frameUrl: row.frame_url,
     watermarkText: row.watermark_text ?? "Keep it close. Keep it TEMORA.",
+    watermarkPosition: row.watermark_position ?? "bottom-right",
   };
 
   const { data: tableRow } = await client

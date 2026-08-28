@@ -56,6 +56,8 @@ CREATE TABLE events (
   location TEXT,
   frame_url TEXT,                      -- PNG transparan di Storage
   watermark_text TEXT DEFAULT 'Keep it close. Keep it TEMORA.',
+  watermark_position TEXT NOT NULL DEFAULT 'bottom-right'
+    CHECK (watermark_position IN ('bottom-right','bottom-left','top-right','top-left')), -- preset posisi (Pro)
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   expires_at TIMESTAMPTZ,              -- TTL foto; diset app layer saat create (default NOW()+30 hari), tanpa DB default
   photo_limit INT DEFAULT 100,         -- diset saat create dari tier vendor; NULL = unlimited (Pro)

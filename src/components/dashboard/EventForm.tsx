@@ -13,12 +13,16 @@ export type EventFormValues = {
   location: string;
   customSlug: string;
   isActive: boolean;
+  watermarkText: string;
+  watermarkPosition: string;
 };
 
 type EventFormProps = {
   mode: "create" | "edit";
   eventId?: string;
   initial?: Partial<EventFormValues>;
+  /** Tier vendor saat ini — watermark kustom (teks/posisi) khusus Pro. */
+  tier: "free" | "basic" | "pro";
 };
 
 const THEME_OPTIONS = [
@@ -30,6 +34,15 @@ const THEME_OPTIONS = [
   { value: "other", label: "Lainnya" },
 ];
 
+const POSITION_OPTIONS = [
+  { value: "bottom-right", label: "Kanan bawah" },
+  { value: "bottom-left", label: "Kiri bawah" },
+  { value: "top-right", label: "Kanan atas" },
+  { value: "top-left", label: "Kiri atas" },
+];
+
+const DEFAULT_WATERMARK_TEXT = "Keep it close. Keep it TEMORA.";
+
 function toLocalInput(iso: string | undefined | null): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -38,8 +51,9 @@ function toLocalInput(iso: string | undefined | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function EventForm({ mode, eventId, initial }: EventFormProps) {
+export function EventForm({ mode, eventId, initial, tier }: EventFormProps) {
   const router = useRouter();
+  const watermarkLocked = tier !== "pro";
   const [values, setValues] = useState<EventFormValues>({
     name: initial?.name ?? "",
     theme: initial?.theme ?? "",
@@ -48,6 +62,8 @@ export function EventForm({ mode, eventId, initial }: EventFormProps) {
     location: initial?.location ?? "",
     customSlug: initial?.customSlug ?? "",
     isActive: initial?.isActive ?? true,
+    watermarkText: initial?.watermarkText ?? "",
+    watermarkPosition: initial?.watermarkPosition ?? "bottom-right",
   });
   const [frameFile, setFrameFile] = useState<File | null>(null);
   const [framePreview, setFramePreview] = useState<string | null>(null);
@@ -103,6 +119,11 @@ export function EventForm({ mode, eventId, initial }: EventFormProps) {
         endsAt: values.endsAt ? new Date(values.endsAt).toISOString() : undefined,
         location: values.location.trim() || undefined,
         isActive: values.isActive,
+        watermarkText: values.watermarkText.trim() || undefined,
+        watermarkPosition:
+          values.watermarkPosition === "bottom-right"
+            ? undefined
+            : values.watermarkPosition,
       };
 
       let id = eventId;
@@ -280,6 +301,47 @@ export function EventForm({ mode, eventId, initial }: EventFormProps) {
             />
           </div>
         ) : null}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="event-watermark-text" className="block text-sm font-medium text-text-primary">
+            Teks watermark (opsional)
+          </label>
+          <input
+            id="event-watermark-text"
+            type="text"
+            maxLength={60}
+            disabled={watermarkLocked}
+            value={watermarkLocked ? DEFAULT_WATERMARK_TEXT : values.watermarkText}
+            onChange={(e) => set("watermarkText", e.target.value)}
+            placeholder={DEFAULT_WATERMARK_TEXT}
+            className="mt-1.5 w-full rounded-lg border border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary placeholder:text-text-secondary/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-dusty-blue disabled:cursor-not-allowed disabled:bg-bg-warm disabled:opacity-60"
+          />
+          <p className="mt-1 text-xs text-text-secondary">
+            {watermarkLocked
+              ? "Teks & posisi watermark kustom tersedia di paket Pro."
+              : "Maksimal 60 karakter."}
+          </p>
+        </div>
+        <div>
+          <label htmlFor="event-watermark-position" className="block text-sm font-medium text-text-primary">
+            Posisi watermark
+          </label>
+          <select
+            id="event-watermark-position"
+            disabled={watermarkLocked}
+            value={watermarkLocked ? "bottom-right" : values.watermarkPosition}
+            onChange={(e) => set("watermarkPosition", e.target.value)}
+            className="mt-1.5 w-full rounded-lg border border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-dusty-blue disabled:cursor-not-allowed disabled:bg-bg-warm disabled:opacity-60"
+          >
+            {POSITION_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <label className="flex items-center gap-3">

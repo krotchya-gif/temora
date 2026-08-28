@@ -13,6 +13,22 @@ const optionalIsoDate = z
     "Tanggal tidak valid.",
   );
 
+export const WATERMARK_POSITIONS = [
+  "bottom-right",
+  "bottom-left",
+  "top-right",
+  "top-left",
+] as const;
+
+export type WatermarkPosition = (typeof WATERMARK_POSITIONS)[number];
+
+const optionalWatermarkText = z
+  .string()
+  .trim()
+  .max(60, "Teks watermark maksimal 60 karakter.")
+  .optional()
+  .transform((v) => (v ? v : undefined));
+
 export const eventCreateSchema = z.object({
   name: z.string().trim().min(3, "Nama event minimal 3 karakter.").max(80),
   theme: z
@@ -28,6 +44,8 @@ export const eventCreateSchema = z.object({
     .optional()
     .or(z.literal("")),
   isActive: z.boolean().optional().default(true),
+  watermarkText: optionalWatermarkText,
+  watermarkPosition: z.enum(WATERMARK_POSITIONS).optional(),
 });
 
 export const eventUpdateSchema = z.object({
@@ -37,6 +55,8 @@ export const eventUpdateSchema = z.object({
   endsAt: optionalIsoDate,
   location: z.string().trim().max(120).optional(),
   isActive: z.boolean().optional(),
+  watermarkText: optionalWatermarkText,
+  watermarkPosition: z.enum(WATERMARK_POSITIONS).optional(),
 });
 
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;

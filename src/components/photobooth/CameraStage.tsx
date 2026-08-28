@@ -10,6 +10,7 @@ import { MomentComposer } from "@/components/photobooth/MomentComposer";
 import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
 import { PROPS, propLayout, type PropId } from "@/lib/ai/props";
 import type { FaceBox } from "@/lib/ai/faceLandmark";
+import type { WatermarkPosition } from "@/lib/validation/event";
 import {
   getPendingUploads,
   queuePendingUpload,
@@ -26,6 +27,8 @@ export type CameraStageProps = {
   tableLabel: string;
   frameUrl: string | null;
   watermarkText: string;
+  /** Posisi watermark preset (design-system §8) — default kanan bawah. */
+  watermarkPosition: WatermarkPosition;
   /** Sisa kuota foto event; null = unlimited. 0 → capture dinonaktifkan. */
   remaining: number | null;
   /** Sponsor aktif posisi frame (task 013) — logo digambar ke hasil foto. */
@@ -82,6 +85,7 @@ export function CameraStage({
   tableLabel,
   frameUrl,
   watermarkText,
+  watermarkPosition,
   remaining,
   frameSponsors,
   onToast,
@@ -336,15 +340,21 @@ export function CameraStage({
       }
     }
 
-    // Watermark brand, pojok kanan bawah (design-system §8).
+    // Watermark brand — posisi preset per event (design-system §8, default
+    // kanan bawah). Posisi dikunci saat frame sponsor digambar di bawah tengah.
     const fontSize = Math.max(14, Math.round(ch * 0.028));
     ctx.font = `600 ${fontSize}px "Plus Jakarta Sans", sans-serif`;
-    ctx.textAlign = "right";
-    ctx.textBaseline = "bottom";
+    const padX = cw * 0.04;
+    const padY = ch * 0.045;
+    const pos = watermarkPosition ?? "bottom-right";
+    ctx.textAlign = pos.startsWith("left") ? "left" : "right";
+    ctx.textBaseline = pos.startsWith("top") ? "top" : "bottom";
+    const wmX = pos.startsWith("left") ? padX : cw - padX;
+    const wmY = pos.startsWith("top") ? padY : ch - padY;
     ctx.shadowColor = "rgba(0,0,0,0.35)";
     ctx.shadowBlur = fontSize * 0.4;
     ctx.fillStyle = "rgba(255,255,255,0.62)";
-    ctx.fillText(watermarkText, cw - cw * 0.04, ch - ch * 0.045);
+    ctx.fillText(watermarkText, wmX, wmY);
     ctx.shadowBlur = 0;
 
     // Props AR (task 010): gambar di kanvas — posisi landmark TERMIRROR untuk
@@ -445,7 +455,7 @@ export function CameraStage({
       setPhase("preview");
       setBusy(false);
     })();
-  }, [phase, busy, facing, watermarkText, eventId, tableId, activeProp, activeBg, frameSponsors]);
+  }, [phase, busy, facing, watermarkText, watermarkPosition, eventId, tableId, activeProp, activeBg, frameSponsors]);
 
   const retake = useCallback(() => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);

@@ -64,6 +64,7 @@ export function PhotoboothExperience({
           tableLabel={tableLabel}
           frameUrl={event.frameUrl}
           watermarkText={event.watermarkText}
+          watermarkPosition={event.watermarkPosition}
           remaining={remaining}
           frameSponsors={frameSponsors}
           onToast={showToast}

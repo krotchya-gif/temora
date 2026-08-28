@@ -17,9 +17,22 @@ export default async function EditEventPage({ params }: EditEventProps) {
   const { eventId } = await params;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const tier = (user
+    ? ((await supabase
+        .from("vendors")
+        .select("subscription_tier")
+        .eq("id", user.id)
+        .maybeSingle())?.data?.subscription_tier ?? "free")
+    : "free") as "free" | "basic" | "pro";
+
   const { data: event } = await supabase
     .from("events")
-    .select("id, name, slug, theme, starts_at, ends_at, location, is_active, frame_url")
+    .select(
+      "id, name, slug, theme, starts_at, ends_at, location, is_active, frame_url, watermark_text, watermark_position",
+    )
     .eq("id", eventId)
     .maybeSingle();
 
@@ -61,6 +74,7 @@ export default async function EditEventPage({ params }: EditEventProps) {
         <EventForm
           mode="edit"
           eventId={event.id}
+          tier={tier}
           initial={{
             name: event.name,
             theme: event.theme ?? "",
@@ -68,6 +82,8 @@ export default async function EditEventPage({ params }: EditEventProps) {
             endsAt: event.ends_at,
             location: event.location ?? "",
             isActive: event.is_active,
+            watermarkText: event.watermark_text ?? "",
+            watermarkPosition: event.watermark_position ?? "bottom-right",
           }}
         />
       </Card>
