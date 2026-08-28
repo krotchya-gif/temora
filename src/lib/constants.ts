@@ -51,8 +51,8 @@ export const PRICING_TIERS = [
   {
     id: "basic",
     name: "Basic",
-    price: 99000,
-    priceLabel: "Rp 99K",
+    price: 49000,
+    priceLabel: "Rp 49K",
     period: "/bulan",
     description: "Untuk vendor yang mulai rutin handle acara.",
     features: [

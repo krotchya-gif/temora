@@ -102,6 +102,8 @@ Sudah tertanam & di-review kode:
 - ✅ Webhook Xendit verifikasi token constant-time + idempotent replay
 - ✅ RLS: tamu tak bisa SELECT photos; policy anti-pattern `USING(true)` tidak dipakai
 - ✅ Rate limit 12/menit/meja (+IP) di upload; 30/menit/IP di scan
+- ✅ HTTP security headers via `next.config.mjs` (2026-08-28): CSP `upgrade-insecure-requests; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` (kamera tetap diizinkan), HSTS; `x-powered-by: Next.js` dihapus. Catatan: `server: hcdn`/`platform`/`panel` dari Hostinger CDN tidak bisa dihapus dari aplikasi (architecture.md §6).
+- ⏳ Leaked-password protection Supabase (HaveIBeenPwned): **khusus Pro Plan ke atas** — organisasi masih Free (2026-08-28), tidak dapat diaktifkan. Pending sampai upgrade; **tidak dibahas lagi** di iterasi berikutnya. Temuan advisor lain (`rls_auto_enable` SECURITY DEFINER anon-executable, `admin_secrets` RLS tanpa policy = by-design) diabaikan sesuai keputusan owner.
 
 Prosedur manual setelah env terisi:
 ```sql

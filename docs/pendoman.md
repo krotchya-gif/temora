@@ -90,7 +90,7 @@ Daftar → Buat Event → Upload Frame → Generate QR → Cetak → Hari-H → 
 11. **Laporan Momen (PDF)** — `/print/[eventId]/moments`: cetak A4, hanya momen tidak tersembunyi.
 12. **Selesai Acara** — nonaktifkan event (membebaskan slot event aktif Free tier).
 
-**Batasan tier** (terkunci, dicek server-side): Free 1 aktif/100 foto · Basic Rp99K 3 aktif/500 foto · Pro Rp299K unlimited.
+**Batasan tier** (terkunci, dicek server-side): Free 1 aktif/100 foto · Basic Rp49K 3 aktif/500 foto · Pro Rp299K unlimited.
 
 ---
 

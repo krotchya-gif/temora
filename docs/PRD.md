@@ -68,7 +68,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 5. **Monetisasi — Xendit**
    - Subscription tier (detail enforcement: [database.md](database.md) §2.7):
      - **Free**: 1 event aktif (unlimited nonaktif), max 100 foto/event.
-     - **Basic**: Rp 99K/bulan — 3 event aktif, 500 foto/event.
+     - **Basic**: Rp 49K/bulan — 3 event aktif, 500 foto/event.
      - **Pro**: Rp 299K/bulan — unlimited event aktif, unlimited foto (`photo_limit` NULL), custom watermark.
    - `photo_limit` diset saat create event; tidak di-sync ulang saat upgrade tier.
    - Invoice + payment link via Xendit; webhook untuk konfirmasi.

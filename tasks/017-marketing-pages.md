@@ -13,7 +13,7 @@ Menutup gap akuisisi vendor: route `/`, `/pricing`, `/how-it-works` dibangun sun
 ## 2. Scope
 
 - **Landing `/`**: hero H1 "Keep The Moments Close." (BRAND.md §10) + supporting copy + CTA WhatsApp deep-link admin (`wa.me` pre-filled) + section how-it-works ringkas + footer brand.
-- **`/pricing`**: 3 tier sesuai PRD §3 MUST 5 — Free (1 event aktif, unlimited nonaktif) / Basic Rp 99K / Pro Rp 299K; kartu perbandingan sederhana, CTA "Mulai Gratis" (signup).
+- **`/pricing`**: 3 tier sesuai PRD §3 MUST 5 — Free (1 event aktif, unlimited nonaktif) / Basic Rp 49K / Pro Rp 299K; kartu perbandingan sederhana, CTA "Mulai Gratis" (signup).
 - **`/how-it-works`**: 3 langkah visual — tamu scan QR → ambil momen di browser → vendor kelola & unduh ZIP.
 - SEO on-page: title/meta per halaman sesuai BRAND.md §9–10, semantic HTML, OG image placeholder (design-system §8).
 - Semua statis (server component, tanpa JS interaktif selain link CTA).

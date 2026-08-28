@@ -340,6 +340,7 @@ Detail aturan terkunci: `docs/database.md` §2.7. Ringkas:
 | **Data at rest/in transit** | AES-256 default Supabase + HTTPS via SSL hPanel (auto Let's Encrypt) |
 | **Guest privacy** | Consent screen, TTL auto-delete (30 hari), tanpa facial recognition |
 | **Input** | Sanitize string user-generated; zod validation di semua form/API |
+| **HTTP headers** | Diset via `next.config.mjs` `headers()` (2026-08-28): CSP `upgrade-insecure-requests; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera=(self) — dibutuhkan photobooth), HSTS max-age 31536000; `poweredByHeader: false` menghapus `x-powered-by: Next.js`. Batasan hosting: `server: hcdn` + `platform: hostinger` + `panel: hpanel` disuntik Hostinger CDN — tidak bisa dihapus dari aplikasi (Opsional: hPanel → header CDN bila ingin diatur level CDN) |
 
 ---
 

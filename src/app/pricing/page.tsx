@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   // Category keyword BRAND.md §9 di title.
   title: "Paket & Harga — Virtual Photobooth",
   description:
-    "Paket TEMORA virtual photobooth untuk wedding, birthday, dan corporate event: mulai gratis 100 foto, Basic Rp 99K, Pro Rp 299K tanpa kontrak.",
+    "Paket TEMORA virtual photobooth untuk wedding, birthday, dan corporate event: mulai gratis 100 foto, Basic Rp 49K, Pro Rp 299K tanpa kontrak.",
 };
 
 export default function PricingPage() {

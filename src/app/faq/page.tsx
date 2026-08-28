@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     q: "Berapa harganya?",
-    a: "Mulai gratis: 1 event aktif dengan 100 foto. Paket Basic Rp 99 ribu/bulan (3 event aktif, 500 foto/event) dan Pro Rp 299 ribu/bulan (unlimited). Detail lengkap ada di halaman Harga.",
+    a: "Mulai gratis: 1 event aktif dengan 100 foto. Paket Basic Rp 49 ribu/bulan (3 event aktif, 500 foto/event) dan Pro Rp 299 ribu/bulan (unlimited). Detail lengkap ada di halaman Harga.",
   },
   {
     q: "HP tamu apa saja yang didukung?",

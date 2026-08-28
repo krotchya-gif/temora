@@ -15,7 +15,7 @@ Monetisasi end-to-end: vendor upgrade tier → bayar via Xendit → tier aktif o
 - Halaman `/dashboard/billing`: tier saat ini, perbandingan paket, riwayat invoice.
 - Pricing (terkunci di PRD):
   - Free — Rp 0 · 1 event aktif · 100 foto/event.
-  - Basic — Rp 99K/bln · 3 event aktif · 500 foto/event.
+  - Basic — Rp 49K/bln · 3 event aktif · 500 foto/event.
   - Pro — Rp 299K/bln · unlimited event · unlimited foto + custom watermark.
 - `POST /api/billing/checkout`: create Xendit invoice → simpan row `subscriptions` (pending) → redirect ke payment URL.
 - `POST /api/billing/webhook`: verifikasi Xendit callback token → update subscription `paid` + naikkan `vendors.subscription_tier` → trigger WA notif (hook ke task 009).

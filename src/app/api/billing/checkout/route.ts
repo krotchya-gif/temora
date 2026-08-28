@@ -7,7 +7,7 @@ import { enqueueWa } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 
-const UPGRADE_TIERS = { basic: 99_000, pro: 299_000 } as const;
+const UPGRADE_TIERS = { basic: 49_000, pro: 299_000 } as const;
 
 // POST /api/billing/checkout — buat invoice Xendit utk upgrade tier (task 008).
 export async function POST(request: Request) {
