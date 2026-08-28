@@ -449,6 +449,11 @@ export async function createFaceLandmarker() {
   di-scope**: set `true` hanya saat upload source DOM lalu reset `false`;
   `setLut()` eksplisit `false` sebelum upload atlas. Bocor ke upload atlas →
   warna LUT kacau (sumbu hijau terbalik).
+- Daftar filter **manifest-driven** (§6p): `public/luts/manifest.json`
+  (generate `node scripts/sync-luts.mjs`) → `getLuts()` runtime, fallback
+  `FALLBACK_LUTS`. `loadLut` memakai `encodeURIComponent` (nama file bisa
+  berisi spasi/uppercase `.CUBE`). Kanvas grade/LUT dirender **sebelum** overlay
+  frame di DOM (z-order — frame wajib di atas kanvas).
 - Fitur yang di-OFF sementara via `src/lib/ai/feature-flags.ts` (§6o):
   `ENABLE_PROPS=false`, `ENABLE_BACKGROUNDS=false` — kode utuh, balik flag
   untuk uji ulang.

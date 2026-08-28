@@ -1,13 +1,14 @@
 # Kredit Aset Filter (LUT) — TEMORA
 
-## Color filter (3D LUT `.cube`)
+## Color filter (3D LUT `.cube`) — 43 filter di `public/luts/`
 
-File di `public/luts/*.cube` berasal dari repo open-source:
+Daftar filter dibaca runtime dari `public/luts/manifest.json` (generate:
+`node scripts/sync-luts.mjs`). Sumber aset:
+
+### 1. Film emulation — MIT (8 file)
 
 - **Sumber**: [YahiaAngelo/Film-Luts](https://github.com/YahiaAngelo/Film-Luts) (film-emulation LUTs, berbasis [G'MIC Film Emulation collection](https://gmic.eu))
 - **Lisensi**: MIT — bebas dipakai, dimodifikasi, dan dipakai komersial; wajib menyertakan pemberitahuan lisensi (dipenuhi via dokumen ini).
-
-### Daftar file yang dipakai
 
 | File di `public/luts/` | Nama asli di repo | Label UI |
 |---|---|---|
@@ -20,7 +21,15 @@ File di `public/luts/*.cube` berasal dari repo open-source:
 | `fp100c.cube` | `instant_pro/fuji_fp-100c.cube` | Instan Retro |
 | `agfa-vista-200.cube` | `negative_color/agfa_vista_200.cube` | Vista 200 |
 
-Semua file di-copy apa adanya (tanpa modifikasi) dari repo di atas, ukuran `LUT_3D_SIZE 13` (13³ = 2.197 titik).
+### 2. RocketStock 35 Free LUTs (35 file) — dikonfirmasi owner
+
+- **Sumber**: paket promo gratis "35 Free LUTs" RocketStock (2017, pond5.com),
+  `LUT_3D_SIZE 32` (885 KB/file). File: `Arabica 12.CUBE` … `Zeke 39.CUBE`.
+- **Lisensi**: dikonfirmasi **bebas dipakai (free)** oleh owner TEMORA
+  (2026-08-29). File asli memuat header `#Copyright: (C) Copyright 2017
+  RocketStock` — disimpan apa adanya; dicatat sebagai keputusan owner.
+- **Peringatan operasional**: 35 file × 885 KB ≈ 29,5 MB di repo + hosting;
+  di-fetch on-demand hanya saat filter dipilih.
 
 ### Lisensi MIT (repo Film-Luts)
 

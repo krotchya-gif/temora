@@ -309,6 +309,16 @@ owner (latar utuh + soft edge, LUT tegak, props Twemoji menempel).
 Verifikasi: lint/typecheck/test 58/58/build hijau; simulasi lookup LUT (Node)
 membuktikan mapping atlas benar dan atlas-flip menghasilkan warna menyimpang.
 
+## 6p. Frame + LUT + manifest filter — 2026-08-29
+
+| Severity | Temuan | Root cause | Fix |
+|---|---|---|---|
+| **Major** | Frame event **hilang di preview** saat filter LUT aktif (di foto hasil tetap ada) | GradeCanvas (kanvas opaque `inset-0`) dirender **setelah** overlay frame di DOM → menutupinya (z-order DOM). GreenScreenCanvas punya bug yang sama | Pindah GradeCanvas + GreenScreenCanvas ke **tepat setelah `<video>`**, sebelum blok overlay frame/watermark |
+| **—** | Folder `./lut/` (root, 35 LUT RocketStock 32³) tidak ter-serve web; daftar filter hardcoded | — | Pindah 35 file → `public/luts/` (total 43); folder `./lut/` dihapus. **Manifest-driven**: `scripts/sync-luts.mjs` → `public/luts/manifest.json`; `getLuts()` dibaca runtime (fallback 8 kurasi bila gagal); `loadLut` pakai `encodeURIComponent` (nama ada spasi/.CUBE). Tambah filter = drop file + `node scripts/sync-luts.mjs` — tanpa ubah kode |
+
+Keputusan owner: 35 LUT RocketStock **dikonfirmasi bebas lisensi** (dictatat di
+lut-credits.md); kualitas penuh 32³ (~885 KB/filter, on-demand).
+
 ## 7. Bug bash — ⏳ disarankan setelah env live
 
 Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +

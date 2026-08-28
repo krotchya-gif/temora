@@ -1,0 +1,217 @@
+[
+  {
+    "id": "agfa-vista-200",
+    "label": "Vista 200",
+    "file": "agfa-vista-200.cube"
+  },
+  {
+    "id": "ektachrome-vs",
+    "label": "Ektachrome",
+    "file": "ektachrome-vs.cube"
+  },
+  {
+    "id": "ektar-100",
+    "label": "Ektar Cerah",
+    "file": "ektar-100.cube"
+  },
+  {
+    "id": "fp100c",
+    "label": "Instan Retro",
+    "file": "fp100c.cube"
+  },
+  {
+    "id": "fuji-400h",
+    "label": "Fuji Lembut",
+    "file": "fuji-400h.cube"
+  },
+  {
+    "id": "portra-400",
+    "label": "Portra Hangat",
+    "file": "portra-400.cube"
+  },
+  {
+    "id": "trix-400",
+    "label": "Tri-X Hitam Putih",
+    "file": "trix-400.cube"
+  },
+  {
+    "id": "velvia-50",
+    "label": "Velvia Pop",
+    "file": "velvia-50.cube"
+  },
+  {
+    "id": "arabica-12",
+    "label": "Arabica 12",
+    "file": "Arabica 12.CUBE"
+  },
+  {
+    "id": "ava-614",
+    "label": "Ava 614",
+    "file": "Ava 614.CUBE"
+  },
+  {
+    "id": "azrael-93",
+    "label": "Azrael 93",
+    "file": "Azrael 93.CUBE"
+  },
+  {
+    "id": "bourbon-64",
+    "label": "Bourbon 64",
+    "file": "Bourbon 64.CUBE"
+  },
+  {
+    "id": "byers-11",
+    "label": "Byers 11",
+    "file": "Byers 11.CUBE"
+  },
+  {
+    "id": "chemical-168",
+    "label": "Chemical 168",
+    "file": "Chemical 168.CUBE"
+  },
+  {
+    "id": "clayton-33",
+    "label": "Clayton 33",
+    "file": "Clayton 33.CUBE"
+  },
+  {
+    "id": "clouseau-54",
+    "label": "Clouseau 54",
+    "file": "Clouseau 54.CUBE"
+  },
+  {
+    "id": "cobi-3",
+    "label": "Cobi 3",
+    "file": "Cobi 3.CUBE"
+  },
+  {
+    "id": "contrail-35",
+    "label": "Contrail 35",
+    "file": "Contrail 35.CUBE"
+  },
+  {
+    "id": "cubicle-99",
+    "label": "Cubicle 99",
+    "file": "Cubicle 99.CUBE"
+  },
+  {
+    "id": "django-25",
+    "label": "Django 25",
+    "file": "Django 25.CUBE"
+  },
+  {
+    "id": "domingo-145",
+    "label": "Domingo 145",
+    "file": "Domingo 145.CUBE"
+  },
+  {
+    "id": "faded-47",
+    "label": "Faded 47",
+    "file": "Faded 47.CUBE"
+  },
+  {
+    "id": "folger-50",
+    "label": "Folger 50",
+    "file": "Folger 50.CUBE"
+  },
+  {
+    "id": "fusion-88",
+    "label": "Fusion 88",
+    "file": "Fusion 88.CUBE"
+  },
+  {
+    "id": "hyla-68",
+    "label": "Hyla 68",
+    "file": "Hyla 68.CUBE"
+  },
+  {
+    "id": "korben-214",
+    "label": "Korben 214",
+    "file": "Korben 214.CUBE"
+  },
+  {
+    "id": "lenox-340",
+    "label": "Lenox 340",
+    "file": "Lenox 340.CUBE"
+  },
+  {
+    "id": "lucky-64",
+    "label": "Lucky 64",
+    "file": "Lucky 64.CUBE"
+  },
+  {
+    "id": "mckinnon-75",
+    "label": "McKinnon 75",
+    "file": "McKinnon 75.CUBE"
+  },
+  {
+    "id": "milo-5",
+    "label": "Milo 5",
+    "file": "Milo 5.CUBE"
+  },
+  {
+    "id": "neon-770",
+    "label": "Neon 770",
+    "file": "Neon 770.CUBE"
+  },
+  {
+    "id": "paladin-1875",
+    "label": "Paladin 1875",
+    "file": "Paladin 1875.CUBE"
+  },
+  {
+    "id": "pasadena-21",
+    "label": "Pasadena 21",
+    "file": "Pasadena 21.CUBE"
+  },
+  {
+    "id": "pitaya-15",
+    "label": "Pitaya 15",
+    "file": "Pitaya 15.CUBE"
+  },
+  {
+    "id": "reeve-38",
+    "label": "Reeve 38",
+    "file": "Reeve 38.CUBE"
+  },
+  {
+    "id": "remy-24",
+    "label": "Remy 24",
+    "file": "Remy 24.CUBE"
+  },
+  {
+    "id": "sprocket-231",
+    "label": "Sprocket 231",
+    "file": "Sprocket 231.CUBE"
+  },
+  {
+    "id": "teigen-28",
+    "label": "Teigen 28",
+    "file": "Teigen 28.CUBE"
+  },
+  {
+    "id": "trent-18",
+    "label": "Trent 18",
+    "file": "Trent 18.CUBE"
+  },
+  {
+    "id": "tweed-71",
+    "label": "Tweed 71",
+    "file": "Tweed 71.CUBE"
+  },
+  {
+    "id": "vireo-37",
+    "label": "Vireo 37",
+    "file": "Vireo 37.CUBE"
+  },
+  {
+    "id": "zed-32",
+    "label": "Zed 32",
+    "file": "Zed 32.CUBE"
+  },
+  {
+    "id": "zeke-39",
+    "label": "Zeke 39",
+    "file": "Zeke 39.CUBE"
+  }
+]

@@ -213,10 +213,11 @@ Muncul sebelum kamera aktif:
 - **Green screen**: pilihan background bawaan (warm gradient via `color-mix`,
   pola titik, bingkai solid) + preview thumb. Efek menggantikan video area saat
   live; hasil capture = composited background + subjek + frame.
-- **Color filter (3D LUT)**: tab "Filter" terpisah — 8 look film emulation
-  (Portra Hangat, Fuji Lembut, Ektar Cerah, Velvia Pop, Ektachrome, Tri-X
-  Hitam Putih, Instan Retro, Vista 200) + "Warna Asli". Render WebGL (HALD),
-  aset `.cube` MIT di `public/luts/` (kredit: docs/research/lut-credits.md).
+- **Color filter (3D LUT)**: tab "Filter" terpisah — **43 look** (8 kurasi film
+  emulation: Portra Hangat, Fuji Lembut, Ektar Cerah, Velvia Pop, Ektachrome,
+  Tri-X Hitam Putih, Instan Retro, Vista 200 + 35 RocketStock), daftar dari
+  `public/luts/manifest.json` (sync-luts.mjs), render WebGL (HALD), aset
+  `.cube` (kredit: docs/research/lut-credits.md).
 - Ketiga fitur **lazy-load** (dynamic import MediaPipe / fetch `.cube`) — tab
   hanya muncul bila browser mendukung; tombol "Tanpa Efek"/"Warna Asli" selalu
   tersedia (fallback, §8.3).

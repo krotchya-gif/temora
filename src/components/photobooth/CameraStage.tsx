@@ -9,7 +9,7 @@ import { GreenScreenCanvas } from "@/components/photobooth/GreenScreenCanvas";
 import { GradeCanvas } from "@/components/photobooth/GradeCanvas";
 import { MomentComposer } from "@/components/photobooth/MomentComposer";
 import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
-import { LUTS, type LutId } from "@/lib/ai/lut";
+import { FALLBACK_LUTS, getLuts, type LutDef, type LutId } from "@/lib/ai/lut";
 import { ENABLE_BACKGROUNDS, ENABLE_PROPS } from "@/lib/ai/feature-flags";
 import { PROPS, propLayout, type PropId } from "@/lib/ai/props";
 import type { FaceBox } from "@/lib/ai/faceLandmark";
@@ -107,6 +107,13 @@ export function CameraStage({
   const [activeProp, setActiveProp] = useState<PropId | null>(null);
   const [activeBg, setActiveBg] = useState<BgId | null>(null);
   const [activeLut, setActiveLut] = useState<LutId | null>(null);
+  // Daftar filter dari manifest.json (sync: scripts/sync-luts.mjs); fallback
+  // ke kurasi bawaan bila manifest gagal.
+  const [luts, setLuts] = useState<LutDef[]>(FALLBACK_LUTS);
+
+  useEffect(() => {
+    void getLuts().then(setLuts);
+  }, []);
   const facesRef = useRef<FaceBox[] | null>(null);
   const gsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const gradeCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -617,6 +624,35 @@ export function CameraStage({
             />
           ) : null}
 
+          {/* Kanvas pengganti video (green screen / filter LUT) WAJIB sebelum
+              overlay frame & watermark — urutan DOM menentukan z-order:
+              kanvas opaque yang dirender SETELAH frame akan menutupinya. */}
+          {ENABLE_BACKGROUNDS && phase === "live" && activeBg ? (
+            <GreenScreenCanvas
+              videoRef={videoRef}
+              activeBg={activeBg}
+              canvasRef={gsCanvasRef}
+              mirror={facing === "user"}
+              onFail={() => {
+                setActiveBg(null);
+                setBanner(COPY.aiFallback);
+              }}
+            />
+          ) : null}
+
+          {phase === "live" && activeLut ? (
+            <GradeCanvas
+              sourceRef={activeBg ? gsCanvasRef : videoRef}
+              activeLut={activeLut}
+              canvasRef={gradeCanvasRef}
+              mirror={facing === "user"}
+              onFail={() => {
+                setActiveLut(null);
+                setBanner(COPY.aiFallback);
+              }}
+            />
+          ) : null}
+
           {(phase === "live" || phase === "starting") && (
             <>
               {frameUrl ? (
@@ -668,35 +704,6 @@ export function CameraStage({
               }}
               onAutoDisable={() => {
                 setActiveProp(null);
-                setBanner(COPY.aiFallback);
-              }}
-            />
-          ) : null}
-
-          {/* Green screen (task 011) — OFF sementara (feature-flags); lazy-load */}
-          {ENABLE_BACKGROUNDS && phase === "live" && activeBg ? (
-            <GreenScreenCanvas
-              videoRef={videoRef}
-              activeBg={activeBg}
-              canvasRef={gsCanvasRef}
-              mirror={facing === "user"}
-              onFail={() => {
-                setActiveBg(null);
-                setBanner(COPY.aiFallback);
-              }}
-            />
-          ) : null}
-
-          {/* Filter warna via 3D LUT (WebGL) — di atas video/green screen,
-              di bawah overlay frame & props supaya preview == hasil */}
-          {phase === "live" && activeLut ? (
-            <GradeCanvas
-              sourceRef={activeBg ? gsCanvasRef : videoRef}
-              activeLut={activeLut}
-              canvasRef={gradeCanvasRef}
-              mirror={facing === "user"}
-              onFail={() => {
-                setActiveLut(null);
                 setBanner(COPY.aiFallback);
               }}
             />
@@ -907,7 +914,7 @@ export function CameraStage({
                 <Palette className="h-3.5 w-3.5" aria-hidden />
                 Warna Asli
               </button>
-              {LUTS.map((lut) => (
+              {luts.map((lut) => (
                 <button
                   key={lut.id}
                   type="button"

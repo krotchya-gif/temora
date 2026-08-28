@@ -1,24 +1,18 @@
 // Color filter via 3D LUT (task 010/011 — tab "Filter").
 //
-// Aset: film-emulation LUTs dari YahiaAngelo/Film-Luts (MIT) — lihat
-// docs/research/lut-credits.md. Format `.cube` (LUT_3D_SIZE 13 → 13³ = 2197
-// titik). `ctx.filter` TIDAK didukung Safari iOS, jadi render memakai WebGL
+// Aset: file .cube di public/luts/ (43 filter: 8 film emulation MIT +
+// 35 RocketStock — lisensi dikonfirmasi owner, lihat docs/research/
+// lut-credits.md). Daftar dibaca RUNTIME dari public/luts/manifest.json
+// (generate: node scripts/sync-luts.mjs) — tambah filter tanpa ubah kode.
+// `ctx.filter` TIDAK didukung Safari iOS, jadi render memakai WebGL
 // (HALD atlas + trilinear lookup) supaya preview == hasil di semua HP.
 
-export type LutId =
-  | "portra-400"
-  | "fuji-400h"
-  | "ektar-100"
-  | "velvia-50"
-  | "ektachrome-vs"
-  | "trix-400"
-  | "fp100c"
-  | "agfa-vista-200";
+export type LutId = string;
 
 export type LutDef = { id: LutId; label: string; file: string };
 
-// Label Bahasa Indonesia hangat (design-system §6). Urutan = urutan UI.
-export const LUTS: LutDef[] = [
+// Fallback bila manifest gagal dimuat (offline / build lama) — 8 LUT kurasi.
+export const FALLBACK_LUTS: LutDef[] = [
   { id: "portra-400", label: "Portra Hangat", file: "portra-400.cube" },
   { id: "fuji-400h", label: "Fuji Lembut", file: "fuji-400h.cube" },
   { id: "ektar-100", label: "Ektar Cerah", file: "ektar-100.cube" },
@@ -28,6 +22,23 @@ export const LUTS: LutDef[] = [
   { id: "fp100c", label: "Instan Retro", file: "fp100c.cube" },
   { id: "agfa-vista-200", label: "Vista 200", file: "agfa-vista-200.cube" },
 ];
+
+// Cache daftar filter (manifest di-fetch sekali).
+let lutsPromise: Promise<LutDef[]> | null = null;
+
+/** Daftar filter runtime dari manifest.json; fallback FALLBACK_LUTS. */
+export function getLuts(): Promise<LutDef[]> {
+  if (!lutsPromise) {
+    lutsPromise = fetch("/luts/manifest.json")
+      .then((res) => {
+        if (!res.ok) throw new Error("manifest tidak tersedia");
+        return res.json() as Promise<LutDef[]>;
+      })
+      .then((data) => (Array.isArray(data) ? data : []))
+      .catch(() => FALLBACK_LUTS);
+  }
+  return lutsPromise;
+}
 
 export type ParsedLut = {
   size: number;
@@ -106,14 +117,17 @@ export function buildHald(lut: ParsedLut): HaldData {
 const lutCache = new Map<LutId, Promise<ParsedLut>>();
 
 export function loadLut(id: LutId): Promise<ParsedLut> {
-  const def = LUTS.find((l) => l.id === id);
-  if (!def) return Promise.reject(new Error("Filter tidak ditemukan."));
   let p = lutCache.get(id);
   if (!p) {
-    p = fetch(`/luts/${def.file}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Gagal memuat filter.");
-        return res.text();
+    p = getLuts()
+      .then((defs) => defs.find((l) => l.id === id))
+      .then((def) => {
+        if (!def) throw new Error("Filter tidak ditemukan.");
+        // encodeURIComponent: nama file bisa berisi spasi/uppercase (.CUBE).
+        return fetch(`/luts/${encodeURIComponent(def.file)}`).then((res) => {
+          if (!res.ok) throw new Error("Gagal memuat filter.");
+          return res.text();
+        });
       })
       .then(parseCube);
     lutCache.set(id, p);
