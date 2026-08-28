@@ -218,12 +218,12 @@ Muncul sebelum kamera aktif:
   Tri-X Hitam Putih, Instan Retro, Vista 200 + 35 RocketStock), daftar dari
   `public/luts/manifest.json` (sync-luts.mjs), render WebGL (HALD), aset
   `.cube` (kredit: docs/research/lut-credits.md).
-- Ketiga fitur **lazy-load** (dynamic import MediaPipe / fetch `.cube`) — tab
-  hanya muncul bila browser mendukung; tombol "Tanpa Efek"/"Warna Asli" selalu
-  tersedia (fallback, §8.3).
-- **Status 2026-08-28 (§6o)**: Props AR & Green screen **di-OFF sementara**
+- Ketiga fitur **lazy-load** (dynamic import MediaPipe / fetch `.cube`) —
+  tombol "Warna Asli" selalu tersedia (fallback, §8.3); "Tanpa Efek"/"Tanpa
+  Latar" hanya tampil saat fitur diaktifkan.
+- **Status 2026-08-29 (§6o)**: Props AR & Green screen **di-OFF sementara**
   (`feature-flags.ts`) karena masih bermasalah di uji live; hanya **Filter
-  warna aktif**. Balik flag untuk uji ulang.
+  warna aktif** (43 look, §6q). Balik flag untuk uji ulang.
 
 ### 3.10 Moments Feed (task 012)
 - Kartu moment: foto (bila ada) + caption italic display + timestamp kecil.

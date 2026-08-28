@@ -385,11 +385,13 @@ export async function createSegmenter() {
     },
     runningMode: 'VIDEO',
     outputCategoryMask: true,
+    outputConfidenceMasks: true, // person = 1 - confidenceMasks[0] (bg)
   });
 }
 
-// compositing: mask → replace bg (drawImage bg dulu) → draw video dengan alpha mask
-// feathering edge: blur ringan pada mask (ctx.filter = 'blur(2px)')
+// compositing: paintBackground dulu → potong subjek (source-in mask) →
+// gambar subjek DI ATAS latar. Soft edge: ramp alpha 0.3–0.7 dari
+// "person-ness" (1 - bgConf) — bukan ctx.filter (Safari iOS tidak dukung).
 
 // PENTING (2026-08-28, revisi §6l–§6n): MPMask.getAsUint8Array() adalah
 // SINGLE-channel (1 nilai/pixel 0–255 = kelas*255), BUKAN RGBA — lihat
@@ -429,8 +431,9 @@ export async function createFaceLandmarker() {
 - Fallback: segmentasi gagal/gelap → tawarkan mode tanpa efek, jangan blok capture.
 
 ### 8.4 Color Filter (3D LUT, WebGL) — 2026-08-28
-- Aset: film-emulation `.cube` dari YahiaAngelo/Film-Luts (MIT) di `public/luts/`
-  (8 look, `LUT_3D_SIZE 13`). Kredit & lisensi: `docs/research/lut-credits.md`.
+- Aset: file `.cube` di `public/luts/` — **43 look** (8 film emulation
+  `LUT_3D_SIZE 13` dari YahiaAngelo/Film-Luts (MIT) + 35 RocketStock 32³,
+  dikonfirmasi owner). Kredit & lisensi: `docs/research/lut-credits.md`.
 - Kenapa WebGL bukan `ctx.filter`: `CanvasRenderingContext2D.filter` **tidak
   didukung Safari iOS** → pakai HALD atlas (grid = ceil(sqrt(size)), 52×52 utk 13)
   + shader trilinear lookup (`src/lib/ai/lut.ts`).

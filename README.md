@@ -49,8 +49,8 @@ Temora Photos/
     ├── 007-dashboard-events.md     CRUD events                     [MVP]
     ├── 008-xendit-billing.md       tier + invoice + webhook        [MVP]
     ├── 009-whatsapp-integration.md notifikasi WA                   [MVP]
-    ├── 010-ar-filters.md           props face-tracking             [Phase 2 ✅ 2026-08-28]
-    ├── 011-green-screen.md         background replacement          [Phase 2 ✅ 2026-08-28]
+    ├── 010-ar-filters.md           props face-tracking             [Phase 2 ⚠️ OFF sementara, §6o]
+    ├── 011-green-screen.md         background replacement          [Phase 2 ⚠️ OFF sementara, §6o]
     ├── 012-moments-feature.md      caption + guestbook digital     [Phase 2 ✅ 2026-08-28] ⭐
     ├── 013-sponsorship-slots.md    logo sponsor frame/QR           [Phase 3 ✅ 2026-08-28]
     ├── 014-analytics-dashboard.md  agregat + heatmap               [Phase 3 ✅ 2026-08-28]
@@ -70,6 +70,8 @@ Temora Photos/
 5. Catatan (2026-08-26): shell UI statis beberapa halaman dashboard (ringkasan event, galeri event) dibuat **mendahului** eksekusi task-nya sebagai keputusan visual — seluruh acceptance criteria task aslinya tetap wajib diverifikasi penuh saat wiring.
 
 > Docs inti saat ini **v1.2–1.3** (database/design-system/PRD v1.2; architecture v1.3 — Hostinger prototipe + SEO admin). Patch logika tier/limit/upload: README §Keputusan Terkunci #13–17.
+>
+> **Status fitur AI photobooth (2026-08-29, qa-report §6o–§6q):** filter warna 3D LUT **aktif** (43 look — 8 kurasi MIT + 35 RocketStock; manifest `public/luts/manifest.json`, `node scripts/sync-luts.mjs`). **Props AR & Green screen OFF sementara** (`src/lib/ai/feature-flags.ts`) sampai diverifikasi ulang — kode utuh, balik flag untuk uji.
 
 ## Keputusan Terkunci
 

@@ -1,18 +1,18 @@
 # QA Report — TEMORA MVP
 
-> Task 016 · diperbarui 2026-08-26 · Gate launch: 0 blocker / 0 critical terbuka.
+> Task 016 · diperbarui 2026-08-29 · Gate launch: 0 blocker / 0 critical terbuka.
 >
 > **Status lingkungan:** key Supabase/Xendit/WhatsApp di `.env.local` awalnya
 > sengaja diisi belakangan; sejak ronde verifikasi live (§6b) env Supabase
 > terisi dan seluruh uji live berjalan. Yang masih **PENDING**: E2E Playwright
-> penuh, device lab fisik, Lighthouse, Xendit sandbox, dan kirim WA nyata —
+> penuh, device lab fisik (props/latar), Xendit sandbox, dan kirim WA nyata —
 > semuanya menunggu jadwal eksekusi (task 016).
 
 ## Ringkasan gate (task 016 §4.1)
 
 | Kategori | Gate | Status |
 |---|---|---|
-| Unit tests | Lulus di CI | ✅ 58/58 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
+| Unit tests | Lulus di CI | ✅ 60/60 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
 | E2E jalur kritis 3/3 | Hijau 2× berturut-turut | ⏳ 3/4 hijau 2× (tamu, vendor, rope — §6h); billing menunggu task 008 |
 | Device lab Android/iOS | Lolos tanpa blocker | ✅ alur inti terverifikasi manual owner (2026-08-28) — detail tasks/003–007 |
 | Lighthouse ≥ 85 mobile photobooth | Terlampir | ✅ perf 99 / a11y 95 (docs/lighthouse/) |
@@ -21,16 +21,19 @@
 
 ## 1. Unit tests (Vitest) — ✅
 
-`tests/unit/` — 6 file, 58 test:
+`tests/unit/` — 7 file, 60 test:
 - `ulid` — format Crockford 26 char, monotonic, unik.
 - `rate-limit` — sliding window izin/tolak/reset window.
 - `validation` — event create/update (slug immutable, tanggal, pesan ramah),
-  tables generate 1–50, `isUuid`, `themeAccent`, schema auth, `humanAuthError`
-  (2026-08-28: +12 test).
+  tables generate 1–50, `isUuid`, `themeAccent`, schema auth, `humanAuthError`,
+  watermark text/posisi preset (2026-08-28: +12 test).
 - `wa-xendit` — normalisasi E.164 (9 kasus), verifyCallbackToken constant-time
   termasuk env kosong.
 - `security` — sanitasi query PostgREST, magic-byte JPEG/PNG, same-origin check,
   timing-safe compare (task 019; 2026-08-28: +PNG/image buffer).
+- `lut` — parse `.cube` (ukuran/titik, tolak invalid), deteksi urutan channel
+  **RBG** (header Adobe Photoshop) vs b-major, `buildHald` atlas + mapping
+  indeks per order (2026-08-29, §6q).
 
 Catatan: util kompresi canvas hidup di dalam `CameraStage.tsx` (tidak diekstrak)
 — kebenarannya diliputi E2E guest flow (ukuran hasil ≤800KB diverifikasi server).

@@ -1,6 +1,10 @@
 # Task 010 — AR Filters & Virtual Props
 
-*Status: Kode selesai (2026-08-28) — FaceLandmarker lazy-load, 3 props (topi/kacamata/bunga), FPS watchdog auto-disable, props masuk hasil capture; AC device (FPS ≥25, group ≤4 wajah) menunggu device lab task 016 · Prioritas: Medium · Phase: 2*
+*Status: Kode selesai (2026-08-28) — FaceLandmarker lazy-load, 10 props (6 Twemoji + 4 custom SVG), FPS watchdog auto-disable, props masuk hasil capture; AC device (FPS ≥25, group ≤4 wajah) menunggu device lab task 016 · Prioritas: Medium · Phase: 2*
+
+> ⚠️ **2026-08-29**: fitur **di-OFF sementara** via `src/lib/ai/feature-flags.ts`
+> (`ENABLE_PROPS=false`) — masih bermasalah di uji live (qa-report §6o). Kode
+> utuh; balik flag + uji ulang (fix mirror/crop/FPS sudah terpasang).
 
 Depends on: 004 (photobooth dasar stabil dulu — jalur capture TIDAK boleh terganggu)
 

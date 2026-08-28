@@ -106,7 +106,7 @@ Scan QR → Consent → Kamera → Ambil Foto → Simpan/Bagikan
 4. Foto dikompres <800KB lalu tersimpan ke galeri vendor (jaringan lemah? foto masuk antrean offline dan terkirim otomatis saat online — tidak hilang).
 5. Preview instan → **Simpan ke HP** atau **Bagikan** (Web Share API ke WA/IG).
 6. Opsional: tulis **momen** ("Apa yang sedang kamu rasakan?") — caption/guestbook acara (maks 1/60 detik).
-7. Opsional: pakai **Efek** (topi/kacamata/bunga, AR) atau **Latar** (green screen) sebelum capture — keduanya berjalan di perangkat tamu.
+7. Opsional: pakai **Filter warna** (43 look film — tab "Filter") sebelum capture. *Props AR & Latar (green screen) sementara dinonaktifkan (feature-flags, qa-report §6o) — balik flag saat diverifikasi ulang.*
 8. Selesai — tamu tidak meninggalkan data pribadi apa pun.
 
 Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilkan layar ramah.

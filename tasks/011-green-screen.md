@@ -1,6 +1,10 @@
 # Task 011 — Green Screen (Background Replacement)
 
-*Status: Kode selesai (2026-08-28) — ImageSegmenter lazy-load, 3 latar bawaan (token), preview live == hasil capture (kanvas compositing dipakai capture), fallback graceful; verifikasi visual/FPS menunggu device lab · Prioritas: Medium · Phase: 2*
+*Status: Kode selesai (2026-08-28) — ImageSegmenter lazy-load, 3 latar bawaan (token), preview live == hasil capture (kanvas compositing dipakai capture), soft edge (confidence mask, person = NOT background), fallback graceful; verifikasi visual/FPS menunggu device lab · Prioritas: Medium · Phase: 2*
+
+> ⚠️ **2026-08-29**: fitur **di-OFF sementara** via `src/lib/ai/feature-flags.ts`
+> (`ENABLE_BACKGROUNDS=false`) — masih bermasalah di uji live (qa-report §6o).
+> Kode utuh; balik flag + uji ulang (fix mask/order channel sudah terpasang).
 
 Depends on: 004, 010 (shared lazy-load infra AI)
 

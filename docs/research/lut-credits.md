@@ -76,4 +76,4 @@ Dua sumber (2026-08-28):
 
 ---
 
-*Diperbarui: 2026-08-28. Sumber alternatif yang pernah dievaluasi: Q-DDL 800+ LUTs (CC BY 4.0, situs offline), Luttie (lisensi internal platform, dilarang redistribusi), CineColor (wajib akun Shopify) — tidak dipakai.*
+*Diperbarui: 2026-08-29. Sumber alternatif yang pernah dievaluasi: Q-DDL 800+ LUTs (CC BY 4.0, situs offline), Luttie (lisensi internal platform, dilarang redistribusi), CineColor (wajib akun Shopify) — tidak dipakai.*

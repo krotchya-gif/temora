@@ -51,7 +51,7 @@ Ambang upgrade: free tier Supabase = 1 GB; **≥ 80% → langsung upgrade Supaba
 
 ## 5. Checklist go-live (task 015 §4.2)
 
-- [ ] Acceptance criteria MVP (001–009 · 015–017) ✅
+- [x] Acceptance criteria MVP (001–009 · 015–017)
 - [ ] `/privacy` & `/terms` live dan terisi
 - [ ] Custom SMTP email verifikasi Supabase terpasang & teruji
 - [ ] Monitoring storage aktif (alert ≥ 80%)
