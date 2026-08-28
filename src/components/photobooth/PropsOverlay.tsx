@@ -35,17 +35,23 @@ export function PropsOverlay({
   const videoDimsRef = useRef({ vw: 0, vh: 0 });
   const frameTimesRef = useRef<number[]>([]);
   const failStreakRef = useRef(0);
-  const lowFpsStreakRef = useRef(0);
+  const lowFpsSinceRef = useRef<number | null>(null);
   const onFacesRef = useRef(onFaces);
+  const onAutoDisableRef = useRef(onAutoDisable);
 
   useEffect(() => {
     onFacesRef.current = onFaces;
   }, [onFaces]);
 
+  useEffect(() => {
+    onAutoDisableRef.current = onAutoDisable;
+  }, [onAutoDisable]);
+
   const stopLoop = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
     frameTimesRef.current = [];
+    lowFpsSinceRef.current = null;
     onFacesRef.current(null);
   }, []);
 
@@ -64,6 +70,7 @@ export function PropsOverlay({
       .then((landmarker) => {
         if (disposed) return;
 
+        const loopStart = performance.now();
         const loop = (now: number) => {
           if (disposed) return;
           rafRef.current = requestAnimationFrame(loop);
@@ -87,12 +94,21 @@ export function PropsOverlay({
 
           if (boxes) {
             failStreakRef.current = 0;
-            const fps = times.length / 2;
-            lowFpsStreakRef.current = fps < MIN_FPS ? lowFpsStreakRef.current + 1 : 0;
-            // ~4 detik konsisten di bawah ambang → disable otomatis.
-            if (lowFpsStreakRef.current >= 4) {
-              onAutoDisable();
-              stopLoop();
+            // Estimasi fps valid hanya setelah window 2 detik penuh — sebelum
+            // itu `times.length/2` ≈ 0 dan memicu disable palsu (bug: prop
+            // mati dalam ~4 frame). Warm-up 2,5 detik, lalu disable setelah
+            // ~4 detik konsisten di bawah ambang (berbasis waktu, bukan frame).
+            if (now - loopStart >= 2500) {
+              const fps = times.length / 2;
+              if (fps < MIN_FPS) {
+                if (lowFpsSinceRef.current === null) lowFpsSinceRef.current = now;
+                if (now - lowFpsSinceRef.current > 4000) {
+                  onAutoDisableRef.current();
+                  stopLoop();
+                }
+              } else {
+                lowFpsSinceRef.current = null;
+              }
             }
           } else {
             failStreakRef.current += 1;
@@ -111,7 +127,9 @@ export function PropsOverlay({
       disposed = true;
       stopLoop();
     };
-  }, [activeProp, videoRef, stopLoop, onAutoDisable]);
+    // onAutoDisable dibaca via ref (stabil) — tidak perlu di deps agar loop
+    // tidak restart setiap re-render induk.
+  }, [activeProp, videoRef, stopLoop]);
 
   if (!activeProp) return null;
 

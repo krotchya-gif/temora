@@ -107,7 +107,10 @@ export function compositeGreenScreen(
   const result = segmenter.segmentForVideo(video, ts);
   const mask = result.categoryMask;
   if (!mask) return;
-  const maskData = mask.getAsUint8Array();
+  // MPMask.getAsFloat32Array() = SINGLE channel per pixel (0–1), sesuai
+  // docs resmi MediaPipe (tasks/web/vision/core/mask.ts). getAsUint8Array
+  // juga single-channel 0–255 — BUKAN RGBA; jangan pakai indeks i*4.
+  const maskData = mask.getAsFloat32Array();
   const mw = mask.width;
   const mh = mask.height;
 
@@ -122,9 +125,8 @@ export function compositeGreenScreen(
   if (!mctx) return;
   const rgba = new Uint8ClampedArray(mw * mh * 4);
   for (let i = 0; i < mw * mh; i++) {
-    // categoryMask RGBA: kelas ada di byte pertama tiap pixel (i*4);
-    // indeks selain itu (G/B/A = 0) akan merusak mask jadi berlubang.
-    const alpha = maskData[i * 4] === 1 ? 255 : 0; // kategori 1 = person
+    // Kategori 1 = person (selfie_segmenter); >0.5 utk toleransi float.
+    const alpha = maskData[i] > 0.5 ? 255 : 0;
     rgba[i * 4 + 3] = alpha;
   }
   mctx.putImageData(new ImageData(rgba, mw, mh), 0, 0);

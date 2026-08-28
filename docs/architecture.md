@@ -390,6 +390,11 @@ export async function createSegmenter() {
 
 // compositing: mask → replace bg (drawImage bg dulu) → draw video dengan alpha mask
 // feathering edge: blur ringan pada mask (ctx.filter = 'blur(2px)')
+
+// PENTING (2026-08-28, revisi §6l/§6m): MPMask.getAsUint8Array() adalah
+// SINGLE-channel (1 nilai/pixel 0–255 = kelas*255), BUKAN RGBA — lihat
+// tasks/web/vision/core/mask.ts. Pemakaian aman: getAsFloat32Array()
+// (single-channel 0–1) lalu `> 0.5` untuk kelas person (1).
 ```
 
 ### 8.2 Face Landmark (AR Props)
@@ -433,6 +438,8 @@ export async function createFaceLandmarker() {
   tidak ikut di-grade, konsisten dengan preview DOM overlay).
 - Tab "Filter" (label design-system §6) lazy-load `.cube` saat dipilih; gagal
   (jaringan/WebGL mati) → fitur nonaktif tanpa crash.
+- Catatan (2026-08-28, §6m): uniform `uSize`/`uGrid` **wajib** di-set via
+  `uniform1f` di `setLut()` — default 0 membuat lookup negatif → output gelap.
 
 ---
 

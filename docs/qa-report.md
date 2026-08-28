@@ -276,6 +276,18 @@ Verifikasi: lint/typecheck/**test 58/58**/build hijau; `parseCube`/`buildHald`
 di-unit-test. Uji visual kamera asli (latar utuh, prop menempel, filter
 WYSIWYG) manual owner di device lab — tercatat §7.
 
+## 6m. Regresi live: latar, LUT, props — 2026-08-28
+
+| Severity | Temuan (uji live) | Root cause | Fix |
+|---|---|---|---|
+| **Critical** | Latar masih "menutupi" orang (orang invisible) | `MPMask.getAsUint8Array()` **single-channel** 0–255 (bukan RGBA) — `maskData[i] === 1` (lama) maupun `maskData[i*4] === 1` (fix §6l) tak pernah true → alpha 0 semua. Dikonfirmasi dari source resmi `tasks/web/vision/core/mask.ts` (`floatArray.map(v => 255*v)`) | `mask.getAsFloat32Array()` (single-channel 0–1) → `> 0.5` |
+| **Critical** | Filter LUT hasil gelap/hitam | Uniform `uSize`/`uGrid` tidak pernah di-`uniform1f` (default 0) → `color*(size-1)` negatif → clamp tak terdefinisi → semua texel sampling titik hitam | Set `uniform1f` di `setLut()` |
+| **Major** | Props muncul ~sepersekian detik lalu hilang | Auto-disable menghitung **4 frame** (bukan 4 detik): window FPS 2 dtk belum penuh → `times.length/2 ≈ 0` → streak capai 4 dalam ~80ms; streak tak di-reset saat re-enable | Warm-up 2,5 dtk sebelum evaluasi FPS + disable berbasis durasi 4 dtk (`lowFpsSinceRef`) + reset saat start + `onAutoDisable` via ref (loop tak restart tiap re-render) |
+
+Verifikasi: lint/typecheck/test 58/58/build hijau. Uji ulang visual live tetap
+manual owner (latar → orang utuh di depan bg; LUT → warna film; props →
+menempel stabil).
+
 ## 7. Bug bash — ⏳ disarankan setelah env live
 
 Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +
