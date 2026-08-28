@@ -12,6 +12,8 @@ export type FaceBox = {
   h: number;
   /** Garis mata (rata-rata landmark 33 & 263) — patokan kacamata. */
   eyeY: number;
+  /** Garis bibir (rata-rata landmark 13 & 14) — patokan kumis. */
+  mouthY: number;
 };
 
 let landmarkerPromise: Promise<FaceLandmarker> | null = null;
@@ -54,20 +56,29 @@ export function detectFaceBoxes(
     let minY = 1;
     let maxX = 0;
     let maxY = 0;
-    let eyeSum = 0;
-    let eyeCount = 0;
     for (const lm of landmarks) {
       if (lm.x < minX) minX = lm.x;
       if (lm.y < minY) minY = lm.y;
       if (lm.x > maxX) maxX = lm.x;
       if (lm.y > maxY) maxY = lm.y;
     }
-    // Landmark mata kiri 33 & kanan 263.
+    // Landmark mata kiri 33 & kanan 263; bibir atas 13 & bawah 14.
+    let eyeSum = 0;
+    let eyeCount = 0;
+    let mouthSum = 0;
+    let mouthCount = 0;
     for (const idx of [33, 263]) {
       const lm = landmarks[idx];
       if (lm) {
         eyeSum += lm.y;
         eyeCount += 1;
+      }
+    }
+    for (const idx of [13, 14]) {
+      const lm = landmarks[idx];
+      if (lm) {
+        mouthSum += lm.y;
+        mouthCount += 1;
       }
     }
     const w = Math.max(maxX - minX, 0.08);
@@ -78,6 +89,7 @@ export function detectFaceBoxes(
       w,
       h,
       eyeY: eyeCount ? eyeSum / eyeCount : (minY + maxY) / 2,
+      mouthY: mouthCount ? mouthSum / mouthCount : (minY + maxY) / 2,
     };
   });
 }

@@ -122,7 +122,9 @@ export function compositeGreenScreen(
   if (!mctx) return;
   const rgba = new Uint8ClampedArray(mw * mh * 4);
   for (let i = 0; i < mw * mh; i++) {
-    const alpha = maskData[i] === 1 ? 255 : 0; // kategori 1 = person
+    // categoryMask RGBA: kelas ada di byte pertama tiap pixel (i*4);
+    // indeks selain itu (G/B/A = 0) akan merusak mask jadi berlubang.
+    const alpha = maskData[i * 4] === 1 ? 255 : 0; // kategori 1 = person
     rgba[i * 4 + 3] = alpha;
   }
   mctx.putImageData(new ImageData(rgba, mw, mh), 0, 0);

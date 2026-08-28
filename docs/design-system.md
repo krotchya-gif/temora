@@ -155,9 +155,12 @@ Font load via `next/font/google` di `src/app/layout.tsx`; bind ke CSS variable (
 ```
 
 **Rasio capture kanonik: 3:4 portrait (locked, 2026-08-26).**
-- Hasil foto **selalu 3:4** lintas device — canvas di-*crop* ke 3:4 (center horizontal,
-  bias atas untuk subjek) lalu di-scale ke sisi terpanjang ≤ 1440px (output umum
-  `1080×1440`). Implementasi: `CameraStage.tsx` capture.
+- Hasil foto **selalu 3:4** lintas device — canvas di-*crop* ke 3:4 lalu di-scale
+  ke sisi terpanjang ≤ 1440px (output umum `1080×1440`). Implementasi:
+  `CameraStage.tsx` capture + `src/lib/capture.ts`.
+- **Crop = object-cover centered** (revisi 2026-08-28, menggantikan bias-atas):
+  identik dengan preview CSS → **preview == hasil** (WYSIWYG). Prop AR & semua
+  overlay dihitung dalam ruang crop yang sama (`toCropSpace`).
 - Konsekuensi frame: template frame **harus 3:4** agar `object-contain` menutupi
   penuh foto. Ukuran rekomendasi **1080×1440 px** (PNG transparan, window subjek
   di tengah-atas). Rentang validasi route frame: min side 480 / max side 2560.
@@ -202,14 +205,20 @@ Muncul sebelum kamera aktif:
 
 ### 3.9 Props & Efek (task 010–011, Phase 2)
 - **Props AR**: aset SVG inline (stroke token, fill lembut) — bukan PNG foto.
-  Bundle awal: topi, kacamata, bunga, pita. Selektor horizontal (pola frame
-  selector §3.3), label ikon + nama pendek. Props hanya tampil saat live
+  **10 jenis** (2026-08-28): topi, kacamata, bunga, mahkota, telinga kelinci,
+  kumis, topi pesta, kacamata hitam, halo, pita. Selektor horizontal (pola
+  frame selector §3.3), label ikon + nama pendek. Props hanya tampil saat live
   preview (kanvas capture ikut menggambar) — tidak ada prop "stuck" di strip.
 - **Green screen**: pilihan background bawaan (warm gradient via `color-mix`,
   pola titik, bingkai solid) + preview thumb. Efek menggantikan video area saat
   live; hasil capture = composited background + subjek + frame.
-- Kedua fitur **lazy-load** (dynamic import MediaPipe) — tab hanya muncul bila
-  browser mendukung; tombol "Tanpa Efek" selalu tersedia (fallback, §8.3).
+- **Color filter (3D LUT)**: tab "Filter" terpisah — 8 look film emulation
+  (Portra Hangat, Fuji Lembut, Ektar Cerah, Velvia Pop, Ektachrome, Tri-X
+  Hitam Putih, Instan Retro, Vista 200) + "Warna Asli". Render WebGL (HALD),
+  aset `.cube` MIT di `public/luts/` (kredit: docs/research/lut-credits.md).
+- Ketiga fitur **lazy-load** (dynamic import MediaPipe / fetch `.cube`) — tab
+  hanya muncul bila browser mendukung; tombol "Tanpa Efek"/"Warna Asli" selalu
+  tersedia (fallback, §8.3).
 
 ### 3.10 Moments Feed (task 012)
 - Kartu moment: foto (bila ada) + caption italic display + timestamp kecil.

@@ -7,6 +7,7 @@ import {
   type FaceBox,
 } from "@/lib/ai/faceLandmark";
 import { PROPS, propLayout, type PropId } from "@/lib/ai/props";
+import { coverCrop, toCropSpace } from "@/lib/capture";
 
 type PropsOverlayProps = {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -15,6 +16,8 @@ type PropsOverlayProps = {
   onFaces: (faces: FaceBox[] | null) => void;
   /** FPS turun di bawah ambang → UI menonaktifkan efek (auto-disable). */
   onAutoDisable: () => void;
+  /** Kamera depan → preview di-mirror CSS; prop ikut di-flip agar menempel. */
+  mirrored: boolean;
 };
 
 const MIN_FPS = 20;
@@ -24,9 +27,12 @@ export function PropsOverlay({
   activeProp,
   onFaces,
   onAutoDisable,
+  mirrored,
 }: PropsOverlayProps) {
   const [faces, setFaces] = useState<FaceBox[] | null>(null);
+  const [videoDims, setVideoDims] = useState({ vw: 0, vh: 0 });
   const rafRef = useRef<number | null>(null);
+  const videoDimsRef = useRef({ vw: 0, vh: 0 });
   const frameTimesRef = useRef<number[]>([]);
   const failStreakRef = useRef(0);
   const lowFpsStreakRef = useRef(0);
@@ -65,6 +71,14 @@ export function PropsOverlay({
           const boxes = detectFaceBoxes(landmarker, video, now);
           onFacesRef.current(boxes);
           setFaces(boxes);
+
+          // Simpan dimensi video (state, bukan ref) untuk posisi crop-space.
+          const vw = video.videoWidth;
+          const vh = video.videoHeight;
+          if (vw && vh && (videoDimsRef.current.vw !== vw || videoDimsRef.current.vh !== vh)) {
+            videoDimsRef.current = { vw, vh };
+            setVideoDims({ vw, vh });
+          }
 
           const times = frameTimesRef.current;
           times.push(now);
@@ -106,7 +120,14 @@ export function PropsOverlay({
       {faces?.map((face, i) => {
         const prop = PROPS.find((p) => p.id === activeProp);
         if (!prop) return null;
-        const layout = propLayout(activeProp, face);
+        const { vw, vh } = videoDims;
+        // Posisi dalam ruang crop (sama dengan foto hasil) + flip saat mirror,
+        // supaya prop menempel di wajah pada preview kamera depan.
+        const layout =
+          vw && vh
+            ? toCropSpace(propLayout(activeProp, face), coverCrop(vw, vh), vw, vh)
+            : propLayout(activeProp, face);
+        const x = mirrored ? 1 - layout.x - layout.w : layout.x;
         return (
           // eslint-disable-next-line @next/next/no-img-element -- SVG inline data-URI
           <img
@@ -115,7 +136,7 @@ export function PropsOverlay({
             alt=""
             className="absolute"
             style={{
-              left: `${layout.x * 100}%`,
+              left: `${x * 100}%`,
               top: `${layout.y * 100}%`,
               width: `${layout.w * 100}%`,
               height: `${layout.h * 100}%`,

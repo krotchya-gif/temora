@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, ImageOff, Sparkles, SwitchCamera, X } from "lucide-react";
+import { CameraOff, ImageOff, Palette, Sparkles, SwitchCamera, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { PropsOverlay } from "@/components/photobooth/PropsOverlay";
 import { GreenScreenCanvas } from "@/components/photobooth/GreenScreenCanvas";
+import { GradeCanvas } from "@/components/photobooth/GradeCanvas";
 import { MomentComposer } from "@/components/photobooth/MomentComposer";
 import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
+import { LUTS, type LutId } from "@/lib/ai/lut";
 import { PROPS, propLayout, type PropId } from "@/lib/ai/props";
 import type { FaceBox } from "@/lib/ai/faceLandmark";
 import type { WatermarkPosition } from "@/lib/validation/event";
@@ -19,6 +21,7 @@ import {
   type PendingUpload,
   type SendResult,
 } from "@/lib/upload-queue";
+import { coverCrop, toCropSpace } from "@/lib/capture";
 
 export type CameraStageProps = {
   eventId: string;
@@ -53,7 +56,7 @@ const THUMB_LONG_SIDE = 320;
 
 // Rasio capture kanonik 3:4 portrait (design-system §3.3) — semua device
 // menghasilkan foto 3:4 agar frame template selalu menutupi penuh.
-const CAPTURE_RATIO = 3 / 4;
+// Crop = object-cover centered (coverCrop) — preview CSS identik dengan hasil.
 
 // Copy dari design-system §6.
 const COPY = {
@@ -102,8 +105,10 @@ export function CameraStage({
   const [strip, setStrip] = useState<StripItem[]>([]);
   const [activeProp, setActiveProp] = useState<PropId | null>(null);
   const [activeBg, setActiveBg] = useState<BgId | null>(null);
+  const [activeLut, setActiveLut] = useState<LutId | null>(null);
   const facesRef = useRef<FaceBox[] | null>(null);
   const gsCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const gradeCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -285,20 +290,10 @@ export function CameraStage({
     setFlash(true);
     setTimeout(() => setFlash(false), 180);
 
-    // Crop video ke rasio kanonik 3:4 (design-system §3.3):
-    // - video lebih lebar → potong kiri/kanan (center horizontal)
-    // - video lebih tinggi → potong bawah, bias atas agar wajah subjek aman
-    let sx = 0;
-    let sy = 0;
-    let sw = vw;
-    let sh = vh;
-    if (vw / vh > CAPTURE_RATIO) {
-      sw = Math.round(vh * CAPTURE_RATIO);
-      sx = Math.round((vw - sw) / 2);
-    } else if (vw / vh < CAPTURE_RATIO) {
-      sh = Math.round(vw / CAPTURE_RATIO);
-      sy = 0; // top-bias: crop berlebih di bawah
-    }
+    // Crop video ke rasio kanonik 3:4 — object-cover centered (sama dengan
+    // preview CSS): kontrak preview == hasil (design-system §3.3).
+    const crop = coverCrop(vw, vh);
+    const { sx, sy, sw, sh } = crop;
 
     const scale = Math.min(1, MAX_LONG_SIDE / Math.max(sw, sh));
     const cw = Math.round(sw * scale);
@@ -313,10 +308,14 @@ export function CameraStage({
       return;
     }
 
-    // Sumber frame: video asli, atau kanvas green screen (task 011) bila aktif
-    // — dimensi sama dengan video, jadi crop sx/sy/sw/sh tetap berlaku.
-    const source =
-      activeBg && gsCanvasRef.current ? gsCanvasRef.current : video;
+    // Sumber frame: video asli → kanvas green screen (task 011) → kanvas grade
+    // (filter LUT). Grade dibungkus paling dalam supaya frame/watermark/props
+    // tidak ikut di-grade (konsisten dengan preview DOM overlay).
+    const source = activeLut && gradeCanvasRef.current
+      ? gradeCanvasRef.current
+      : activeBg && gsCanvasRef.current
+        ? gsCanvasRef.current
+        : video;
 
     ctx.save();
     if (facing === "user") {
@@ -359,10 +358,15 @@ export function CameraStage({
 
     // Props AR (task 010): gambar di kanvas — posisi landmark TERMIRROR untuk
     // kamera depan (mirror aktif saat drawImage), environment tanpa mirror.
-    // Preload image di blok async bawah supaya SVG data-URI siap saat digambar.
+    // Koordinat dipetakan ke ruang crop (coverCrop) supaya identik dengan
+    // preview (kontrak preview == hasil).
     const propFaces =
       activeProp && facesRef.current?.length
-        ? { layout: (facesRef.current).map((f) => propLayout(activeProp, f)) }
+        ? {
+            layout: facesRef.current.map((f) =>
+              toCropSpace(propLayout(activeProp, f), crop, vw, vh),
+            ),
+          }
         : null;
 
     void (async () => {
@@ -455,7 +459,7 @@ export function CameraStage({
       setPhase("preview");
       setBusy(false);
     })();
-  }, [phase, busy, facing, watermarkText, watermarkPosition, eventId, tableId, activeProp, activeBg, frameSponsors]);
+  }, [phase, busy, facing, watermarkText, watermarkPosition, eventId, tableId, activeProp, activeBg, activeLut, frameSponsors]);
 
   const retake = useCallback(() => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -630,7 +634,12 @@ export function CameraStage({
                   />
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute right-[4%] bottom-[4%] max-w-[70%] truncate text-right text-xs font-semibold text-white/60"
+                    className={cn(
+                      "pointer-events-none absolute max-w-[70%] truncate text-xs font-semibold text-white/60",
+                      watermarkPosition?.startsWith("left") ? "left-[4%]" : "right-[4%]",
+                      watermarkPosition?.startsWith("top") ? "top-[4%]" : "bottom-[4%]",
+                      watermarkPosition?.startsWith("left") ? "text-left" : "text-right",
+                    )}
                     style={{ textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
                   >
                     {watermarkText}
@@ -652,6 +661,7 @@ export function CameraStage({
             <PropsOverlay
               videoRef={videoRef}
               activeProp={activeProp}
+              mirrored={facing === "user"}
               onFaces={(faces) => {
                 facesRef.current = faces;
               }}
@@ -672,6 +682,21 @@ export function CameraStage({
               mirror={facing === "user"}
               onFail={() => {
                 setActiveBg(null);
+                setBanner(COPY.aiFallback);
+              }}
+            />
+          ) : null}
+
+          {/* Filter warna via 3D LUT (WebGL) — di atas video/green screen,
+              di bawah overlay frame & props supaya preview == hasil */}
+          {phase === "live" && activeLut ? (
+            <GradeCanvas
+              sourceRef={activeBg ? gsCanvasRef : videoRef}
+              activeLut={activeLut}
+              canvasRef={gradeCanvasRef}
+              mirror={facing === "user"}
+              onFail={() => {
+                setActiveLut(null);
                 setBanner(COPY.aiFallback);
               }}
             />
@@ -853,6 +878,56 @@ export function CameraStage({
                   type="button"
                   onClick={() => setActiveBg(null)}
                   aria-label="Matikan latar"
+                  className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Selektor Filter warna (3D LUT) — lazy-load .cube saat dipilih */}
+          {phase === "live" ? (
+            <div
+              role="group"
+              aria-label="Filter warna"
+              className="flex w-full max-w-sm items-center gap-2 overflow-x-auto py-1"
+            >
+              <button
+                type="button"
+                onClick={() => setActiveLut(null)}
+                aria-pressed={activeLut === null}
+                className={cn(
+                  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+                  activeLut === null
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border text-text-secondary hover:bg-bg-warm",
+                )}
+              >
+                <Palette className="h-3.5 w-3.5" aria-hidden />
+                Warna Asli
+              </button>
+              {LUTS.map((lut) => (
+                <button
+                  key={lut.id}
+                  type="button"
+                  onClick={() => setActiveLut(lut.id)}
+                  aria-pressed={activeLut === lut.id}
+                  className={cn(
+                    "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+                    activeLut === lut.id
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border text-text-secondary hover:bg-bg-warm",
+                  )}
+                >
+                  {lut.label}
+                </button>
+              ))}
+              {activeLut ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveLut(null)}
+                  aria-label="Matikan filter"
                   className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
                 >
                   <X className="h-4 w-4" aria-hidden />

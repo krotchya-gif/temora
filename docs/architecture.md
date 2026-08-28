@@ -421,6 +421,19 @@ export async function createFaceLandmarker() {
 - Bundle utama photobooth dasar **tidak boleh** terpengaruh ukuran model (chunk terpisah).
 - Fallback: segmentasi gagal/gelap → tawarkan mode tanpa efek, jangan blok capture.
 
+### 8.4 Color Filter (3D LUT, WebGL) — 2026-08-28
+- Aset: film-emulation `.cube` dari YahiaAngelo/Film-Luts (MIT) di `public/luts/`
+  (8 look, `LUT_3D_SIZE 13`). Kredit & lisensi: `docs/research/lut-credits.md`.
+- Kenapa WebGL bukan `ctx.filter`: `CanvasRenderingContext2D.filter` **tidak
+  didukung Safari iOS** → pakai HALD atlas (grid = ceil(sqrt(size)), 52×52 utk 13)
+  + shader trilinear lookup (`src/lib/ai/lut.ts`).
+- Pipeline preview == hasil: `GradeCanvas` me-render sumber (video / kanvas green
+  screen) → buffer 2D → WebGL LUT → output canvas; saat filter aktif, canvas ini
+  menjadi **sumber capture** (frame/watermark/props digambar setelahnya supaya
+  tidak ikut di-grade, konsisten dengan preview DOM overlay).
+- Tab "Filter" (label design-system §6) lazy-load `.cube` saat dipilih; gagal
+  (jaringan/WebGL mati) → fitur nonaktif tanpa crash.
+
 ---
 
 ## 9. Monitoring & Alerting

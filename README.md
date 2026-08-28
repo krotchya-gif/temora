@@ -98,6 +98,7 @@ Temora Photos/
 ## Referensi
 
 - Riset kompetitor: `docs/research/competitor-analysis.md`
+- Kredit aset filter LUT (MIT): `docs/research/lut-credits.md`
 - Aturan anti-slop UI: tergabung di `docs/design-system.md` §11
 
 

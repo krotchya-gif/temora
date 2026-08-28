@@ -12,7 +12,7 @@
 
 | Kategori | Gate | Status |
 |---|---|---|
-| Unit tests | Lulus di CI | ✅ 53/53 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
+| Unit tests | Lulus di CI | ✅ 58/58 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
 | E2E jalur kritis 3/3 | Hijau 2× berturut-turut | ⏳ 3/4 hijau 2× (tamu, vendor, rope — §6h); billing menunggu task 008 |
 | Device lab Android/iOS | Lolos tanpa blocker | ✅ alur inti terverifikasi manual owner (2026-08-28) — detail tasks/003–007 |
 | Lighthouse ≥ 85 mobile photobooth | Terlampir | ✅ perf 99 / a11y 95 (docs/lighthouse/) |
@@ -21,7 +21,7 @@
 
 ## 1. Unit tests (Vitest) — ✅
 
-`tests/unit/` — 5 file, 53 test:
+`tests/unit/` — 6 file, 58 test:
 - `ulid` — format Crockford 26 char, monotonic, unik.
 - `rate-limit` — sliding window izin/tolak/reset window.
 - `validation` — event create/update (slug immutable, tanggal, pesan ramah),
@@ -262,6 +262,19 @@ lab (010 FPS/group, 011 lighting/edge) akan diuji manual owner lalu dilaporkan.
 Verifikasi watermark: lint/typecheck/test 53/53/build hijau; migrasi 0023
 terpasang di remote (kolom + constraint). E2E manual (form Pro vs Free, hasil
 foto 4 posisi) menyusul saat sandbox/akun Pro tersedia.
+
+## 6l. Ronde filter, latar & prop AR — 2026-08-28
+
+| Severity | Temuan | Fix |
+|---|---|---|
+| **Critical** | Green screen: `maskData[i]` salah indeks — `categoryMask.getAsUint8Array()` RGBA (kelas di byte pertama), jadi hanya 25% pixel person dapat alpha → potongan subjek berlubang (latar tembus "menutupi" orang) | `maskData[i * 4]` di `segmentation.ts` — subjek utuh di depan latar |
+| **Major** | Prop AR melayang di preview kamera depan: overlay pakai koordinat video mentah, padahal video di-mirror CSS → preview ≠ hasil | `PropsOverlay` menerima `mirrored` + posisi di-flip |
+| **Major** | Crop preview (object-cover centered) ≠ crop capture (top-bias) + prop digambar di koordinat video penuh → wajah/prop terpotong di foto tapi terlihat di preview | `src/lib/capture.ts`: `coverCrop` centered + `toCropSpace`; dipakai capture & overlay |
+| **—** | Fitur baru: tab **Filter** (8 look 3D LUT film emulation, WebGL HALD — `ctx.filter` tak didukung Safari iOS) + **10 props AR** | `src/lib/ai/lut.ts` + `GradeCanvas`; aset `.cube` MIT (kredit `docs/research/lut-credits.md`) |
+
+Verifikasi: lint/typecheck/**test 58/58**/build hijau; `parseCube`/`buildHald`
+di-unit-test. Uji visual kamera asli (latar utuh, prop menempel, filter
+WYSIWYG) manual owner di device lab — tercatat §7.
 
 ## 7. Bug bash — ⏳ disarankan setelah env live
 
