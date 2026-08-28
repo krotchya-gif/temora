@@ -15,7 +15,7 @@ function jsonError(error: string, status: number) {
   return NextResponse.json({ error }, { status });
 }
 
-// GET — list moments (vendor). Filter is_hidden opsional via ?hidden=.
+// GET — list moments (vendor). Filter is_hidden opsional: ?hidden=true|false|all.
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
@@ -32,12 +32,15 @@ export async function GET(
   if (!event) return jsonError("Event tidak ditemukan.", 404);
 
   const url = new URL(request.url);
+  const hiddenParam = url.searchParams.get("hidden");
   const hidden =
-    url.searchParams.get("hidden") === "true"
+    hiddenParam === "true"
       ? true
-      : url.searchParams.get("hidden") === "false"
+      : hiddenParam === "false"
         ? false
-        : undefined;
+        : hiddenParam === "all"
+          ? "all"
+          : undefined;
 
   const query = supabase
     .from("moments")
@@ -46,8 +49,9 @@ export async function GET(
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (hidden !== undefined) query.eq("is_hidden", hidden);
-  else query.eq("is_hidden", false);
+  if (hidden === true) query.eq("is_hidden", true);
+  else if (hidden === false) query.eq("is_hidden", false);
+  // hidden="all" → tampilkan semua (feed moderasi vendor, task 012 AC #3).
 
   const { data, error } = await query;
   if (error) {

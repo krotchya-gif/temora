@@ -26,7 +26,7 @@ export function MomentsFeed({ eventId }: MomentsFeedProps) {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/events/${eventId}/moments`);
+      const res = await fetch(`/api/events/${eventId}/moments?hidden=all`);
       const data = (await res.json().catch(() => null)) as {
         moments?: MomentRow[];
         error?: string;
