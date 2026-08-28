@@ -40,14 +40,30 @@ export function getLuts(): Promise<LutDef[]> {
   return lutsPromise;
 }
 
+export type LutOrder = "bgr" | "rbg";
+
 export type ParsedLut = {
   size: number;
-  /** Data urutan .cube: (b*size + g)*size + r → [r,g,b] ternormalisasi 0–1. */
+  /**
+   * Urutan indeks data di file .cube (§6q):
+   * - "bgr": standar Adobe — (b*size + g)*size + r (file G'MIC)
+   * - "rbg": plugin Adobe Photoshop — (r*size + b)*size + g (file RocketStock)
+   * Dideteksi dari baris header; salah urutan = channel tertukar → warna hijau.
+   */
+  order: LutOrder;
+  /** Data urutan file → [r,g,b] ternormalisasi 0–1. */
   data: Float32Array;
 };
 
 /** Parse file .cube (3D) — abaikan baris komentar/header/1D. */
 export function parseCube(text: string): ParsedLut {
+  // Deteksi urutan dari header file (§6q): plugin Adobe Photoshop menulis
+  // indeks R-outer/B-middle/G-inner; file G'MIC (dan standar) b-major.
+  const order: LutOrder = text.includes(
+    "Adobe Photoshop Export Color Lookup Plugin",
+  )
+    ? "rbg"
+    : "bgr";
   let size = 0;
   const points: number[] = [];
   const tokens = text.split(/[\s,]+/);
@@ -63,11 +79,7 @@ export function parseCube(text: string): ParsedLut {
       i += 2;
       continue;
     }
-    if (
-      t.startsWith("TITLE") ||
-      t.startsWith("DOMAIN_MIN") ||
-      t.startsWith("DOMAIN_MAX")
-    ) {
+    if (t.startsWith("TITLE") || t.startsWith("DOMAIN_MIN") || t.startsWith("DOMAIN_MAX")) {
       i += t.startsWith("TITLE") ? 2 : 4;
       continue;
     }
@@ -80,7 +92,7 @@ export function parseCube(text: string): ParsedLut {
   if (size < 2 || points.length < size * size * size * 3) {
     throw new Error("LUT tidak valid.");
   }
-  return { size, data: Float32Array.from(points.slice(0, size ** 3 * 3)) };
+  return { size, order, data: Float32Array.from(points.slice(0, size ** 3 * 3)) };
 }
 
 export type HaldData = { width: number; height: number; data: Uint8Array };
@@ -90,7 +102,7 @@ export type HaldData = { width: number; height: number; data: Uint8Array };
  * Shader memetakan cell (r,g,b) → posisi texel di atlas untuk trilinear.
  */
 export function buildHald(lut: ParsedLut): HaldData {
-  const { size, data } = lut;
+  const { size, data, order } = lut;
   const grid = Math.ceil(Math.sqrt(size));
   const width = grid * size;
   const height = grid * size;
@@ -100,7 +112,11 @@ export function buildHald(lut: ParsedLut): HaldData {
     const blockRow = Math.floor(bz / grid);
     for (let gy = 0; gy < size; gy++) {
       for (let gx = 0; gx < size; gx++) {
-        const src = ((bz * size + gy) * size + gx) * 3;
+        // Indeks sesuai urutan file (§6q): bgr (G'MIC/standar) vs rbg (Adobe).
+        const src =
+          (order === "rbg"
+            ? ((gx * size + bz) * size + gy)
+            : (bz * size + gy) * size + gx) * 3;
         const dx = blockCol * size + gx;
         const dy = blockRow * size + gy;
         const dst = (dy * width + dx) * 3;

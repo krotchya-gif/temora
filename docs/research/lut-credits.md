@@ -25,6 +25,8 @@ Daftar filter dibaca runtime dari `public/luts/manifest.json` (generate:
 
 - **Sumber**: paket promo gratis "35 Free LUTs" RocketStock (2017, pond5.com),
   `LUT_3D_SIZE 32` (885 KB/file). File: `Arabica 12.CUBE` … `Zeke 39.CUBE`.
+- **Format**: ditulis plugin Adobe Photoshop → urutan indeks **R-outer/B-middle/
+  G-inner** (`(r·S+b)·S+g`); parser mendeteksi via header (`order:"rbg"`, §6q).
 - **Lisensi**: dikonfirmasi **bebas dipakai (free)** oleh owner TEMORA
   (2026-08-29). File asli memuat header `#Copyright: (C) Copyright 2017
   RocketStock` — disimpan apa adanya; dicatat sebagai keputusan owner.

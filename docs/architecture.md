@@ -454,6 +454,9 @@ export async function createFaceLandmarker() {
   `FALLBACK_LUTS`. `loadLut` memakai `encodeURIComponent` (nama file bisa
   berisi spasi/uppercase `.CUBE`). Kanvas grade/LUT dirender **sebelum** overlay
   frame di DOM (z-order — frame wajib di atas kanvas).
+- Urutan data `.cube` **per file berbeda** (§6q): file plugin Adobe Photoshop =
+  `(r·S+b)·S+g` (`order:"rbg"`, deteksi header), G'MIC/standar = `(b·S+g)·S+r`
+  (`bgr`). Salah urutan → channel tertukar → warna dominan hijau.
 - Fitur yang di-OFF sementara via `src/lib/ai/feature-flags.ts` (§6o):
   `ENABLE_PROPS=false`, `ENABLE_BACKGROUNDS=false` — kode utuh, balik flag
   untuk uji ulang.

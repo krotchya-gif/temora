@@ -319,6 +319,14 @@ membuktikan mapping atlas benar dan atlas-flip menghasilkan warna menyimpang.
 Keputusan owner: 35 LUT RocketStock **dikonfirmasi bebas lisensi** (dictatat di
 lut-credits.md); kualitas penuh 32³ (~885 KB/filter, on-demand).
 
+## 6q. Warna LUT RocketStock semua hijau — urutan channel file Adobe — 2026-08-29
+
+| Severity | Temuan | Root cause | Fix |
+|---|---|---|---|
+| **Critical** | 35 LUT RocketStock render **dominan hijau** (8 LUT G'MIC tetap benar) | File plugin **Adobe Photoshop** memakai urutan indeks **R-outer → B-middle → G-inner** (`(r·S+b)·S+g`), parser menganggap b-major standar → channel tertukar (uji primari: hanya 1/43 lolos; dengan urutan Adobe: 30/35 lolos — 5 sisanya look ekstrem) | Deteksi otomatis header: `#Created by: Adobe Photoshop Export Color Lookup Plugin` → `order:"rbg"`; file G'MIC → `bgr`. `buildHald` memakai order saat menghitung indeks file; atlas/shader tidak berubah. Divirifikasi simulasi CPU: skin/primari masuk akal (Sepia hangat, Neon biru, Cinematic) |
+
+Verifikasi: lint/typecheck/**test 60/60**/build hijau (+2 test order RBG).
+
 ## 7. Bug bash — ⏳ disarankan setelah env live
 
 Sesi 1 jam sebelum onboarding vendor pertama: alur tamu di 1 meja nyata +
