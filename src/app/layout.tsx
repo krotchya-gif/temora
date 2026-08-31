@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Cormorant_Garamond,
   JetBrains_Mono,
   Plus_Jakarta_Sans,
 } from "next/font/google";
 import { MonitoringProvider } from "@/components/MonitoringProvider";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { SeoScripts } from "@/components/SeoScripts";
 import { appUrl, getPublicSettings } from "@/lib/seo-settings";
 import "./globals.css";
@@ -69,9 +70,17 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: [ogImage],
     },
-    icons: { icon: "/logos/temora-wordmark.svg" },
+    icons: {
+      icon: "/logos/temora-wordmark.svg",
+      apple: "/icons/apple-touch-icon-180.png",
+    },
   };
 }
+
+// PWA (architecture.md §13): theme-color = token bg-base (#F9F6F1).
+export const viewport: Viewport = {
+  themeColor: "#F9F6F1",
+};
 
 export default function RootLayout({
   children,
@@ -85,6 +94,7 @@ export default function RootLayout({
     >
       <body className="min-h-dvh">
         {children}
+        <PwaInstallPrompt />
         <MonitoringProvider />
         <SeoScripts />
       </body>

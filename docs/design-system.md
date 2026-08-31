@@ -334,6 +334,11 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | AR tab label | "Efek" · "Tanpa Efek" |
 | Green screen tab label | "Latar" |
 | AI gagal dimuat (device lemah) | "Efek butuh tenaga lebih. Kamu tetap bisa ambil momen tanpa efek ya." |
+| Install prompt PWA — judul | "Simpan TEMORA di layar utama" |
+| Install prompt PWA — deskripsi | "Buka cepat, momen tetap dekat. Tanpa perlu unduh aplikasi." |
+| Install prompt PWA — CTA | "Install" |
+| Install prompt PWA — dismiss | "Nanti Saja" |
+| Install prompt PWA — iOS | "Ketuk ikon bagikan lalu pilih 'Tambahkan ke Layar Utama'." |
 
 ---
 
@@ -356,6 +361,7 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Favicon | Monogram 32×32px |
 | OG Image | 1200×630px, warm ivory bg, tagline display font |
 | Watermark | Teks vendor/TEMORA, opacity rendah, hasil foto. Posisi preset 4 arah (bottom-right default / bottom-left / top-right / top-left) — `events.watermark_position`; teks & posisi kustom = fitur Pro (task 008) |
+| PWA icons | Monogram "T" putih di lingkaran `dusty-blue` (#8FA8B8), latar penuh `bg-base` (#F9F6F1). `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png` (safe zone 80%), `apple-touch-icon-180.png`. Generate: `node scripts/gen-pwa-icons.mjs` |
 
 ---
 

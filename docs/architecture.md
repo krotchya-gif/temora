@@ -3,6 +3,7 @@
 *Versi: 1.3 · Tanggal: 2026-08-26 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
+*Patch 1.4 (2026-08-31): PWA ditambahkan — manifest + service worker statis (`public/sw.js`, tanpa integrasi build) + install prompt sekali-lihat (dismiss = tidak muncul lagi). Detail §13.*
 
 ---
 
@@ -79,6 +80,7 @@
 | Charts (task 014) | — (grid CSS + agregat SQL) | Visualisasi ringan tanpa dependency — heatmap/bar dari div + token |
 | AI (task 010–011) | MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) | FaceLandmarker (props) + ImageSegmenter (green screen) — client-side, lazy-load |
 | CI/CD | GitHub Actions | Lint + typecheck otomatis tiap push |
+| PWA | Manifest via `src/app/manifest.ts` + service worker statis `public/sw.js` (tanpa next-pwa/serwist) | Hostinger shared + build Webpack = hindari integrasi SW ke pipeline build; file statis di `public/` ikut Git deploy tanpa konfigurasi tambahan. Offline scope: shell + aset statis + LUT; API/auth tetap network-only |
 
 ### Why Supabase, not Firebase?
 
@@ -537,3 +539,40 @@ Hosting prototipe (Hostinger shared) tidak menyediakan scheduler HTTP bawaan. Se
 Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
 
 > Saat upgrade hosting menjelang launch (task 015), pindahkan kembali ke scheduler native (Vercel Cron / systemd timer) dan hapus pinger eksternal.
+
+---
+
+## 13. Progressive Web App (PWA)
+
+*Patch 1.4 (2026-08-31). Keputusan: manifest + service worker statis, tanpa dependensi build (next-pwa/serwist) — kompatibel dengan Hostinger shared + `next build --webpack`.*
+
+### 13.1 Komponen
+
+| Bagian | Lokasi | Keterangan |
+|--------|--------|------------|
+| Web App Manifest | `src/app/manifest.ts` | Route handler Next → `/manifest.webmanifest`. Name, icons 192/512, `display: standalone`, `theme_color` = token `--color-bg-base` (#F9F6F1) |
+| Icon set | `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png`, `apple-touch-icon-180.png` | Generate via `node scripts/gen-pwa-icons.mjs` (PNG encoder murni Node/zlib, tanpa dependency). Desain: monogram "T" putih di lingkaran `dusty-blue` (#8FA8B8) di atas `bg-base` — sesuai design-system §8 |
+| Service Worker | `public/sw.js` | Statis di `public/` → ikut Git deploy; **tanpa** integrasi Next build. Versi cache via konstanta `CACHE_VERSION`; update = bump versi |
+| Install Prompt | `src/components/PwaInstallPrompt.tsx` | Client component di root layout. Muncul **sekali** — kalau user dismiss, tersimpan di localStorage (`temora_pwa_dismissed`) dan tidak muncul lagi. Sembunyi di halaman photobooth (`/p/`) |
+
+### 13.2 Strategi Caching (`public/sw.js`)
+
+- **Precache** saat `install`: `/`, `/manifest.webmanifest`, icon set, wordmark.
+- **Cache-first**: `/_next/static/` (JS/CSS/font hashed build), `/icons/`, `/logos/`, `/luts/` (manifest + file .cube — stale-while-revalidate).
+- **Network-first + fallback cache**: navigasi halaman (offline → shell HTML cache terakhir).
+- **Network-only**: semua `POST` (upload foto/moment), `/api/*`, dan request ke Supabase (auth/RLS wajib online).
+- `skipWaiting` + `clients.claim` saat `activate`; cache lama dibersihkan saat versi berubah.
+
+### 13.3 Install Prompt Behavior
+
+- Listen `beforeinstallprompt` (Chromium) — prompt browser asli, bukan UI tiruan.
+- **Dismiss** ("Nanti Saja") → `localStorage.setItem("temora_pwa_dismissed", ...)` → tidak muncul lagi di sesi/browser itu. Reset manual: hapus key localStorage.
+- `appinstalled` → sembunyikan prompt.
+- iOS (Safari, tanpa `beforeinstallprompt`): tampil instruksi "Tambahkan ke Layar Utama" (mobile-first — tamu banyak di iOS).
+- Tidak muncul di halaman photobooth `/p/*` (immersive full-screen) dan bila sudah `display-mode: standalone`.
+
+### 13.4 Batasan Offline (wajib dicatat)
+
+- PWA **tidak** membuat photobooth bisa jalan offline: kamera, Supabase auth, dan upload tetap butuh koneksi.
+- Nilai PWA: install ke home screen (ikon + standalone), shell & aset statis & LUT termuat cepat dari cache, navigasi halaman publik tetap tampil saat jaringan hilang.
+- Upload offline yang sudah ada (antrean IndexedDB, qa-report §6c) **tidak** berubah — SW tidak meng-cache request upload.
