@@ -1,0 +1,9 @@
+[
+  { "id": "portra-400", "label": "Lembut", "file": "portra-400.cube", "strength": 0.55 },
+  { "id": "cobi-3", "label": "Hangat", "file": "Cobi 3.CUBE", "strength": 0.7 },
+  { "id": "remy-24", "label": "Merona", "file": "Remy 24.CUBE", "strength": 0.5 },
+  { "id": "lenox-340", "label": "Sejuk", "file": "Lenox 340.CUBE", "strength": 0.45 },
+  { "id": "faded-47", "label": "Vintage", "file": "Faded 47.CUBE", "strength": 0.65 },
+  { "id": "ektar-100", "label": "Cerah", "file": "ektar-100.cube", "strength": 0.65 },
+  { "id": "trix-400", "label": "Monokrom", "file": "trix-400.cube", "strength": 1 }
+]

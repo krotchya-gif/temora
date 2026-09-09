@@ -1,18 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, ImageOff, Palette, Sparkles, SwitchCamera, X } from "lucide-react";
+import { CameraOff, ImageOff, Palette, SwitchCamera, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { PropsOverlay } from "@/components/photobooth/PropsOverlay";
 import { GreenScreenCanvas } from "@/components/photobooth/GreenScreenCanvas";
 import { GradeCanvas } from "@/components/photobooth/GradeCanvas";
 import { MomentComposer } from "@/components/photobooth/MomentComposer";
 import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
 import { FALLBACK_LUTS, getLuts, type LutDef, type LutId } from "@/lib/ai/lut";
-import { ENABLE_BACKGROUNDS, ENABLE_PROPS } from "@/lib/ai/feature-flags";
-import { PROPS, propLayout, type PropId } from "@/lib/ai/props";
-import type { FaceBox } from "@/lib/ai/faceLandmark";
+import { ENABLE_BACKGROUNDS } from "@/lib/ai/feature-flags";
 import type { WatermarkPosition } from "@/lib/validation/event";
 import {
   getPendingUploads,
@@ -22,7 +19,7 @@ import {
   type PendingUpload,
   type SendResult,
 } from "@/lib/upload-queue";
-import { coverCrop, toCropSpace } from "@/lib/capture";
+import { coverCrop } from "@/lib/capture";
 
 export type CameraStageProps = {
   eventId: string;
@@ -30,7 +27,7 @@ export type CameraStageProps = {
   tableId: string;
   tableLabel: string;
   frameUrl: string | null;
-  watermarkText: string;
+  watermarkText: string | null;
   /** Posisi watermark preset (design-system §8) — default kanan bawah. */
   watermarkPosition: WatermarkPosition;
   /** Sisa kuota foto event; null = unlimited. 0 → capture dinonaktifkan. */
@@ -54,6 +51,8 @@ type UploadMeta = { photoId: string; captureToken: string };
 const MAX_LONG_SIDE = 1440;
 const TARGET_BYTES = 800_000;
 const THUMB_LONG_SIDE = 320;
+const MIN_DELIVERY_LONG_SIDE = 960;
+const DEFAULT_LUT_STRENGTH = 0.78;
 
 // Rasio capture kanonik 3:4 portrait (design-system §3.3) — semua device
 // menghasilkan foto 3:4 agar frame template selalu menutupi penuh.
@@ -82,6 +81,46 @@ function canvasToBlob(
   return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
 }
 
+type CompressedPhoto = {
+  blob: Blob;
+  canvas: HTMLCanvasElement;
+};
+
+/**
+ * Cari kualitas tertinggi yang muat di batas delivery. Kami tidak memaksa
+ * quality terlalu rendah; foto kompleks diperkecil bertahap sampai tetap
+ * tajam untuk HP/social, atau ditolak agar tidak menyimpan hasil buruk.
+ */
+async function compressPhotoCanvas(
+  source: HTMLCanvasElement,
+): Promise<CompressedPhoto | null> {
+  let canvas = source;
+  let longSide = Math.max(canvas.width, canvas.height);
+
+  while (longSide >= MIN_DELIVERY_LONG_SIDE) {
+    for (const quality of [0.86, 0.82, 0.78, 0.74, 0.72]) {
+      const blob = await canvasToBlob(canvas, quality);
+      if (blob && blob.size <= TARGET_BYTES) {
+        return { blob, canvas };
+      }
+    }
+
+    if (longSide === MIN_DELIVERY_LONG_SIDE) break;
+    const scale = Math.max(
+      MIN_DELIVERY_LONG_SIDE / longSide,
+      Math.min(0.9, (longSide - 1) / longSide),
+    );
+    const resized = document.createElement("canvas");
+    resized.width = Math.max(1, Math.round(canvas.width * scale));
+    resized.height = Math.max(1, Math.round(canvas.height * scale));
+    resized.getContext("2d")?.drawImage(canvas, 0, 0, resized.width, resized.height);
+    canvas = resized;
+    longSide = Math.max(canvas.width, canvas.height);
+  }
+
+  return null;
+}
+
 export function CameraStage({
   eventId,
   eventName,
@@ -104,9 +143,11 @@ export function CameraStage({
   const [banner, setBanner] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [strip, setStrip] = useState<StripItem[]>([]);
-  const [activeProp, setActiveProp] = useState<PropId | null>(null);
   const [activeBg, setActiveBg] = useState<BgId | null>(null);
   const [activeLut, setActiveLut] = useState<LutId | null>(null);
+  const [lutStrength, setLutStrength] = useState(DEFAULT_LUT_STRENGTH);
+  const [readyGrade, setReadyGrade] = useState<string | null>(null);
+  const gradeKey = `${activeLut}:${lutStrength}`;
   // Daftar filter dari manifest.json (sync: scripts/sync-luts.mjs); fallback
   // ke kurasi bawaan bila manifest gagal.
   const [luts, setLuts] = useState<LutDef[]>(FALLBACK_LUTS);
@@ -114,7 +155,6 @@ export function CameraStage({
   useEffect(() => {
     void getLuts().then(setLuts);
   }, []);
-  const facesRef = useRef<FaceBox[] | null>(null);
   const gsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const gradeCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -317,8 +357,8 @@ export function CameraStage({
     }
 
     // Sumber frame: video asli → kanvas green screen (task 011) → kanvas grade
-    // (filter LUT). Grade dibungkus paling dalam supaya frame/watermark/props
-    // tidak ikut di-grade (konsisten dengan preview DOM overlay).
+    // (filter LUT). Grade dibungkus paling dalam supaya frame/watermark tidak
+    // ikut di-grade (konsisten dengan preview DOM overlay).
     const source = activeLut && gradeCanvasRef.current
       ? gradeCanvasRef.current
       : activeBg && gsCanvasRef.current
@@ -347,57 +387,29 @@ export function CameraStage({
       }
     }
 
-    // Watermark brand — posisi preset per event (design-system §8, default
-    // kanan bawah). Posisi dikunci saat frame sponsor digambar di bawah tengah.
-    const fontSize = Math.max(14, Math.round(ch * 0.028));
-    ctx.font = `600 ${fontSize}px "Plus Jakarta Sans", sans-serif`;
-    const padX = cw * 0.04;
-    const padY = ch * 0.045;
-    const pos = watermarkPosition ?? "bottom-right";
-    ctx.textAlign = pos.startsWith("left") ? "left" : "right";
-    ctx.textBaseline = pos.startsWith("top") ? "top" : "bottom";
-    const wmX = pos.startsWith("left") ? padX : cw - padX;
-    const wmY = pos.startsWith("top") ? padY : ch - padY;
-    ctx.shadowColor = "rgba(0,0,0,0.35)";
-    ctx.shadowBlur = fontSize * 0.4;
-    ctx.fillStyle = "rgba(255,255,255,0.62)";
-    ctx.fillText(watermarkText, wmX, wmY);
-    ctx.shadowBlur = 0;
+    if (watermarkText) {
+      // Watermark brand — posisi preset per event (design-system §8).
+      const fontSize = Math.max(14, Math.round(ch * 0.028));
+      ctx.font = `600 ${fontSize}px "Plus Jakarta Sans", sans-serif`;
+      const padX = cw * 0.04;
+      const padY = ch * 0.045;
+      const pos = watermarkPosition ?? "bottom-right";
+      ctx.textAlign = pos.startsWith("left") ? "left" : "right";
+      ctx.textBaseline = pos.startsWith("top") ? "top" : "bottom";
+      const wmX = pos.startsWith("left") ? padX : cw - padX;
+      const wmY = pos.startsWith("top") ? padY : ch - padY;
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = fontSize * 0.4;
+      ctx.fillStyle = "rgba(255,255,255,0.62)";
+      ctx.fillText(watermarkText, wmX, wmY);
+      ctx.shadowBlur = 0;
+    }
 
     // Props AR (task 010): gambar di kanvas — posisi landmark TERMIRROR untuk
     // kamera depan (mirror aktif saat drawImage), environment tanpa mirror.
     // Koordinat dipetakan ke ruang crop (coverCrop) supaya identik dengan
     // preview (kontrak preview == hasil).
-    const propFaces =
-      activeProp && facesRef.current?.length
-        ? {
-            layout: facesRef.current.map((f) =>
-              toCropSpace(propLayout(activeProp, f), crop, vw, vh),
-            ),
-          }
-        : null;
-
     void (async () => {
-      // Props AR — gambar setelah image SVG siap (kanvas sudah berisi
-      // video+frame+watermark dari blok sinkron di atas).
-      if (propFaces) {
-        const prop = PROPS.find((p) => p.id === activeProp);
-        if (prop) {
-          const img = new Image();
-          img.src = prop.src;
-          try {
-            await img.decode();
-            for (const layout of propFaces.layout) {
-              const dx =
-                facing === "user" ? cw * (1 - layout.x - layout.w) : cw * layout.x;
-              ctx.drawImage(img, dx, ch * layout.y, cw * layout.w, ch * layout.h);
-            }
-          } catch {
-            // Prop gagal digambar → foto tetap tersimpan tanpa prop.
-          }
-        }
-      }
-
       // Sponsor frame (task 013): logo kecil berjajar di tengah bawah —
       // decode dulu; gagal = foto tetap tersimpan.
       const sponsorLogos = frameSponsors.filter((s) => s.logo_path);
@@ -426,26 +438,25 @@ export function CameraStage({
         }
       }
 
-      // Kompres bertahap sampai < ~800KB.
-      let quality = 0.85;
-      let blob = await canvasToBlob(canvas, quality);
-      while (blob && blob.size > TARGET_BYTES && quality > 0.5) {
-        quality -= 0.1;
-        blob = await canvasToBlob(canvas, quality);
-      }
-      if (!blob) {
+      // Kompres adaptif: prioritaskan kualitas, resize sebelum quality turun
+      // terlalu jauh. Jika tidak ada hasil yang masih layak, jangan kirim foto
+      // yang mengecewakan tamu.
+      const compressed = await compressPhotoCanvas(canvas);
+      if (!compressed) {
+        setBanner("Foto terlalu berat untuk diproses dengan kualitas baik. Coba ambil ulang ya.");
         setBusy(false);
         return;
       }
+      const { blob, canvas: deliveryCanvas } = compressed;
 
       // Thumbnail 320px dibuat client-side (database.md §10.3).
-      const tScale = Math.min(1, THUMB_LONG_SIDE / Math.max(cw, ch));
+      const tScale = Math.min(1, THUMB_LONG_SIDE / Math.max(deliveryCanvas.width, deliveryCanvas.height));
       const thumbCanvas = document.createElement("canvas");
-      thumbCanvas.width = Math.round(cw * tScale);
-      thumbCanvas.height = Math.round(ch * tScale);
+      thumbCanvas.width = Math.round(deliveryCanvas.width * tScale);
+      thumbCanvas.height = Math.round(deliveryCanvas.height * tScale);
       thumbCanvas
         .getContext("2d")
-        ?.drawImage(canvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
+        ?.drawImage(deliveryCanvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
       const thumbBlob = await canvasToBlob(thumbCanvas, 0.72);
 
       const url = URL.createObjectURL(blob);
@@ -455,8 +466,8 @@ export function CameraStage({
         clientUploadId: crypto.randomUUID(),
         eventId,
         tableId,
-        width: cw,
-        height: ch,
+        width: deliveryCanvas.width,
+        height: deliveryCanvas.height,
         imageBlob: blob,
         thumbBlob,
       };
@@ -467,7 +478,7 @@ export function CameraStage({
       setPhase("preview");
       setBusy(false);
     })();
-  }, [phase, busy, facing, watermarkText, watermarkPosition, eventId, tableId, activeProp, activeBg, activeLut, frameSponsors]);
+  }, [phase, busy, facing, watermarkText, watermarkPosition, eventId, tableId, activeBg, activeLut, frameSponsors]);
 
   const retake = useCallback(() => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -642,10 +653,13 @@ export function CameraStage({
 
           {phase === "live" && activeLut ? (
             <GradeCanvas
+              key={activeLut}
               sourceRef={activeBg ? gsCanvasRef : videoRef}
               activeLut={activeLut}
+              strength={lutStrength}
               canvasRef={gradeCanvasRef}
               mirror={facing === "user"}
+              onReady={() => setReadyGrade(gradeKey)}
               onFail={() => {
                 setActiveLut(null);
                 setBanner(COPY.aiFallback);
@@ -669,7 +683,7 @@ export function CameraStage({
                     }}
                     className="pointer-events-none absolute inset-0 h-full w-full object-contain"
                   />
-                  <span
+                  {watermarkText ? <span
                     aria-hidden
                     className={cn(
                       "pointer-events-none absolute max-w-[70%] truncate text-xs font-semibold text-white/60",
@@ -680,7 +694,7 @@ export function CameraStage({
                     style={{ textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
                   >
                     {watermarkText}
-                  </span>
+                  </span> : null}
                 </>
               ) : null}
             </>
@@ -691,22 +705,6 @@ export function CameraStage({
               <span className="h-10 w-10 animate-pulse rounded-full border-2 border-white/70 border-t-transparent" />
               <p className="text-sm text-white/85">Menyiapkan kamera…</p>
             </div>
-          ) : null}
-
-          {/* Props AR (task 010) — OFF sementara (feature-flags) */}
-          {ENABLE_PROPS && phase === "live" && activeProp ? (
-            <PropsOverlay
-              videoRef={videoRef}
-              activeProp={activeProp}
-              mirrored={facing === "user"}
-              onFaces={(faces) => {
-                facesRef.current = faces;
-              }}
-              onAutoDisable={() => {
-                setActiveProp(null);
-                setBanner(COPY.aiFallback);
-              }}
-            />
           ) : null}
 
           {phase === "denied" || phase === "error" ? (
@@ -765,70 +763,13 @@ export function CameraStage({
               <button
                 type="button"
                 onClick={capture}
-                disabled={phase !== "live" || busy || !videoReady}
+                disabled={phase !== "live" || busy || !videoReady || (!!activeLut && readyGrade !== gradeKey)}
                 aria-label="Ambil Momen"
                 className="h-20 w-20 rounded-full shadow-card ring-4 ring-bg-card transition-transform duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
                 style={{ backgroundColor: "var(--event-accent)" }}
               />
               <p className="text-xs text-text-secondary">Tap untuk ambil momen</p>
             </>
-          ) : null}
-
-          {/* Selektor Efek (task 010) — OFF sementara (feature-flags) */}
-          {ENABLE_PROPS && phase === "live" ? (
-            <div
-              role="group"
-              aria-label="Efek dan latar"
-              className="flex w-full max-w-sm items-center gap-2 overflow-x-auto py-1"
-            >
-              <button
-                type="button"
-                onClick={() => setActiveProp(null)}
-                aria-pressed={activeProp === null}
-                className={cn(
-                  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
-                  activeProp === null
-                    ? "border-accent bg-accent/10 text-accent"
-                    : "border-border text-text-secondary hover:bg-bg-warm",
-                )}
-              >
-                <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                Tanpa Efek
-              </button>
-              {PROPS.map((prop) => (
-                <button
-                  key={prop.id}
-                  type="button"
-                  onClick={() => setActiveProp(prop.id)}
-                  aria-pressed={activeProp === prop.id}
-                  className={cn(
-                    "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
-                    activeProp === prop.id
-                      ? "border-accent bg-accent/10 text-accent"
-                      : "border-border text-text-secondary hover:bg-bg-warm",
-                  )}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- SVG inline data-URI / aset lokal */}
-                  <img
-                    src={prop.src}
-                    alt=""
-                    aria-hidden
-                    className="h-5 w-5"
-                  />
-                  {prop.label}
-                </button>
-              ))}
-              {activeProp ? (
-                <button
-                  type="button"
-                  onClick={() => setActiveProp(null)}
-                  aria-label="Matikan efek"
-                  className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
-                >
-                  <X className="h-4 w-4" aria-hidden />
-                </button>
-              ) : null}
-            </div>
           ) : null}
 
           {/* Selektor Latar (task 011) — OFF sementara (feature-flags) */}
@@ -895,6 +836,7 @@ export function CameraStage({
 
           {/* Selektor Filter warna (3D LUT) — lazy-load .cube saat dipilih */}
           {phase === "live" ? (
+            <div className="w-full max-w-sm space-y-2">
             <div
               role="group"
               aria-label="Filter warna"
@@ -902,7 +844,7 @@ export function CameraStage({
             >
               <button
                 type="button"
-                onClick={() => setActiveLut(null)}
+                onClick={() => { setActiveLut(null); setReadyGrade(null); }}
                 aria-pressed={activeLut === null}
                 className={cn(
                   "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
@@ -918,7 +860,11 @@ export function CameraStage({
                 <button
                   key={lut.id}
                   type="button"
-                  onClick={() => setActiveLut(lut.id)}
+                  onClick={() => {
+                    setReadyGrade(null);
+                    setLutStrength(lut.strength);
+                    setActiveLut(lut.id);
+                  }}
                   aria-pressed={activeLut === lut.id}
                   className={cn(
                     "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
@@ -930,15 +876,37 @@ export function CameraStage({
                   {lut.label}
                 </button>
               ))}
+            </div>
               {activeLut ? (
-                <button
-                  type="button"
-                  onClick={() => setActiveLut(null)}
-                  aria-label="Matikan filter"
-                  className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
-                >
-                  <X className="h-4 w-4" aria-hidden />
-                </button>
+                <div className="flex items-center gap-2">
+                  <label className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-bg-card px-3 text-xs text-text-secondary">
+                    <span>Intensitas</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={Math.round(lutStrength * 100)}
+                      onChange={(event) => setLutStrength(Number(event.target.value) / 100)}
+                      aria-label="Intensitas filter"
+                      className="min-w-0 flex-1 accent-accent"
+                    />
+                    <output className="w-8 text-right font-mono text-[11px] text-text-primary">
+                      {Math.round(lutStrength * 100)}%
+                    </output>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveLut(null);
+                      setLutStrength(DEFAULT_LUT_STRENGTH);
+                    }}
+                    aria-label="Matikan filter"
+                    className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
               ) : null}
             </div>
           ) : null}

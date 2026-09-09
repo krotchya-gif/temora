@@ -69,7 +69,7 @@ const loadPhotoboothState = cache(
     slug: row.slug,
     theme: row.theme,
     frameUrl: row.frame_url,
-    watermarkText: row.watermark_text ?? "Keep it close. Keep it TEMORA.",
+    watermarkText: row.watermark_text,
     watermarkPosition: row.watermark_position ?? "bottom-right",
   };
 

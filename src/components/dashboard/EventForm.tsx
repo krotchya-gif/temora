@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { DEFAULT_WATERMARK_TEXT } from "@/lib/constants";
 
 export type EventFormValues = {
   name: string;
@@ -40,8 +41,6 @@ const POSITION_OPTIONS = [
   { value: "top-right", label: "Kanan atas" },
   { value: "top-left", label: "Kiri atas" },
 ];
-
-const DEFAULT_WATERMARK_TEXT = "Keep it close. Keep it TEMORA.";
 
 function toLocalInput(iso: string | undefined | null): string {
   if (!iso) return "";
@@ -119,7 +118,10 @@ export function EventForm({ mode, eventId, initial, tier }: EventFormProps) {
         endsAt: values.endsAt ? new Date(values.endsAt).toISOString() : undefined,
         location: values.location.trim() || undefined,
         isActive: values.isActive,
-        watermarkText: values.watermarkText.trim() || undefined,
+        watermarkText:
+          tier === "pro"
+            ? values.watermarkText.trim() || null
+            : undefined,
         watermarkPosition:
           values.watermarkPosition === "bottom-right"
             ? undefined
@@ -320,8 +322,8 @@ export function EventForm({ mode, eventId, initial, tier }: EventFormProps) {
           />
           <p className="mt-1 text-xs text-text-secondary">
             {watermarkLocked
-              ? "Teks & posisi watermark kustom tersedia di paket Pro."
-              : "Maksimal 60 karakter."}
+              ? "Watermark default wajib untuk Free dan Basic."
+              : "Kosongkan untuk foto tanpa watermark. Maksimal 60 karakter."}
           </p>
         </div>
         <div>

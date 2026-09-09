@@ -1,5 +1,6 @@
 export const SITE_NAME = "TEMORA";
 export const SITE_TAGLINE = "Keep the moments close.";
+export const DEFAULT_WATERMARK_TEXT = "Keep it close. Keep it TEMORA.";
 
 // Nilai token kanonik design-system §2.1 untuk konteks non-CSS (SVG/canvas)
 // yang tak bisa membaca CSS custom property. Dilarang menambah hex baru

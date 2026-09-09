@@ -3,9 +3,7 @@ import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removePrefix } from "@/lib/storage";
-import {
-  TIER_ACTIVE_EVENT_LIMITS,
-} from "@/lib/constants";
+import { TIER_ACTIVE_EVENT_LIMITS } from "@/lib/constants";
 import { eventUpdateSchema, firstIssueMessage } from "@/lib/validation/event";
 
 export const runtime = "nodejs";
@@ -87,6 +85,10 @@ export async function PUT(
         { status: 403 },
       );
     }
+
+    if (tier !== "pro") {
+      return NextResponse.json({ error: "Watermark default wajib aktif." }, { status: 403 });
+    }
   }
 
   // Aktivasi ulang → cek kuota event aktif per tier (kecuali event ini sendiri sudah aktif).
@@ -127,12 +129,16 @@ export async function PUT(
     ends_at: input.endsAt,
     location: input.location,
     is_active: input.isActive,
-    watermark_text: input.watermarkText,
+    watermark_text:
+      input.watermarkText === undefined
+        ? undefined
+        : input.watermarkText,
     watermark_position: input.watermarkPosition,
   };
   const changes = Object.fromEntries(
     Object.entries(dbInput).filter(([, v]) => v !== undefined),
   );
+
   const { error } = await supabase.from("events").update(changes).eq("id", event.id);
   if (error) {
     console.error("[events.update]", error.message);

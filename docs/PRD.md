@@ -69,7 +69,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
    - Subscription tier (detail enforcement: [database.md](database.md) §2.7):
      - **Free**: 1 event aktif (unlimited nonaktif), max 100 foto/event.
      - **Basic**: Rp 49K/bulan — 3 event aktif, 500 foto/event.
-     - **Pro**: Rp 299K/bulan — unlimited event aktif, unlimited foto (`photo_limit` NULL), custom watermark.
+     - **Pro**: Rp 299K/bulan — unlimited event aktif, unlimited foto (`photo_limit` NULL), custom watermark atau tanpa watermark.
    - `photo_limit` diset saat create event; tidak di-sync ulang saat upgrade tier.
    - Invoice + payment link via Xendit; webhook untuk konfirmasi.
 
@@ -88,7 +88,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 > dieksekusi.*
 
 8. **Fitur Moments** — caption/title per foto, guestbook digital. *(task 012, ⭐ differentiator)*
-9. **AR Filters & Virtual Props** — MediaPipe Tasks Vision (task 010).
+9. **AR Filters & Virtual Props** — dihapus dari scope produk (2026-09-09).
 10. **Green Screen** — background replacement client-side (segmentation) (task 011).
 11. **AI Frame Suggestions**.
 12. **Analytics Dashboard** — foto per meja, heatmap waktu puncak (task 014).
@@ -156,7 +156,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 
 1. Offline mode penuh untuk venue koneksinya sangat lemah — seberapa jauh harus didukung di MVP+? *(MVP: retry queue + `client_upload_id` dedup sudah cukup — lihat architecture.md §4.1)*
 2. Integrasi platform event management (WeddingWire, Eventbrite) — prioritas atau tidak?
-3. Monetisasi fitur tamu (AR filters premium per event vs bundle tier)?
+3. Monetisasi fitur tamu (fitur efek selain filter warna vs bundle tier)?
 
 ### Resolved (v1.2)
 

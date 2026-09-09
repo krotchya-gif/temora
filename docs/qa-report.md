@@ -1,5 +1,37 @@
 # QA Report — TEMORA MVP
 
+> **Catatan status terbaru (2026-09-09):** AR props/face landmark dihentikan
+> dan implementasinya dihapus dari produk. Catatan ronde lama di bawah tetap
+> dipertahankan sebagai histori QA; fitur yang masih tersedia adalah filter LUT.
+
+### Kurasi LUT dan koreksi renderer (2026-09-09)
+
+Katalog aktif dikurangi dari 43 menjadi 7 look (design-system §3.9); 36 aset
+publik dihapus dan tetap dapat dipulihkan lewat Git. Kurasi berdasarkan
+respons warna netral/warna kulit sintetis dan karakter look, belum merupakan
+uji preferensi pada potret nyata. Parser lama memasukkan angka komentar
+(misalnya copyright 2017) ke data dan salah menganggap ekspor Photoshop
+berurutan RBG. Keduanya dikoreksi ke parsing per baris dan red-fastest.
+Upload atlas memakai alignment 1 serta unit tekstur eksplisit; nilai di luar
+gamut diklem. Intensitas per look dan slider terpisah diterapkan; capture
+menunggu frame filter siap. Lint, typecheck saat build, build produksi dan
+64 unit test lulus. Smoke test WebGL Chromium menguji tujuh aset secara
+bergantian: output aktif berubah, intensitas nol identik dengan sumber
+(toleransi 1 byte), dan Monokrom menghasilkan RGB netral. Uji kamera fisik
+iOS/Android dan penilaian potret dalam beberapa pencahayaan masih pending.
+
+### Verifikasi dependency lokal (2026-09-09)
+
+Lockfile dilengkapi untuk dependency transitif `@emnapi` dan paket WASM
+terkait, kemudian `npm ci --no-audit --no-fund` berhasil memasang ulang
+dependency lokal. Instalasi sebelumnya tidak lengkap: ESLint kehilangan
+`es-abstract/2024/AddEntriesFromIterable` dan binary `next` tidak tersedia.
+Setelah perbaikan, lint, pemeriksaan TypeScript saat build, build produksi
+(35/35 halaman statis), dan 60/60 unit test lulus pada Node 26.7.0 / npm
+11.19.0. Ini verifikasi lokal; pipeline GitHub Actions (Node 20) belum
+dijalankan ulang. Warning konfigurasi Vite dan lockfile di luar repo masih
+muncul, tetapi tidak menggagalkan pemeriksaan.
+
 > Task 016 · diperbarui 2026-08-29 · Gate launch: 0 blocker / 0 critical terbuka.
 >
 > **Status lingkungan:** key Supabase/Xendit/WhatsApp di `.env.local` awalnya

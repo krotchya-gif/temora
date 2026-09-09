@@ -30,7 +30,7 @@ Halaman inti produk: tamu buka link → izin kamera → foto dengan frame overla
 ## 3. Non-Scope
 
 - ❌ Video/GIF mode (backlog).
-- ❌ AR filters (task 010, Phase 2).
+- ❌ AR filters/props (dihapus dari scope produk).
 - ❌ Galeri publik untuk tamu (tamu tidak bisa lihat foto orang lain — by design).
 
 ## 4. Desain

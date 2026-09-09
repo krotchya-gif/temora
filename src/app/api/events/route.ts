@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   TIER_ACTIVE_EVENT_LIMITS,
   TIER_PHOTO_LIMITS,
+  DEFAULT_WATERMARK_TEXT,
 } from "@/lib/constants";
 import { enqueueWa } from "@/lib/whatsapp";
 import { SLUG_PATTERN, eventCreateSchema, firstIssueMessage } from "@/lib/validation/event";
@@ -211,7 +212,10 @@ export async function POST(request: Request) {
       is_active: input.isActive !== false,
       expires_at: expiresAt,
       photo_limit: TIER_PHOTO_LIMITS[tier],
-      watermark_text: input.watermarkText,
+      watermark_text:
+        tier === "pro"
+          ? input.watermarkText ?? null
+          : DEFAULT_WATERMARK_TEXT,
       watermark_position: input.watermarkPosition,
     })
     .select("id")

@@ -79,7 +79,7 @@ Daftar → Buat Event → Upload Frame → Generate QR → Cetak → Hari-H → 
 
 1. **Daftar/Masuk** — `/signup` (nama, email, kata sandi ≥8). Konfirmasi email bila aktif. Tier awal **Free**: 1 event aktif, 100 foto/event.
 2. **Buat Event** — `/dashboard/events/new`: nama, slug kustom (immutable), tema, lokasi, tanggal, jumlah foto (ikut tier; Pro = unlimited).
-3. **Upload Frame** — PNG transparan (480–2560px) di halaman edit event. Frame otomatis jadi overlay hasil foto tamu + watermark "Keep it close. Keep it TEMORA." (Pro bisa kustom teks watermark & pilih posisi: kanan/kiri bawah atau atas).
+3. **Upload Frame** — PNG transparan (480–2560px) di halaman edit event. Frame otomatis jadi overlay hasil foto tamu + watermark "Keep it close. Keep it TEMORA.". Pro bisa kustom teks/posisi atau mematikan watermark dengan membiarkan teks kosong.
 4. **Generate QR Meja** — tab QR → pilih jumlah meja (maks 50) → tiap meja dapat QR unik yang mengarah ke `/p/[eventId]/[tableId]`.
 5. **Cetak Kartu** — `/print/[eventId]/qr` → lembar A4 grid 2×4 siap potong → taruh di meja tamu.
 6. **Aktifkan Event** — toggle status. Tamu hanya bisa akses event **aktif & belum expired** (TTL default 30 hari).
@@ -106,7 +106,7 @@ Scan QR → Consent → Kamera → Ambil Foto → Simpan/Bagikan
 4. Foto dikompres <800KB lalu tersimpan ke galeri vendor (jaringan lemah? foto masuk antrean offline dan terkirim otomatis saat online — tidak hilang).
 5. Preview instan → **Simpan ke HP** atau **Bagikan** (Web Share API ke WA/IG).
 6. Opsional: tulis **momen** ("Apa yang sedang kamu rasakan?") — caption/guestbook acara (maks 1/60 detik).
-7. Opsional: pakai **Filter warna** (43 look film — tab "Filter") sebelum capture. *Props AR & Latar (green screen) sementara dinonaktifkan (feature-flags, qa-report §6o) — balik flag saat diverifikasi ulang.*
+7. Opsional: pakai **Filter warna** (7 look kurasi — tab "Filter") sebelum capture. *AR props sudah dihapus; Latar (green screen) sementara dinonaktifkan melalui feature flag.*
 8. Selesai — tamu tidak meninggalkan data pribadi apa pun.
 
 Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilkan layar ramah.

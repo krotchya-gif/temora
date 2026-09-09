@@ -7,11 +7,13 @@ type GradeCanvasProps = {
   /** Sumber video mentah (video element atau kanvas green screen). */
   sourceRef: React.RefObject<HTMLVideoElement | HTMLCanvasElement | null>;
   activeLut: LutId;
+  strength: number;
   /** Kanvas hasil grade — dipakai capture supaya preview == hasil. */
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   /** Kamera depan → tampilan mirror (konsisten video & capture). */
   mirror: boolean;
   onFail: () => void;
+  onReady: () => void;
 };
 
 // Color grade via 3D LUT (WebGL) — lazy-load .cube saat tab "Filter" dibuka.
@@ -19,13 +21,22 @@ type GradeCanvasProps = {
 export function GradeCanvas({
   sourceRef,
   activeLut,
+  strength,
   canvasRef,
   mirror,
   onFail,
+  onReady,
 }: GradeCanvasProps) {
   const rafRef = useRef<number | null>(null);
   const failRef = useRef(onFail);
   const bufferRef = useRef<HTMLCanvasElement | null>(null);
+  const strengthRef = useRef(strength);
+  const readyRef = useRef(onReady);
+
+  useEffect(() => {
+    strengthRef.current = strength;
+    readyRef.current = onReady;
+  }, [strength, onReady]);
 
   useEffect(() => {
     failRef.current = onFail;
@@ -78,13 +89,20 @@ export function GradeCanvas({
           if (!bctx) return;
           bctx.drawImage(source, 0, 0, sw, sh);
 
-          renderer.render(buffer, sw, sh, out);
+          renderer.setStrength(strengthRef.current);
+          try {
+            renderer.render(buffer, sw, sh, out);
+            readyRef.current();
+          } catch {
+            disposed = true;
+            failRef.current();
+          }
         };
         rafRef.current = requestAnimationFrame(loop);
       })
       .catch(() => {
         // .cube gagal dimuat (jaringan/CDN) → fitur nonaktif tanpa crash.
-        failRef.current();
+        if (!disposed) failRef.current();
       });
 
     return () => {

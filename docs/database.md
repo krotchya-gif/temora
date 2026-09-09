@@ -55,7 +55,7 @@ CREATE TABLE events (
   ends_at TIMESTAMPTZ,                 -- informasi saja (tanggal acara); tidak memblokir akses tamu
   location TEXT,
   frame_url TEXT,                      -- PNG transparan di Storage
-  watermark_text TEXT DEFAULT 'Keep it close. Keep it TEMORA.',
+  watermark_text TEXT,                 -- NULL = tanpa watermark (khusus Pro)
   watermark_position TEXT NOT NULL DEFAULT 'bottom-right'
     CHECK (watermark_position IN ('bottom-right','bottom-left','top-right','top-left')), -- preset posisi (Pro)
   is_active BOOLEAN NOT NULL DEFAULT TRUE,

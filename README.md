@@ -49,7 +49,7 @@ Temora Photos/
     ├── 007-dashboard-events.md     CRUD events                     [MVP]
     ├── 008-xendit-billing.md       tier + invoice + webhook        [MVP]
     ├── 009-whatsapp-integration.md notifikasi WA                   [MVP]
-    ├── 010-ar-filters.md           props face-tracking             [Phase 2 ⚠️ OFF sementara, §6o]
+    ├── 010-ar-filters.md           AR props                         [dihapus dari scope]
     ├── 011-green-screen.md         background replacement          [Phase 2 ⚠️ OFF sementara, §6o]
     ├── 012-moments-feature.md      caption + guestbook digital     [Phase 2 ✅ 2026-08-28] ⭐
     ├── 013-sponsorship-slots.md    logo sponsor frame/QR           [Phase 3 ✅ 2026-08-28]
@@ -71,7 +71,7 @@ Temora Photos/
 
 > Docs inti saat ini **v1.2–1.3** (database/design-system/PRD v1.2; architecture v1.3 — Hostinger prototipe + SEO admin). Patch logika tier/limit/upload: README §Keputusan Terkunci #13–17.
 >
-> **Status fitur AI photobooth (2026-08-29, qa-report §6o–§6q):** filter warna 3D LUT **aktif** (43 look — 8 kurasi MIT + 35 RocketStock; manifest `public/luts/manifest.json`, `node scripts/sync-luts.mjs`). **Props AR & Green screen OFF sementara** (`src/lib/ai/feature-flags.ts`) sampai diverifikasi ulang — kode utuh, balik flag untuk uji.
+> **Status fitur AI photobooth:** filter warna 3D LUT **aktif** (7 look kurasi — lihat design-system §3.9; manifest `public/luts/manifest.json`, `node scripts/sync-luts.mjs`). AR props dihapus dari produk. Green screen tetap ada di kode namun OFF sementara melalui `src/lib/ai/feature-flags.ts`.
 
 ## Keputusan Terkunci
 
@@ -90,6 +90,7 @@ Temora Photos/
 11. Renewal subscription manual via WA reminder H-3/H-0 — tanpa auto-charge di MVP
 12. URL photobooth menerima UUID + slug kustom vendor; QR encode UUID sebagai bentuk kanonik
 13. `photo_limit`: NULL = unlimited (Pro); diset saat create event saja, tidak di-sync saat upgrade
+14. Watermark Free/Basic wajib default; Pro boleh tanpa watermark (`watermark_text = NULL`) atau memakai teks/posisi custom
 14. Free tier: max 1 event **aktif**, unlimited event nonaktif
 15. Downgrade ke Free: event aktif tetap jalan; block create/activate baru sampai ≤1 aktif
 16. `ends_at` informasi saja — tidak memblokir akses tamu

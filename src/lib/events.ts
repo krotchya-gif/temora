@@ -9,7 +9,7 @@ export type PhotoboothEvent = {
   slug: string;
   theme: string | null;
   frameUrl: string | null;
-  watermarkText: string;
+  watermarkText: string | null;
   watermarkPosition: WatermarkPosition;
 };
 

@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 const MAX_FRAME_BYTES = 8 * 1024 * 1024;
 const MIN_SIDE = 480;
 const MAX_SIDE = 2560;
+const FRAME_RATIO = 3 / 4;
+const FRAME_RATIO_TOLERANCE = 0.01;
 
 type PngInfo = {
   width: number;
@@ -113,6 +115,12 @@ export async function POST(
       {
         error: `Ukuran frame ${png.width}×${png.height}px. Pakai resolusi antara ${MIN_SIDE}px dan ${MAX_SIDE}px di sisi terpanjang, ya.`,
       },
+      { status: 415 },
+    );
+  }
+  if (Math.abs(png.width / png.height - FRAME_RATIO) > FRAME_RATIO_TOLERANCE) {
+    return NextResponse.json(
+      { error: `Rasio frame harus 3:4 (portrait). File kamu ${png.width}×${png.height}px, ya.` },
       { status: 415 },
     );
   }

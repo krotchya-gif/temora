@@ -5,11 +5,24 @@ import { usePathname } from "next/navigation";
 import { Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-// Install prompt PWA (architecture.md §13.3): muncul sekali — kalau user
-// dismiss ("Nanti Saja"), tersimpan di localStorage dan tidak muncul lagi.
+// Install prompt PWA: dismiss disimpan sebagai timestamp dan berlaku 24 jam.
 // Microcopy dari design-system §6.
 const DISMISSED_KEY = "temora_pwa_dismissed";
 const INSTALLED_KEY = "temora_pwa_installed";
+const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+function dismissedRecently(): boolean {
+  const raw = localStorage.getItem(DISMISSED_KEY);
+  if (!raw) return false;
+  const timestamp = Number(raw);
+  if (!Number.isFinite(timestamp)) {
+    localStorage.removeItem(DISMISSED_KEY);
+    return false;
+  }
+  if (Date.now() - timestamp < DISMISS_COOLDOWN_MS) return true;
+  localStorage.removeItem(DISMISSED_KEY);
+  return false;
+}
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -31,12 +44,12 @@ function isIos() {
 export function PwaInstallPrompt() {
   const pathname = usePathname();
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  // iOS tidak punya beforeinstallprompt: tampilkan instruksi manual sekali,
-  // selama belum pernah dismiss/terinstall (architecture.md §13.3).
+  // iOS tidak punya beforeinstallprompt: tampilkan instruksi manual setelah
+  // cooldown dismiss selesai.
   const [visible, setVisible] = useState(() => {
     if (typeof window === "undefined") return false;
     if (isStandalone()) return false;
-    if (localStorage.getItem(DISMISSED_KEY) || localStorage.getItem(INSTALLED_KEY)) return false;
+    if (dismissedRecently() || localStorage.getItem(INSTALLED_KEY)) return false;
     return isIos();
   });
 
@@ -48,7 +61,7 @@ export function PwaInstallPrompt() {
   }, []);
 
   useEffect(() => {
-    if (isStandalone() || localStorage.getItem(DISMISSED_KEY) || localStorage.getItem(INSTALLED_KEY)) {
+    if (isStandalone() || dismissedRecently() || localStorage.getItem(INSTALLED_KEY)) {
       return;
     }
 
@@ -80,6 +93,9 @@ export function PwaInstallPrompt() {
     const choice = await deferred.userChoice;
     if (choice.outcome === "accepted") {
       localStorage.setItem(INSTALLED_KEY, "1");
+      setVisible(false);
+    } else {
+      localStorage.setItem(DISMISSED_KEY, String(Date.now()));
       setVisible(false);
     }
   };

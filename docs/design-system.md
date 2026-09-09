@@ -203,27 +203,29 @@ Muncul sebelum kamera aktif:
 - Sponsor QR aktif (task 013): logo kecil (≤ 28px tinggi) di pojok kartu, tidak
   mengecilkan QR (QR tetap ≥ 4×4 cm).
 
-### 3.9 Props & Efek (task 010–011, Phase 2)
-- **Props AR**: **10 jenis** — 6 aset **Twemoji** (CC BY 4.0, `public/props/`,
-  kredit lut-credits.md) + 4 SVG custom token warna (topi fedora, telinga
-  kelinci, kumis, halo): topi, kacamata, bunga, mahkota, kelinci, kumis, pesta,
-  kacamata hitam, halo, pita. Selektor horizontal (pola frame selector §3.3),
-  label ikon + nama pendek. Props hanya tampil saat live preview (kanvas
-  capture ikut menggambar) — tidak ada prop "stuck" di strip.
+### 3.9 Efek (task 011, Phase 2)
 - **Green screen**: pilihan background bawaan (warm gradient via `color-mix`,
   pola titik, bingkai solid) + preview thumb. Efek menggantikan video area saat
   live; hasil capture = composited background + subjek + frame.
-- **Color filter (3D LUT)**: tab "Filter" terpisah — **43 look** (8 kurasi film
-  emulation: Portra Hangat, Fuji Lembut, Ektar Cerah, Velvia Pop, Ektachrome,
-  Tri-X Hitam Putih, Instan Retro, Vista 200 + 35 RocketStock), daftar dari
-  `public/luts/manifest.json` (sync-luts.mjs), render WebGL (HALD), aset
-  `.cube` (kredit: docs/research/lut-credits.md).
-- Ketiga fitur **lazy-load** (dynamic import MediaPipe / fetch `.cube`) —
-  tombol "Warna Asli" selalu tersedia (fallback, §8.3); "Tanpa Efek"/"Tanpa
-  Latar" hanya tampil saat fitur diaktifkan.
-- **Status 2026-08-29 (§6o)**: Props AR & Green screen **di-OFF sementara**
-  (`feature-flags.ts`) karena masih bermasalah di uji live; hanya **Filter
-  warna aktif** (43 look, §6q). Balik flag untuk uji ulang.
+- **Color filter (3D LUT), kurasi 2026-09-09**: tujuh look aktif: Lembut
+  (Portra, 55%), Hangat (Cobi, 70%), Merona (Remy, 50%), Sejuk (Lenox, 45%),
+  Vintage (Faded, 65%), Cerah (Ektar, 65%), Monokrom (Tri-X, 100%). Kurasi
+  memprioritaskan variasi karakter dan intensitas moderat untuk foto wajah;
+  bukan jaminan cocok di semua pencahayaan. Filter lain dihapus dari aset
+  publik. Manifest dan fallback memakai katalog kurasi yang sama; sync tidak
+  boleh mengaktifkan semua file secara otomatis. Nama ini sekaligus microcopy
+  pilihan filter. Intensitas 0–100% berada di baris terpisah yang selalu
+  terlihat. Memilih look baru memakai default look tersebut. Warna Asli
+  mengembalikan warna sumber. Capture menunggu frame filter siap.
+- **Frame event**: upload hanya menerima PNG transparan dengan rasio portrait
+  **3:4** (toleransi kecil untuk pembulatan dimensi), sehingga frame memenuhi
+  kanvas hasil tanpa letterbox atau crop tak terduga. Preview dan compositing
+  memakai posisi yang sama (`object-contain` di dalam kanvas 3:4).
+- Fitur AI yang tersisa **lazy-load** sesuai kebutuhan (MediaPipe untuk green
+  screen / fetch `.cube` untuk LUT). Tombol "Warna Asli" selalu tersedia
+  (fallback, §8.3); "Tanpa Latar" hanya tampil saat green screen diaktifkan.
+- **Status:** AR props dihapus dari produk. Green screen tetap di kode namun
+  OFF sementara (`feature-flags.ts`); Filter warna aktif.
 
 ### 3.10 Moments Feed (task 012)
 - Kartu moment: foto (bila ada) + caption italic display + timestamp kecil.
@@ -337,7 +339,7 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Install prompt PWA — judul | "Simpan TEMORA di layar utama" |
 | Install prompt PWA — deskripsi | "Buka cepat, momen tetap dekat. Tanpa perlu unduh aplikasi." |
 | Install prompt PWA — CTA | "Install" |
-| Install prompt PWA — dismiss | "Nanti Saja" |
+| Install prompt PWA — dismiss | "Nanti Saja" — sembunyikan selama 24 jam sejak dismiss |
 | Install prompt PWA — iOS | "Ketuk ikon bagikan lalu pilih 'Tambahkan ke Layar Utama'." |
 
 ---
@@ -360,7 +362,7 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Monogram | "T" dalam lingkaran, `dusty-blue` di atas `bg-base` |
 | Favicon | Monogram 32×32px |
 | OG Image | 1200×630px, warm ivory bg, tagline display font |
-| Watermark | Teks vendor/TEMORA, opacity rendah, hasil foto. Posisi preset 4 arah (bottom-right default / bottom-left / top-right / top-left) — `events.watermark_position`; teks & posisi kustom = fitur Pro (task 008) |
+| Watermark | Free/Basic wajib memakai "Keep it close. Keep it TEMORA." di kanan bawah. Pro dapat mengubah teks/posisi atau memilih tanpa watermark (`watermark_text = NULL`). |
 | PWA icons | Monogram "T" putih di lingkaran `dusty-blue` (#8FA8B8), latar penuh `bg-base` (#F9F6F1). `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png` (safe zone 80%), `apple-touch-icon-180.png`. Generate: `node scripts/gen-pwa-icons.mjs` |
 
 ---

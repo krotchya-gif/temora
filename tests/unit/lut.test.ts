@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import catalog from "../../src/lib/ai/lut-catalog.json";
 import { describe, expect, it } from "vitest";
 import { buildHald, parseCube } from "@/lib/ai/lut";
 
@@ -52,9 +54,9 @@ describe("parseCube", () => {
     expect(() => parseCube("LUT_3D_SIZE 4\n0 0 0\n1 1 1")).toThrow();
   });
 
-  it("mendeteksi urutan RBG dari header Adobe Photoshop", () => {
+  it("memakai red-fastest juga untuk header Photoshop", () => {
     const lut = parseCube(CUBE_2_RBG);
-    expect(lut.order).toBe("rbg");
+    expect(lut.order).toBe("bgr");
     // file b-major tetap "bgr"
     expect(parseCube(CUBE_2).order).toBe("bgr");
   });
@@ -79,7 +81,7 @@ describe("buildHald", () => {
     expect(hald.data[idx + 2]).toBe(255);
   });
 
-  it("urutan RBG (Adobe): indeks file = (r*size+b)*size+g", () => {
+  it("Photoshop tetap memakai indeks (b*size+g)*size+r", () => {
     const lut = parseCube(CUBE_2_RBG);
     const hald = buildHald(lut);
     // input (r,g,b) → baris file idx=(r*S+b)*S+g → texel atlas (gx=r, gy=g,
@@ -90,9 +92,36 @@ describe("buildHald", () => {
       return hald.data[(y * hald.width + x) * 3];
     };
     expect(at(1, 1, 1)).toBe(Math.round(0.7 * 255) - 1); // float32 0.7 → 178
-    expect(at(1, 0, 0)).toBe(Math.round(0.4 * 255)); // idx 4
-    expect(at(0, 0, 1)).toBe(Math.round(0.2 * 255)); // idx 2
-    expect(at(0, 1, 1)).toBe(Math.round(0.3 * 255)); // idx 3
-    expect(at(0, 1, 0)).toBe(Math.round(0.1 * 255)); // idx 1
+    expect(at(1, 0, 0)).toBe(Math.round(0.1 * 255)); // idx 4
+    expect(at(0, 0, 1)).toBe(Math.round(0.4 * 255)); // idx 2
+    expect(at(0, 1, 1)).toBe(Math.round(0.6 * 255)); // idx 3
+    expect(at(0, 1, 0)).toBe(Math.round(0.2 * 255)); // idx 1
+  });
+});
+
+describe("LUT regression", () => {
+  it("ignores numeric comments, titles, and trailing whitespace", () => {
+    const plain = parseCube(CUBE_2);
+    const noisy = parseCube('# Copyright 2017 RocketStock\nTITLE "Film 400 test"\n' + CUBE_2 + '\n # 2026\n');
+    expect(noisy.data).toEqual(plain.data);
+  });
+  it("rejects excess points, non-finite numbers, and unsupported domains", () => {
+    expect(() => parseCube(CUBE_2 + '\n0 0 0')).toThrow();
+    expect(() => parseCube(CUBE_2.replace('1.0 1.0 1.0', 'NaN 1 1'))).toThrow();
+    expect(() => parseCube(CUBE_2.replace('DOMAIN_MIN 0.0 0.0 0.0', 'DOMAIN_MIN -1 0 0'))).toThrow();
+  });
+  it("clamps out-of-gamut data instead of wrapping bytes", () => {
+    const lut = parseCube(CUBE_2);
+    lut.data[0] = -0.1; lut.data[1] = 1.1;
+    expect([...buildHald(lut).data.slice(0, 2)]).toEqual([0, 255]);
+  });
+  it("loads every curated asset with the correct first RGB triplet", () => {
+    for (const def of catalog) {
+      const text = readFileSync('public/luts/' + def.file, 'utf8');
+      const lut = parseCube(text);
+      const first = text.split('\n').map(l => l.split('#')[0].trim()).find(l => /^[-+.\d]/.test(l))!;
+      expect([...lut.data.slice(0, 3)]).toEqual([...Float32Array.from(first.split(/\s+/).map(Number))]);
+    }
+    expect(JSON.parse(readFileSync('public/luts/manifest.json', 'utf8'))).toEqual(catalog);
   });
 });

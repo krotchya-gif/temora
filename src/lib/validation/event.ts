@@ -26,8 +26,9 @@ const optionalWatermarkText = z
   .string()
   .trim()
   .max(60, "Teks watermark maksimal 60 karakter.")
+  .nullable()
   .optional()
-  .transform((v) => (v ? v : undefined));
+  .transform((v) => (v === null ? null : v ? v : undefined));
 
 export const eventCreateSchema = z.object({
   name: z.string().trim().min(3, "Nama event minimal 3 karakter.").max(80),

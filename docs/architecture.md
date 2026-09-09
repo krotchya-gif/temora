@@ -3,7 +3,7 @@
 *Versi: 1.3 · Tanggal: 2026-08-26 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
-*Patch 1.4 (2026-08-31): PWA ditambahkan — manifest + service worker statis (`public/sw.js`, tanpa integrasi build) + install prompt sekali-lihat (dismiss = tidak muncul lagi). Detail §13.*
+*Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
 
 ---
 
@@ -78,7 +78,7 @@
 | ZIP Download | `jszip` (npm) | Server-side streaming untuk volume besar |
 | Camera | WebRTC `getUserMedia` | Universal, tanpa install, mobile-first |
 | Charts (task 014) | — (grid CSS + agregat SQL) | Visualisasi ringan tanpa dependency — heatmap/bar dari div + token |
-| AI (task 010–011) | MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) | FaceLandmarker (props) + ImageSegmenter (green screen) — client-side, lazy-load |
+| AI (task 011) | MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) | ImageSegmenter (green screen) — client-side, lazy-load |
 | CI/CD | GitHub Actions | Lint + typecheck otomatis tiap push |
 | PWA | Manifest via `src/app/manifest.ts` + service worker statis `public/sw.js` (tanpa next-pwa/serwist) | Hostinger shared + build Webpack = hindari integrasi SW ke pipeline build; file statis di `public/` ikut Git deploy tanpa konfigurasi tambahan. Offline scope: shell + aset statis + LUT; API/auth tetap network-only |
 
@@ -123,13 +123,13 @@ src/
 │   ├── globals.css         # @theme tokens (design-system §2.5)
 │   └── layout.tsx          # root layout + fonts
 ├── components/
-│   ├── photobooth/         # CameraStage, ConsentScreen, PropOverlay, dst
+│   ├── photobooth/         # CameraStage, ConsentScreen, GradeCanvas, dst
 │   ├── gallery/            # PhotoGrid, Lightbox
 │   ├── dashboard/          # komponen halaman internal
 │   └── ui/                 # Button, Input, Card dasar (Radix + tokens)
 ├── lib/
 │   ├── supabase/           # client.ts · server.ts · admin.ts (§2)
-│   ├── ai/                 # segmentation.ts, faceLandmark.ts (Phase 2)
+│   ├── ai/                 # segmentation.ts, lut.ts (Phase 2)
 │   ├── xendit.ts · whatsapp.ts · validation/
 └── proxy.ts                # proteksi /dashboard/* (task 003; konvensi Next 16, ex-middleware.ts)
 
@@ -252,7 +252,10 @@ supabase/
 5. WebRTC: minta izin kamera → getUserMedia({ video: true, facingMode: 'user' })
 6. Canvas: tampilkan frame overlay (PNG transparan dari events.frame_url)
 7. Tamu tap "Ambil Momen"
-8. Canvas.toDataURL('image/jpeg', 0.85) → compress (<800KB)
+8. Canvas → JPEG adaptif (mulai quality 0.86, minimum normal 0.72); bila masih
+   >800KB, resolusi diturunkan bertahap sebelum quality diturunkan lebih jauh.
+   Target delivery tetap <800KB dengan sisi panjang minimum 960px untuk foto
+   tamu yang normal.
 9. POST /api/events/[eventId]/photos/upload (FormData: image + tableId + client_upload_id)
 10. Server (service role): validasi event aktif + limit + table_id milik event
     → dedup by client_upload_id (return existing jika sudah ada)
@@ -364,7 +367,7 @@ Detail aturan terkunci: `docs/database.md` §2.7. Ringkas:
 
 ## 8. AI Implementation Reference (Phase 2 Prep)
 
-> Bagian ini adalah **referensi implementasi aktif** (task 010–011, dikerjakan
+> Bagian ini adalah **referensi implementasi aktif** (task 011, dikerjakan
 > 2026-08-28). Semua model jalan client-side, lazy-load, dan wajib punya fallback
 > graceful. Detail task: `tasks/010-ar-filters.md`, `tasks/011-green-screen.md`.
 >
@@ -404,27 +407,9 @@ export async function createSegmenter() {
 ```
 
 ### 8.2 Face Landmark (AR Props)
-```typescript
-// src/lib/ai/faceLandmark.ts
-import { FilesetResolver, FaceLandmarker } from '@mediapipe/tasks-vision';
 
-export async function createFaceLandmarker() {
-  const vision = await FilesetResolver.forVisionTasks(
-    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
-  );
-  return FaceLandmarker.createFromOptions(vision, {
-    baseOptions: {
-      modelAssetPath:
-        'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task',
-      delegate: 'GPU',
-    },
-    runningMode: 'VIDEO',
-    numFaces: 4, // support group photo kecil
-  });
-}
-// landmark 10 (dahi) & 152 (dagu) → posisi/skala prop topi;
-// landmark 33 & 263 (mata) → rotasi & posisi kacamata
-```
+AR props dihapus dari scope produk pada 2026-09-09. Tidak ada model face
+landmark atau asset props yang dimuat oleh aplikasi.
 
 ### 8.3 Aturan Performa AI
 - Lazy-load: model hanya dimuat setelah tamu aktifkan fitur (dynamic import).
@@ -433,15 +418,14 @@ export async function createFaceLandmarker() {
 - Fallback: segmentasi gagal/gelap → tawarkan mode tanpa efek, jangan blok capture.
 
 ### 8.4 Color Filter (3D LUT, WebGL) — 2026-08-28
-- Aset: file `.cube` di `public/luts/` — **43 look** (8 film emulation
-  `LUT_3D_SIZE 13` dari YahiaAngelo/Film-Luts (MIT) + 35 RocketStock 32³,
-  dikonfirmasi owner). Kredit & lisensi: `docs/research/lut-credits.md`.
+- Aset: tujuh file `.cube` kurasi di `public/luts/`; daftar dan intensitas
+  mengikuti design-system §3.9, kredit di research/lut-credits.md.
 - Kenapa WebGL bukan `ctx.filter`: `CanvasRenderingContext2D.filter` **tidak
   didukung Safari iOS** → pakai HALD atlas (grid = ceil(sqrt(size)), 52×52 utk 13)
   + shader trilinear lookup (`src/lib/ai/lut.ts`).
 - Pipeline preview == hasil: `GradeCanvas` me-render sumber (video / kanvas green
   screen) → buffer 2D → WebGL LUT → output canvas; saat filter aktif, canvas ini
-  menjadi **sumber capture** (frame/watermark/props digambar setelahnya supaya
+  menjadi **sumber capture** (frame/watermark digambar setelahnya supaya
   tidak ikut di-grade, konsisten dengan preview DOM overlay).
 - Tab "Filter" (label design-system §6) lazy-load `.cube` saat dipilih; gagal
   (jaringan/WebGL mati) → fitur nonaktif tanpa crash.
@@ -459,12 +443,18 @@ export async function createFaceLandmarker() {
   `FALLBACK_LUTS`. `loadLut` memakai `encodeURIComponent` (nama file bisa
   berisi spasi/uppercase `.CUBE`). Kanvas grade/LUT dirender **sebelum** overlay
   frame di DOM (z-order — frame wajib di atas kanvas).
-- Urutan data `.cube` **per file berbeda** (§6q): file plugin Adobe Photoshop =
-  `(r·S+b)·S+g` (`order:"rbg"`, deteksi header), G'MIC/standar = `(b·S+g)·S+r`
-  (`bgr`). Salah urutan → channel tertukar → warna dominan hijau.
+- Koreksi 2026-09-09: semua aset `.cube` memakai indeks `(b·S+g)·S+r`
+  (red fastest), termasuk ekspor Photoshop. Asumsi §6q lama keliru.
+  Parser membaca per baris, membuang komentar sebelum angka, memvalidasi
+  jumlah titik tepat dan domain 0–1, serta menolak LUT 1D/domain lain.
+  Nilai atlas diklem ke 0–1 sebelum konversi byte; upload RGB memakai
+  `UNPACK_ALIGNMENT=1`. Katalog kurasi di `src/lib/ai/lut-catalog.json`
+  menghasilkan manifest publik dan menjadi fallback yang sama. Default
+  intensitas per look mengikuti design-system §3.9. Slider tidak memulai
+  ulang render loop; capture hanya aktif sesudah frame look terpilih siap.
 - Fitur yang di-OFF sementara via `src/lib/ai/feature-flags.ts` (§6o):
-  `ENABLE_PROPS=false`, `ENABLE_BACKGROUNDS=false` — kode utuh, balik flag
-  untuk uji ulang.
+  `ENABLE_BACKGROUNDS=false` — green screen masih tersedia di kode untuk uji
+  ulang.
 
 ---
 
@@ -493,7 +483,7 @@ Hosting:    Hostinger shared, Git deploy (prototipe; build --webpack)
 Payment:    Xendit (invoice, payment link, webhook)
 WhatsApp:   WhatsApp Business Cloud API
 Libraries:  qrcode, jszip, sharp, zod, @supabase/ssr
-Phase 2:    @mediapipe/tasks-vision (segmentation, face landmark) — task 010–011 aktif
+Phase 2:    @mediapipe/tasks-vision (segmentation) — task 011 tersedia, OFF sementara
 CI/CD:      GitHub Actions (lint/typecheck/build/test) + Hostinger Git auto-deploy
 Monitoring: UptimeRobot · cron-job.org (pinger cron) · log Node app hPanel
 ```
@@ -553,7 +543,7 @@ Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
 | Web App Manifest | `src/app/manifest.ts` | Route handler Next → `/manifest.webmanifest`. Name, icons 192/512, `display: standalone`, `theme_color` = token `--color-bg-base` (#F9F6F1) |
 | Icon set | `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png`, `apple-touch-icon-180.png` | Generate via `node scripts/gen-pwa-icons.mjs` (PNG encoder murni Node/zlib, tanpa dependency). Desain: monogram "T" putih di lingkaran `dusty-blue` (#8FA8B8) di atas `bg-base` — sesuai design-system §8 |
 | Service Worker | `public/sw.js` | Statis di `public/` → ikut Git deploy; **tanpa** integrasi Next build. Versi cache via konstanta `CACHE_VERSION`; update = bump versi |
-| Install Prompt | `src/components/PwaInstallPrompt.tsx` | Client component di root layout. Muncul **sekali** — kalau user dismiss, tersimpan di localStorage (`temora_pwa_dismissed`) dan tidak muncul lagi. Sembunyi di halaman photobooth (`/p/`) |
+| Install Prompt | `src/components/PwaInstallPrompt.tsx` | Client component di root layout. Kalau user dismiss, waktu disimpan di localStorage (`temora_pwa_dismissed`) dan prompt boleh muncul lagi setelah 24 jam. Sembunyi di halaman photobooth (`/p/`) |
 
 ### 13.2 Strategi Caching (`public/sw.js`)
 
@@ -566,7 +556,7 @@ Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
 ### 13.3 Install Prompt Behavior
 
 - Listen `beforeinstallprompt` (Chromium) — prompt browser asli, bukan UI tiruan.
-- **Dismiss** ("Nanti Saja") → `localStorage.setItem("temora_pwa_dismissed", ...)` → tidak muncul lagi di sesi/browser itu. Reset manual: hapus key localStorage.
+- **Dismiss** ("Nanti Saja") → simpan timestamp di `localStorage` → prompt disembunyikan selama 24 jam sejak dismiss, lalu boleh muncul lagi pada kunjungan berikutnya. Reset manual: hapus key localStorage.
 - `appinstalled` → sembunyikan prompt.
 - iOS (Safari, tanpa `beforeinstallprompt`): tampil instruksi "Tambahkan ke Layar Utama" (mobile-first — tamu banyak di iOS).
 - Tidak muncul di halaman photobooth `/p/*` (immersive full-screen) dan bila sudah `display-mode: standalone`.

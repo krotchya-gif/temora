@@ -1,27 +1,8 @@
-// Color filter via 3D LUT (task 010/011 — tab "Filter").
-//
-// Aset: file .cube di public/luts/ (43 filter: 8 film emulation MIT +
-// 35 RocketStock — lisensi dikonfirmasi owner, lihat docs/research/
-// lut-credits.md). Daftar dibaca RUNTIME dari public/luts/manifest.json
-// (generate: node scripts/sync-luts.mjs) — tambah filter tanpa ubah kode.
-// `ctx.filter` TIDAK didukung Safari iOS, jadi render memakai WebGL
-// (HALD atlas + trilinear lookup) supaya preview == hasil di semua HP.
-
+// Curated color looks. Rendering is shared by live preview and capture.
+import catalog from "./lut-catalog.json";
 export type LutId = string;
-
-export type LutDef = { id: LutId; label: string; file: string };
-
-// Fallback bila manifest gagal dimuat (offline / build lama) — 8 LUT kurasi.
-export const FALLBACK_LUTS: LutDef[] = [
-  { id: "portra-400", label: "Portra Hangat", file: "portra-400.cube" },
-  { id: "fuji-400h", label: "Fuji Lembut", file: "fuji-400h.cube" },
-  { id: "ektar-100", label: "Ektar Cerah", file: "ektar-100.cube" },
-  { id: "velvia-50", label: "Velvia Pop", file: "velvia-50.cube" },
-  { id: "ektachrome-vs", label: "Ektachrome", file: "ektachrome-vs.cube" },
-  { id: "trix-400", label: "Tri-X Hitam Putih", file: "trix-400.cube" },
-  { id: "fp100c", label: "Instan Retro", file: "fp100c.cube" },
-  { id: "agfa-vista-200", label: "Vista 200", file: "agfa-vista-200.cube" },
-];
+export type LutDef = { id: LutId; label: string; file: string; strength: number };
+export const FALLBACK_LUTS: LutDef[] = catalog;
 
 // Cache daftar filter (manifest di-fetch sekali).
 let lutsPromise: Promise<LutDef[]> | null = null;
@@ -34,65 +15,40 @@ export function getLuts(): Promise<LutDef[]> {
         if (!res.ok) throw new Error("manifest tidak tersedia");
         return res.json() as Promise<LutDef[]>;
       })
-      .then((data) => (Array.isArray(data) ? data : []))
+      .then(() => FALLBACK_LUTS)
       .catch(() => FALLBACK_LUTS);
   }
   return lutsPromise;
 }
 
-export type LutOrder = "bgr" | "rbg";
+export type ParsedLut = { size: number; order: "bgr"; data: Float32Array };
 
-export type ParsedLut = {
-  size: number;
-  /**
-   * Urutan indeks data di file .cube (§6q):
-   * - "bgr": standar Adobe — (b*size + g)*size + r (file G'MIC)
-   * - "rbg": plugin Adobe Photoshop — (r*size + b)*size + g (file RocketStock)
-   * Dideteksi dari baris header; salah urutan = channel tertukar → warna hijau.
-   */
-  order: LutOrder;
-  /** Data urutan file → [r,g,b] ternormalisasi 0–1. */
-  data: Float32Array;
-};
-
-/** Parse file .cube (3D) — abaikan baris komentar/header/1D. */
+/** Cube tables are red-fastest, including Photoshop exports. */
 export function parseCube(text: string): ParsedLut {
-  // Deteksi urutan dari header file (§6q): plugin Adobe Photoshop menulis
-  // indeks R-outer/B-middle/G-inner; file G'MIC (dan standar) b-major.
-  const order: LutOrder = text.includes(
-    "Adobe Photoshop Export Color Lookup Plugin",
-  )
-    ? "rbg"
-    : "bgr";
   let size = 0;
   const points: number[] = [];
-  const tokens = text.split(/[\s,]+/);
-  let i = 0;
-  while (i < tokens.length) {
-    const t = tokens[i];
-    if (t === "LUT_1D_SIZE") {
-      i += 2;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.split("#")[0].trim();
+    if (!line) continue;
+    const [key, ...values] = line.split(/\s+/);
+    if (key === "TITLE") continue;
+    if (key === "LUT_3D_SIZE") {
+      if (size || values.length !== 1) throw new Error("LUT tidak valid.");
+      size = Number(values[0]);
+      if (!Number.isInteger(size) || size < 2 || size > 64) throw new Error("LUT tidak valid.");
       continue;
     }
-    if (t === "LUT_3D_SIZE") {
-      size = Number(tokens[i + 1]);
-      i += 2;
+    if (key === "DOMAIN_MIN" || key === "DOMAIN_MAX") {
+      const expected = key === "DOMAIN_MIN" ? 0 : 1;
+      if (values.length !== 3 || values.some(v => Number(v) !== expected)) throw new Error("Domain LUT tidak didukung.");
       continue;
     }
-    if (t.startsWith("TITLE") || t.startsWith("DOMAIN_MIN") || t.startsWith("DOMAIN_MAX")) {
-      i += t.startsWith("TITLE") ? 2 : 4;
-      continue;
-    }
-    const n = Number(t);
-    if (!Number.isNaN(n)) {
-      points.push(n);
-    }
-    i += 1;
+    const rgb = [key, ...values].map(Number);
+    if (!size || rgb.length !== 3 || rgb.some(v => !Number.isFinite(v))) throw new Error("LUT tidak valid.");
+    points.push(...rgb);
   }
-  if (size < 2 || points.length < size * size * size * 3) {
-    throw new Error("LUT tidak valid.");
-  }
-  return { size, order, data: Float32Array.from(points.slice(0, size ** 3 * 3)) };
+  if (!size || points.length !== size ** 3 * 3) throw new Error("LUT tidak valid.");
+  return { size, order: "bgr", data: Float32Array.from(points) };
 }
 
 export type HaldData = { width: number; height: number; data: Uint8Array };
@@ -102,7 +58,7 @@ export type HaldData = { width: number; height: number; data: Uint8Array };
  * Shader memetakan cell (r,g,b) → posisi texel di atlas untuk trilinear.
  */
 export function buildHald(lut: ParsedLut): HaldData {
-  const { size, data, order } = lut;
+  const { size, data } = lut;
   const grid = Math.ceil(Math.sqrt(size));
   const width = grid * size;
   const height = grid * size;
@@ -112,17 +68,13 @@ export function buildHald(lut: ParsedLut): HaldData {
     const blockRow = Math.floor(bz / grid);
     for (let gy = 0; gy < size; gy++) {
       for (let gx = 0; gx < size; gx++) {
-        // Indeks sesuai urutan file (§6q): bgr (G'MIC/standar) vs rbg (Adobe).
-        const src =
-          (order === "rbg"
-            ? ((gx * size + bz) * size + gy)
-            : (bz * size + gy) * size + gx) * 3;
+        const src = ((bz * size + gy) * size + gx) * 3;
         const dx = blockCol * size + gx;
         const dy = blockRow * size + gy;
         const dst = (dy * width + dx) * 3;
-        out[dst] = Math.round(data[src] * 255);
-        out[dst + 1] = Math.round(data[src + 1] * 255);
-        out[dst + 2] = Math.round(data[src + 2] * 255);
+        out[dst] = Math.round(Math.max(0, Math.min(1, data[src])) * 255);
+        out[dst + 1] = Math.round(Math.max(0, Math.min(1, data[src + 1])) * 255);
+        out[dst + 2] = Math.round(Math.max(0, Math.min(1, data[src + 2])) * 255);
       }
     }
   }
@@ -145,7 +97,8 @@ export function loadLut(id: LutId): Promise<ParsedLut> {
           return res.text();
         });
       })
-      .then(parseCube);
+      .then(parseCube)
+      .catch((error) => { lutCache.delete(id); throw error; });
     lutCache.set(id, p);
   }
   return p;
@@ -161,12 +114,17 @@ void main() {
 
 // Trilinear lookup 3D LUT dari atlas HALD (g = ceil(sqrt(size))).
 const FRAGMENT_SHADER = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 varying vec2 vUv;
 uniform sampler2D uSrc;
 uniform sampler2D uLut;
 uniform float uSize;
 uniform float uGrid;
+uniform float uStrength;
 
 vec2 lutCoord(vec3 cell) {
   float bz = clamp(cell.z, 0.0, uSize - 1.0);
@@ -201,7 +159,8 @@ vec3 lutLookup(vec3 color) {
 
 void main() {
   vec4 src = texture2D(uSrc, vUv);
-  gl_FragColor = vec4(lutLookup(src.rgb), src.a);
+  vec3 graded = lutLookup(src.rgb);
+  gl_FragColor = vec4(mix(src.rgb, graded, clamp(uStrength, 0.0, 1.0)), src.a);
 }`;
 
 function compile(
@@ -229,6 +188,7 @@ export class LutRenderer {
   private buf: WebGLBuffer;
   private uSize: WebGLUniformLocation | null;
   private uGrid: WebGLUniformLocation | null;
+  private uStrength: WebGLUniformLocation | null;
   private canvas: HTMLCanvasElement;
 
   constructor() {
@@ -263,11 +223,14 @@ export class LutRenderer {
     );
     this.uSize = gl.getUniformLocation(program, "uSize");
     this.uGrid = gl.getUniformLocation(program, "uGrid");
+    this.uStrength = gl.getUniformLocation(program, "uStrength");
   }
 
   setLut(lut: ParsedLut): void {
     const gl = this.gl;
     const hald = buildHald(lut);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.bindTexture(gl.TEXTURE_2D, this.lutTex);
     // PENTING: pixelStorei adalah state GLOBAL konteks. Pastikan FLIP_Y=false
     // saat upload atlas (typed array) — render() men-scope FLIP_Y=true hanya
@@ -293,6 +256,12 @@ export class LutRenderer {
     gl.useProgram(this.program);
     gl.uniform1f(this.uSize, lut.size);
     gl.uniform1f(this.uGrid, Math.ceil(Math.sqrt(lut.size)));
+    gl.uniform1f(this.uStrength, 1);
+  }
+
+  setStrength(strength: number): void {
+    this.gl.useProgram(this.program);
+    this.gl.uniform1f(this.uStrength, Math.max(0, Math.min(1, strength)));
   }
 
   /** Render sumber (video/canvas 2D) yang sudah di-grade ke `out` canvas. */
@@ -316,6 +285,7 @@ export class LutRenderer {
     // FLIP_Y di-scope ketat: reset ke false setelah upload, supaya state
     // global tidak bocor ke upload lain (mis. atlas LUT di setLut — §6o).
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.srcTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
