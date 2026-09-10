@@ -36,5 +36,9 @@ export async function GET() {
     gscSiteUrl: get("tracking_gsc_site_url"),
   });
 
-  return NextResponse.json(result);
+  const hasProviderError = Boolean(result.errors?.length);
+  const hasProviderData = Boolean(result.data?.ga4 || result.data?.gsc);
+  const status = hasProviderError ? (hasProviderData ? 207 : 502) : 200;
+
+  return NextResponse.json(result, { status });
 }

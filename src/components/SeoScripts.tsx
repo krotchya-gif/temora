@@ -7,10 +7,15 @@ function safeId(value: string | undefined): string {
   return (value ?? "").replace(/[^A-Za-z0-9_-]/g, "");
 }
 
+function trackingId(value: string | undefined, pattern: RegExp): string {
+  const sanitized = safeId(value);
+  return pattern.test(sanitized) ? sanitized : "";
+}
+
 export async function SeoScripts() {
   const s = await getPublicSettings();
-  const ga4 = safeId(s.tracking_ga4_id);
-  const gtm = safeId(s.tracking_gtm_id);
+  const ga4 = trackingId(s.tracking_ga4_id, /^G-[A-Z0-9]+$/);
+  const gtm = trackingId(s.tracking_gtm_id, /^GTM-[A-Z0-9]+$/);
   const clarity = safeId(s.tracking_clarity_id);
   const pixel = safeId(s.tracking_pixel_id);
   const ads = safeId(s.tracking_ads_id);
@@ -65,14 +70,21 @@ export async function SeoScripts() {
           }}
         />
       ) : null}
-      {ga4 ? (
-        <Script
-          id="ga4-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4}');`,
-          }}
-        />
+      {ga4 && !gtm ? (
+        <>
+          <Script
+            id="ga4-loader"
+            src={`https://www.googletagmanager.com/gtag/js?id=${ga4}`}
+            strategy="afterInteractive"
+          />
+          <Script
+            id="ga4-init"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4}');`,
+            }}
+          />
+        </>
       ) : null}
       {clarity ? (
         <Script

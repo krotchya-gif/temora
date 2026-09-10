@@ -124,14 +124,14 @@ export function ShowcaseUploadForm() {
           accept="image/jpeg,image/png,.jpg,.jpeg,.png"
           multiple
           onChange={(e) => setFiles(e.target.files)}
-          className="w-full text-sm text-text-secondary file:mr-3 file:min-h-9 file:rounded-lg file:border-0 file:bg-bg-warm file:px-3 file:text-sm file:text-accent"
+          className="w-full text-sm text-text-secondary file:mr-3 file:min-h-11 file:rounded-lg file:border-0 file:bg-bg-warm file:px-3 file:text-sm file:text-accent"
         />
         <span className="block text-xs text-text-secondary">
           Foto iPhone format HEIC ubah dulu ke JPG ya.
         </span>
       </label>
-      <div className="flex items-end gap-3">
-        <Button type="submit" size="sm" disabled={busy}>
+      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end">
+        <Button className="w-full sm:w-auto" type="submit" size="sm" disabled={busy}>
           {busy ? "Mengunggah…" : "Upload"}
         </Button>
         {message && (

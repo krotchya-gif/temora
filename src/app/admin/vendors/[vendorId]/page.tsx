@@ -129,7 +129,7 @@ export default async function AdminVendorDetailPage({
             )}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
           <TierSelect
             vendorId={vendor.id}
             vendorName={vendor.name}
@@ -180,10 +180,23 @@ export default async function AdminVendorDetailPage({
         </div>
       </Card>
 
-      <Card className="overflow-x-auto p-0">
+      <Card className="p-0">
         <h2 className="border-b border-border px-4 py-3 font-display text-xl text-text-primary">
           Events
         </h2>
+        <div className="divide-y divide-border lg:hidden">
+          {eventList.map((event) => (
+            <article key={event.id} className="space-y-3 p-4">
+              <div><Link href={`/admin/events/${event.id}`} className="font-medium text-text-primary hover:text-accent hover:underline">{event.name}</Link><p className="break-all text-xs text-text-secondary">/{event.slug}</p></div>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-text-secondary">
+                <span>{event.photos?.[0]?.count ?? 0} foto · expired {formatDate(event.expires_at) ?? "—"}</span>
+                <EventStatusButton eventId={event.id} eventName={event.name} isActive={event.is_active} />
+              </div>
+            </article>
+          ))}
+          {eventList.length === 0 ? <p className="p-8 text-center text-sm text-text-secondary">Belum ada event.</p> : null}
+        </div>
+        <div className="hidden overflow-x-auto lg:block">
         <table className="w-full min-w-[600px] text-left text-sm">
           <tbody>
             {eventList.map((event) => (
@@ -221,12 +234,24 @@ export default async function AdminVendorDetailPage({
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
-      <Card className="overflow-x-auto p-0">
+      <Card className="p-0">
         <h2 className="border-b border-border px-4 py-3 font-display text-xl text-text-primary">
           Subscription
         </h2>
+        <div className="divide-y divide-border lg:hidden">
+          {(subscriptions ?? []).map((sub) => (
+            <article key={sub.id} className="space-y-3 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2"><span className="capitalize text-text-primary">{sub.tier}</span><span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${SUB_BADGE[sub.status] ?? SUB_BADGE.pending}`}>{sub.status}</span></div>
+              <p className="font-mono text-sm text-text-primary">Rp {sub.amount_idr.toLocaleString("id-ID")}</p>
+              <p className="text-xs text-text-secondary">{formatDate(sub.period_start) ?? "—"} → {formatDate(sub.period_end) ?? "—"}</p>
+            </article>
+          ))}
+          {(subscriptions ?? []).length === 0 ? <p className="p-8 text-center text-sm text-text-secondary">Belum pernah berlangganan.</p> : null}
+        </div>
+        <div className="hidden overflow-x-auto lg:block">
         <table className="w-full min-w-[600px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
@@ -267,6 +292,7 @@ export default async function AdminVendorDetailPage({
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">

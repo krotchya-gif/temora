@@ -138,7 +138,7 @@ export function ShowcaseList({ items }: ShowcaseListProps) {
                 type="button"
                 onClick={() => void save(item)}
                 disabled={busyId === item.id}
-                className="min-h-9 rounded-lg border border-accent/30 px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/10 disabled:opacity-50"
+                className="min-h-11 rounded-lg border border-accent/30 px-3 text-xs font-medium text-accent transition-colors hover:bg-accent/10 disabled:opacity-50"
               >
                 Simpan
               </button>

@@ -23,7 +23,7 @@ type Stats = {
       topQueries: { query: string; clicks: number }[];
     } | null;
   };
-  error?: string;
+  errors?: Array<{ provider: "ga4" | "gsc"; status: number | null; message: string }>;
 };
 
 // Tab Analytics (referensi seo-admin-reference.md §4.2): ID tracking publik
@@ -36,19 +36,32 @@ export function AnalyticsTab({ settings, set, gaConfigured }: Props) {
 
   async function saveServiceAccount() {
     setSaStatus("saving");
-    const res = await fetch("/api/admin/secrets", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: "ga_service_account", value: saValue }),
-    });
-    setSaStatus(res.ok ? "saved" : "error");
+    try {
+      const res = await fetch("/api/admin/secrets", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "ga_service_account", value: saValue }),
+      });
+      setSaStatus(res.ok ? "saved" : "error");
+    } catch {
+      setSaStatus("error");
+    }
   }
 
   async function loadStats() {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/analytics/stats");
-      setStats((await res.json()) as Stats);
+      const body = (await res.json().catch(() => null)) as Stats | null;
+      setStats(body ?? {
+        configured: true,
+        errors: [{ provider: "ga4", status: res.status, message: "Respons statistik tidak valid." }],
+      });
+    } catch {
+      setStats({
+        configured: true,
+        errors: [{ provider: "ga4", status: null, message: "Tidak dapat terhubung ke server." }],
+      });
     } finally {
       setLoading(false);
     }
@@ -96,10 +109,10 @@ export function AnalyticsTab({ settings, set, gaConfigured }: Props) {
               className={inputCls}
               value={settings.tracking_gsc_site_url ?? ""}
               onChange={(e) => set("tracking_gsc_site_url", e.target.value)}
-              placeholder="sc-domain:temora.id"
+              placeholder="https://temora.site/"
             />
           </Field>
-          <Field label="Verifikasi GSC (meta tag)" hint="sc-domain:… — dipasang ke &lt;head&gt;.">
+          <Field label="Verifikasi GSC (meta tag)" hint="Isi nilai content dari meta google-site-verification.">
             <input
               className={inputCls}
               value={settings.gsc_verification ?? ""}
@@ -114,7 +127,7 @@ export function AnalyticsTab({ settings, set, gaConfigured }: Props) {
         <h2 className="font-display text-xl text-text-primary">Google API (Angka Real)</h2>
         <p className="text-sm text-text-secondary">
           Service account JSON ({gaConfigured ? "sudah terpasang ✓" : "belum terpasang"}) — disimpan
-          terenkripsi di server, tidak pernah tampil lagi setelah simpan.
+          di tabel server khusus tanpa akses publik dan tidak pernah tampil lagi setelah simpan.
         </p>
         <textarea
           className={textAreaCls}
@@ -122,8 +135,8 @@ export function AnalyticsTab({ settings, set, gaConfigured }: Props) {
           onChange={(e) => setSaValue(e.target.value)}
           placeholder='{"type": "service_account", "client_email": "…", "private_key": "…"}'
         />
-        <div className="flex items-center gap-3">
-          <Button size="sm" onClick={saveServiceAccount} disabled={saStatus === "saving"}>
+        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <Button className="w-full sm:w-auto" size="sm" onClick={saveServiceAccount} disabled={saStatus === "saving"}>
             {saStatus === "saving" ? "Menyimpan…" : "Simpan Service Account"}
           </Button>
           {saStatus === "saved" ? <p className="text-sm text-success">Tersimpan.</p> : null}
@@ -135,16 +148,34 @@ export function AnalyticsTab({ settings, set, gaConfigured }: Props) {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button size="sm" variant="secondary" onClick={loadStats} disabled={loading}>
+        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <Button className="w-full sm:w-auto" size="sm" variant="secondary" onClick={loadStats} disabled={loading}>
             {loading ? "Memuat…" : "Muat Statistik (7 hari)"}
           </Button>
         </div>
 
-        {stats?.error ? (
-          <p className="text-sm text-warning">{stats.error}</p>
+        {stats?.errors?.length ? (
+          <div role="alert" className="space-y-1 rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
+            {stats.errors.map((error) => (
+              <p key={`${error.provider}-${error.status ?? "network"}`}>
+                <span className="font-medium uppercase">{error.provider}</span>
+                {error.status ? ` (${error.status})` : ""}: {error.message}
+              </p>
+            ))}
+          </div>
         ) : null}
-        {stats?.data ? (
+        {stats && !stats.configured ? (
+          <p role="status" className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
+            Service account belum terpasang. Simpan JSON service account terlebih dahulu.
+          </p>
+        ) : null}
+        {loading ? (
+          <div aria-label="Memuat statistik" className="grid gap-3 sm:grid-cols-2">
+            <div className="h-32 animate-pulse rounded-lg bg-bg-warm motion-reduce:animate-none" />
+            <div className="h-32 animate-pulse rounded-lg bg-bg-warm motion-reduce:animate-none" />
+          </div>
+        ) : null}
+        {!loading && stats?.data ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-bg-warm p-3 text-sm">
               <p className="font-display text-base text-text-primary">GA4</p>

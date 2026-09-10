@@ -41,7 +41,7 @@ export function TierSelect({ vendorId, vendorName, currentTier }: TierSelectProp
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
       <select
         aria-label={`Paket ${vendorName}`}
         value={value}

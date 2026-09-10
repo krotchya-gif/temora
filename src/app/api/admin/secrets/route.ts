@@ -13,6 +13,12 @@ const putSchema = z.object({
   value: z.string().max(20_000),
 });
 
+const serviceAccountSchema = z.object({
+  type: z.literal("service_account"),
+  client_email: z.string().email(),
+  private_key: z.string().startsWith("-----BEGIN PRIVATE KEY-----"),
+});
+
 // PUT /api/admin/secrets — simpan rahasia (mis. service account GA4/GSC).
 // Nilai TIDAK PERNAH dikembalikan ke client (hanya status configured).
 export async function PUT(request: Request) {
@@ -34,25 +40,38 @@ export async function PUT(request: Request) {
   if (key === "ga_service_account") {
     if (value.trim() === "") {
       // Kosong = hapus konfigurasi.
-      await createAdminClient()
+      const { error } = await createAdminClient()
         .from("admin_secrets")
         .delete()
         .eq("key", key);
+      if (error) {
+        return NextResponse.json({ error: "Secret gagal dihapus." }, { status: 500 });
+      }
     } else {
+      let serviceAccount: unknown;
       try {
-        JSON.parse(value);
+        serviceAccount = JSON.parse(value);
       } catch {
         return NextResponse.json(
           { error: "Service account harus berupa JSON valid." },
           { status: 400 },
         );
       }
-      await createAdminClient().from("admin_secrets").upsert({
+      if (!serviceAccountSchema.safeParse(serviceAccount).success) {
+        return NextResponse.json(
+          { error: "JSON bukan kredensial service account Google yang lengkap." },
+          { status: 400 },
+        );
+      }
+      const { error } = await createAdminClient().from("admin_secrets").upsert({
         key,
         value: value.trim(),
         updated_by: actor.id,
         updated_at: new Date().toISOString(),
       });
+      if (error) {
+        return NextResponse.json({ error: "Secret gagal disimpan." }, { status: 500 });
+      }
     }
   }
 

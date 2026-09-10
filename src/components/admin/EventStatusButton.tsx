@@ -43,7 +43,7 @@ export function EventStatusButton({
       type="button"
       onClick={() => void toggle()}
       disabled={busy}
-      className={`min-h-9 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:opacity-50 ${
+      className={`min-h-11 rounded-lg px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:opacity-50 ${
         isActive
           ? "border border-danger/40 text-danger hover:bg-danger/10"
           : "border border-success/40 text-success hover:bg-success/10"

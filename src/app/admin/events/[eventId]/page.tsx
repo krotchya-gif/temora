@@ -104,7 +104,7 @@ export default async function AdminEventDetailPage({
                 {photo.width ?? "?"}×{photo.height ?? "?"}
               </div>
             )}
-            <div className="flex items-center justify-between gap-2 p-3">
+            <div className="flex flex-col items-stretch gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="truncate text-xs text-text-secondary">
                 {photo.tables?.label ?? "—"}
               </p>

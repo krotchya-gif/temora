@@ -418,7 +418,7 @@ diekspos sebagai URL langsung.
 
 | Tabel/Kolom | Akses | Isi |
 |---|---|---|
-| `platform_settings` (+key SEO/tracking) | Public read (memang untuk halaman publik) | `seo_title/description/keywords/og_image`, `robots_content`, `sitemap_content`, `ai_crawlers_block` (koma), `geo_lat/lng`, `tracking_ga4_id/gtm_id/clarity_id/pixel_id/ads_id/tiktok_id`, `gsc_verification`, `tracking_ga4_property_id`, `tracking_gsc_site_url` |
+| `platform_settings` (+key SEO/tracking) | Public read (memang untuk halaman publik) | `seo_title/description/keywords/og_image`, `robots_content`, `sitemap_content`, `ai_crawlers_block` (koma), `geo_lat/lng`, `tracking_ga4_id/gtm_id/clarity_id/pixel_id/ads_id/tiktok_id`, `gsc_verification`, `tracking_ga4_property_id`, `tracking_gsc_site_url` (identifier GSC persis; produksi: `https://temora.site/`) |
 | `admin_secrets` | **Tanpa public read** — hanya service role + API superadmin | `ga_service_account` (JSON service account GA4/GSC) — **rahasia, dilarang keluar ke client** |
 | `event_logs` | Anon **insert-only** (`status='pending'`); read/update superadmin | Event konversi marketing: `wa_click`, `upgrade_click`, `payment_success` |
 | `utm_visits` | Anon insert-only | Kunjungan kampanye `?utm_*` |

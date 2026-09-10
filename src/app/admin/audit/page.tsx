@@ -63,7 +63,23 @@ export default async function AdminAuditPage({
         </p>
       </div>
 
-      <Card className="overflow-x-auto p-0">
+      <div className="space-y-3 lg:hidden">
+        {rows.map((row) => (
+          <Card key={row.id} className="space-y-3 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${ACTION_BADGE[row.action] ?? "bg-bg-warm text-text-secondary"}`}>{row.action}</span>
+              <time className="text-xs text-text-secondary">{formatDate(row.created_at)}</time>
+            </div>
+            <dl className="grid gap-2 text-xs text-text-secondary sm:grid-cols-2">
+              <div><dt>Aktor</dt><dd className="break-all text-text-primary">{row.actor_email}</dd></div>
+              <div><dt>Target</dt><dd className="break-all font-mono text-text-primary">{row.target_type}{row.target_id ? ` · ${row.target_id}` : ""}</dd></div>
+            </dl>
+          </Card>
+        ))}
+        {rows.length === 0 ? <Card className="p-8 text-center text-sm text-text-secondary">Belum ada aksi tercatat.</Card> : null}
+      </div>
+
+      <Card className="hidden overflow-x-auto p-0 lg:block">
         <table className="w-full min-w-[680px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
@@ -124,11 +140,11 @@ export default async function AdminAuditPage({
       </Card>
 
       {totalPages > 1 && (
-        <nav aria-label="Navigasi halaman" className="flex items-center justify-between">
+        <nav aria-label="Navigasi halaman" className="flex items-center justify-between gap-2">
           {page > 1 ? (
             <Link
               href={`/admin/audit?page=${page - 1}`}
-              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+              className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-dusty-blue hover:bg-bg-warm"
             >
               ← Sebelumnya
             </Link>
@@ -141,7 +157,7 @@ export default async function AdminAuditPage({
           {page < totalPages ? (
             <Link
               href={`/admin/audit?page=${page + 1}`}
-              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+              className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-dusty-blue hover:bg-bg-warm"
             >
               Berikutnya →
             </Link>

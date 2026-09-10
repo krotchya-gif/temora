@@ -487,3 +487,39 @@ yang gagal hanyalah render setelah refresh; kini aman.
 4. Reduced-motion: global rule globals.css mematikan keduanya otomatis;
    drag/inersia tetap fungsional.
 5. e2e rope.spec wajib tetap pass (sway layer dalam, tak ganggu trackX).
+
+## Ronde Admin Mobile & Analytics (2026-09-10)
+
+### Perubahan
+
+1. Admin memakai sidebar tetap di desktop dan hamburger drawer di mobile/tablet;
+   drawer memiliki backdrop, focus trap, Escape/close, scroll lock, dan restore focus.
+2. Daftar vendor, event, audit, subscription, Event Monitor, dan laporan UTM
+   memakai kartu berlabel di bawah breakpoint `lg`; tabel dipertahankan di desktop.
+3. Touch target aksi/filter/pagination minimum 44px; action row membungkus pada
+   viewport sempit. Tab SEO horizontal-scroll dan state tersimpan di query URL.
+4. Panel async membedakan loading, empty, error + retry, dan success; retry event
+   memiliki busy-state per baris.
+5. Query vendor dibatasi ke vendor pada halaman aktif, bukan seluruh tabel event.
+6. Validasi server diperketat untuk GA4/GTM/property ID/GSC URL dan struktur JSON
+   service account; kegagalan write database menghasilkan 500.
+7. GA4 dan GSC dipanggil independen. Endpoint analytics memberi 200 bila penuh,
+   207 bila satu provider gagal, dan 502 bila seluruh provider gagal. Error tidak
+   di-cache; hasil sukses di-cache 5 menit per konfigurasi.
+8. Total GSC memakai query agregat tanpa dimensi; top query memakai request kedua.
+9. GTM menjadi loader tracking utama. Loader `gtag.js` langsung hanya dipakai
+   bila Measurement ID valid dan GTM tidak dikonfigurasi.
+10. GSC produksi diselaraskan dari Domain Property yang tidak tersedia
+    (`sc-domain:temora.site`) ke URL-prefix yang dimiliki service account
+    (`https://temora.site/`).
+
+### Bukti verifikasi
+
+- `https://temora.site/` → HTTP 200; container GTM ditemukan di HTML produksi.
+- GA4 Data API → HTTP 200 dan mengembalikan rows.
+- GSC `sites.list` → HTTP 200, `https://temora.site/` berlevel `siteOwner`.
+- GSC Search Analytics → HTTP 200; rows kosong diterima sebagai data belum tersedia,
+  bukan kegagalan koneksi.
+- `npm run typecheck` ✓; `npm run lint` ✓; 64 unit tests ✓; production build ✓.
+- Playwright mengenali 8 skenario termasuk admin viewport 360px dan desktop;
+  eksekusi live skenario admin membutuhkan `E2E_ADMIN_EMAIL/PASSWORD`.

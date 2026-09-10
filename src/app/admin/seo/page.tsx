@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SeoAdminHub } from "@/components/admin/seo/SeoAdminHub";
+import { SeoAdminHub, type TabKey } from "@/components/admin/seo/SeoAdminHub";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
@@ -30,7 +30,15 @@ const KEYS = [
 
 // Halaman hub 5 tab (referensi docs/research/seo-admin-reference.md).
 // Guard: proxy /admin/:path* + layout requireSuperAdminRsc + tiap API.
-export default async function AdminSeoPage() {
+export default async function AdminSeoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const initialTab: TabKey = ["seo", "analytics", "marketing", "events", "utm"].includes(tab ?? "")
+    ? (tab as TabKey)
+    : "seo";
   const admin = createAdminClient();
   const [{ data: rows }, { data: secrets }] = await Promise.all([
     admin.from("platform_settings").select("key, value").in("key", KEYS),
@@ -49,7 +57,12 @@ export default async function AdminSeoPage() {
           Meta tag, tracking script, kampanye UTM, dan monitoring konversi — dikelola level superadmin.
         </p>
       </div>
-      <SeoAdminHub initial={initial} gaConfigured={gaConfigured} />
+      <SeoAdminHub
+        initial={initial}
+        gaConfigured={gaConfigured}
+        initialTab={initialTab}
+        baseUrl={(process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "")}
+      />
     </div>
   );
 }

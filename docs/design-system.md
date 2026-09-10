@@ -274,6 +274,28 @@ Frame selector (jika >1 frame): horizontal scroll di atas preview.
 ```
 Max width konten `max-w-6xl`; padding `px-4 sm:px-6 lg:px-8`.
 
+### Admin (sidebar desktop, drawer mobile)
+
+- Desktop (`lg` ke atas): sidebar tetap selebar `w-64`; konten memakai offset
+  `lg:pl-64` dan tetap dibatasi `max-w-6xl`.
+- Mobile/tablet: navigasi utama tidak boleh menjadi baris link horizontal.
+  Gunakan header sticky ringkas (wordmark + badge Admin) dan tombol hamburger
+  minimal 44×44px yang membuka drawer dari kiri.
+- Drawer wajib memiliki backdrop, status `aria-expanded`, label dialog, focus
+  management, tutup lewat tombol X/Escape/pilih menu, serta mengunci scroll body
+  selama terbuka. Transisi dimatikan pada `prefers-reduced-motion`.
+- Tombol keluar ditempatkan di bagian bawah sidebar/drawer agar daftar menu tetap
+  mudah dipindai pada viewport 360px.
+- Daftar data admin memakai kartu berlabel pada viewport di bawah `lg`; tabel
+  penuh hanya tampil saat ruang horizontal cukup. Mobile tidak mengandalkan
+  horizontal scroll untuk aksi utama.
+- Tab SEO tetap satu baris dan dapat di-scroll horizontal dengan indikator tab
+  aktif; pilihan tab tersimpan pada query URL agar reload/back tetap konsisten.
+- Semua filter, pagination, dan tombol aksi admin memiliki touch target minimal
+  44px (`min-h-11`). Baris aksi harus membungkus (`flex-wrap`) pada layar sempit.
+- Async panel wajib membedakan loading, error + retry, empty, dan success; tombol
+  yang sedang mengirim request tidak dapat ditekan berulang.
+
 ---
 
 ## 5. Motion

@@ -70,6 +70,18 @@ const ID_PATTERN = /^[A-Za-z0-9_-]{4,64}$/;
 const COORD_PATTERN = /^-?\d+(\.\d+)?$/;
 
 function validateValue(key: string, value: string): string | null {
+  if (key === "tracking_ga4_id" && value && !/^G-[A-Z0-9]+$/i.test(value)) {
+    return "GA4 Measurement ID harus berformat G-XXXX.";
+  }
+  if (key === "tracking_gtm_id" && value && !/^GTM-[A-Z0-9]+$/i.test(value)) {
+    return "GTM Container ID harus berformat GTM-XXXX.";
+  }
+  if (key === "tracking_ga4_property_id" && value && !/^\d+$/.test(value)) {
+    return "GA4 Property ID harus berupa angka.";
+  }
+  if (key === "tracking_gsc_site_url" && value && !/^(sc-domain:[a-z0-9.-]+|https?:\/\/[^\s]+)$/i.test(value)) {
+    return "GSC Site URL harus berupa sc-domain:domain.tld atau URL lengkap.";
+  }
   if (URL_KEYS.has(key)) {
     if (value && !/^https?:\/\//.test(value)) {
       return "URL harus dimulai http:// atau https://";
@@ -127,7 +139,7 @@ export async function PATCH(request: Request) {
   }
 
   const admin = createAdminClient();
-  await Promise.all(
+  const results = await Promise.all(
     entries.map(([key, value]) =>
       admin.from("platform_settings").upsert({
         key,
@@ -137,6 +149,10 @@ export async function PATCH(request: Request) {
       }),
     ),
   );
+  const failed = results.find((result) => result.error)?.error;
+  if (failed) {
+    return NextResponse.json({ error: "Pengaturan gagal disimpan." }, { status: 500 });
+  }
 
   await logAdminAction({
     actorId: actor.id,

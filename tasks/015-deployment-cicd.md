@@ -23,7 +23,7 @@ Pipeline rilis yang aman dan terpantau: tiap push tervalidasi otomatis, producti
 - **Hostinger shared — Git deploy (prototipe live)**: repo GitHub `main`
   auto-deploy ke hPanel; env vars terpasang di pengaturan Node app (semua key
   task 001 + `CRON_SECRET`). Build = `npm run build` (`--webpack`).
-- **Domain** `chirpek.site` (prototipe) / `temora.id` (target produksi) + SSL hPanel.
+- **Domain produksi** `temora.site` + SSL hPanel.
 - **GitHub Actions CI** tiap push/PR:
   - `lint` (ESLint) + `typecheck` (tsc) + `build` + unit test (`npm run test`).
   - Gagal CI = blok merge ke `main`.
@@ -50,11 +50,11 @@ Pipeline rilis yang aman dan terpantau: tiap push tervalidasi otomatis, producti
 
 ## 4. Desain
 
-### 4.1 Environment matrix (prototipe)
+### 4.1 Environment matrix
 | Env | Deploy | Supabase | Domain |
 |---|---|---|---|
-| Prototipe | `main` → Hostinger Git | Production project | `chirpek.site` |
-| (Launch) | re-eval Vercel/VPS | Production project | `temora.id` |
+| Produksi aktif | `main` → Hostinger Git | Production project | `temora.site` |
+| Opsi berikutnya | re-eval Vercel/VPS | Production project | `temora.site` |
 
 Secret webhook Xendit & WhatsApp berbeda per env — jangan pernah share.
 
@@ -65,7 +65,7 @@ Secret webhook Xendit & WhatsApp berbeda per env — jangan pernah share.
 [ ] Custom SMTP email verifikasi terpasang & teruji kirim-masuk
 [ ] Monitoring storage Supabase aktif (alert threshold ≥ 80%)
 [ ] Migrasi production pushed & diverifikasi (row count, RLS spot check)
-[ ] Webhook Xendit production mengarah ke temora.id/api/billing/webhook
+[ ] Webhook Xendit production mengarah ke https://temora.site/api/billing/webhook
 [ ] WA template produksi terdaftar (task 009 §7)
 [ ] Cron TTL & expiry dipicu pinger eksternal (verifikasi hit manual)
 [ ] Backup: PITR Supabase aktif

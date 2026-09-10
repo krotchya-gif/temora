@@ -2,18 +2,18 @@
 
 > Prosedur cepat saat insiden. Pasangan dari architecture.md §9 (monitoring) dan checklist go-live task 015 §4.2.
 
-## 1. Rollback deploy (Hostinger Git — prototipe)
+## 1. Rollback deploy (Hostinger Git)
 
-1. hPanel → **Website → (domain) → Git** → tab *Deploy/History*.
+1. hPanel → **Website → temora.site → Git** → tab *Deploy/History*.
 2. Temukan deployment terakhir yang sukses sebelum insiden.
 3. **Deploy ulang commit sebelumnya** dari history, atau push commit revert
    (`git revert HEAD` → push `main`, Hostinger auto-deploy).
-4. Verifikasi: buka `https://chirpek.site` + `/api/health` → 200.
+4. Verifikasi: buka `https://temora.site` + `/api/health` → 200.
 5. Catat di channel insiden: waktu rollback, hash commit yang aktif.
 
 > Rollback kode tidak mengembalikan database. Jika deploy bermasalah karena
 > migrasi, lanjut ke §2 dulu sebelum memicu deploy ulang.
-> Catatan: prototipe ini di Hostinger shared — build lebih lambat (webpack+WASM).
+> Catatan: Hostinger shared menjalankan build lebih lambat (webpack+WASM).
 > Saat launch (task 015), re-evaluasi Vercel/VPS (architecture.md §2).
 
 ## 2. Restore Supabase point-in-time (PITR)
@@ -40,11 +40,11 @@
 |---|---|---|
 | Tamu "acara sudah selesai" padahal belum | `events.expires_at` | Perpanjang `expires_at` (SQL via CLI, bukan DDL) |
 | Upload gagal massal | Log Node app hPanel + log PHP Hostinger | Cek URL/secret media, permission folder, ukuran file, dan magic bytes |
-| Webhook Xendit tidak masuk | Xendit Dashboard → Webhooks log | Pastikan URL `temora.id/api/billing/webhook` & token per-env |
+| Webhook Xendit tidak masuk | Xendit Dashboard → Webhooks log | Pastikan URL `https://temora.site/api/billing/webhook` & token per-env |
 | WA tidak terkirim | `whatsapp_logs` (status/error) | Token Meta expired → refresh; quiet hours menahan sampai pagi |
 | Cron tidak jalan | Riwayat job di cron-job.org / UptimeRobot | Header `Authorization: Bearer $CRON_SECRET` mismatch pemicu paling sering |
 | Preview link WA/FB/X tanpa gambar | `NEXT_PUBLIC_APP_URL` di env hPanel | Wajib `https://…` (og:image http ditolak scraper); cek `/admin/seo` → OG Image URL |
-| Angka GA4/GSC kosong di `/admin/seo` | Kredensial service account + property ID + site URL | Status jujur di tab Analytics; cek JSON valid & scope `readonly`; hasil di-cache 5 menit |
+| Angka GA4/GSC kosong di `/admin/seo` | Kredensial service account + property ID + site URL | Status jujur di tab Analytics; cek JSON valid & scope `readonly`; GSC Site URL harus identik dengan hasil `sites.list`; error tidak di-cache |
 
 ## 5. Checklist go-live (task 015 §4.2)
 
@@ -53,7 +53,7 @@
 - [ ] Custom SMTP email verifikasi Supabase terpasang & teruji
 - [ ] Monitoring storage aktif (alert ≥ 80%)
 - [ ] Migrasi production pushed (`supabase db push`) & diverifikasi
-- [ ] Webhook Xendit produksi → `temora.id/api/billing/webhook`
+- [ ] Webhook Xendit produksi → `https://temora.site/api/billing/webhook`
 - [ ] Template WA produksi terdaftar di Meta (task 009 §7)
 - [ ] Cron TTL & expiry dipicu pinger eksternal (verifikasi hit manual dengan `CRON_SECRET` / log cron-job.org)
 - [ ] Backup: PITR Supabase aktif
@@ -90,7 +90,12 @@ Semua pengaturan SEO/tracking/kampanye dikelola superadmin di `/admin/seo`
      & Search Console (`webmasters.readonly`), unduh JSON-nya.
    - Paste JSON di textarea → **Simpan Service Account** (tersimpan di
      `admin_secrets`, tidak pernah tampil lagi / keluar ke client).
-   - Isi **GA4 Property ID** (angka) & **GSC Site URL** → Muat Statistik.
+   - Isi **GA4 Property ID** (angka) dan **GSC Site URL** yang sama persis
+     dengan identifier properti di Search Console → Muat Statistik.
+   - Produksi saat ini memakai URL-prefix `https://temora.site/`. Jangan memakai
+     `sc-domain:temora.site` kecuali service account juga ditambahkan ke Domain
+     Property terpisah tersebut. Perbedaan tipe properti menghasilkan 403 meski
+     akun berstatus Owner pada properti URL-prefix.
 3. **Marketing & Ads**: Meta Pixel / Google Ads / TikTok Pixel ID (di-inject
    otomatis ke semua halaman publik).
 4. **Event Monitor**: event `wa_click`/`upgrade_click`/`payment_success` —
@@ -100,6 +105,11 @@ Semua pengaturan SEO/tracking/kampanye dikelola superadmin di `/admin/seo`
 > ⚠️ Produksi wajib `NEXT_PUBLIC_APP_URL=https://…` — meta `og:image` yang
 > http ditolak scraper WA/FB/X (fallback di kode memaksa https, tapi env tetap
 > harus benar untuk canonical/sitemap).
+
+Status verifikasi analytics produksi (2026-09-10): website 200, GTM ditemukan
+di HTML publik, GA4 Data API 200 dengan rows, dan GSC Search Analytics 200.
+Respons GSC tanpa rows tetap sukses; artinya koneksi valid tetapi belum ada data
+untuk rentang tanggal yang diminta.
 
 ### Pencabutan akses superadmin
 

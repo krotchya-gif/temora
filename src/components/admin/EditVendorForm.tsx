@@ -83,13 +83,13 @@ export function EditVendorForm({ vendorId, initial }: EditVendorFormProps) {
           type="checkbox"
           checked={waOptIn}
           onChange={(e) => setWaOptIn(e.target.checked)}
-          className="h-4 w-4 accent-[#8b7355]"
+          className="h-5 w-5 accent-accent"
         />
         Opt-in notifikasi WhatsApp
       </label>
 
-      <div className="flex items-center gap-3 sm:col-span-2">
-        <Button type="submit" size="sm" disabled={status === "saving"}>
+      <div className="flex flex-col items-stretch gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <Button className="w-full sm:w-auto" type="submit" size="sm" disabled={status === "saving"}>
           {status === "saving" ? "Menyimpan…" : "Simpan Perubahan"}
         </Button>
         {status === "saved" && (

@@ -122,7 +122,7 @@ export default async function AdminEventsPage({
         />
       </form>
 
-      <nav aria-label="Filter status" className="flex items-center gap-2">
+      <nav aria-label="Filter status" className="flex items-center gap-2 overflow-x-auto">
         {STATUS_FILTERS.map((filter) => {
           const active = status === filter.value;
           return (
@@ -134,7 +134,7 @@ export default async function AdminEventsPage({
                 q: query || undefined,
               })}`}
               aria-current={active ? "true" : undefined}
-              className={`min-h-9 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`inline-flex min-h-11 shrink-0 items-center rounded-lg px-3 text-xs font-medium transition-colors ${
                 active
                   ? "bg-bg-warm font-medium text-accent"
                   : "text-text-secondary hover:bg-bg-warm"
@@ -146,7 +146,25 @@ export default async function AdminEventsPage({
         })}
       </nav>
 
-      <Card className="overflow-x-auto p-0">
+      <div className="space-y-3 lg:hidden">
+        {events.map((event) => (
+          <Card key={event.id} className="space-y-4 p-4">
+            <div>
+              <Link href={`/admin/events/${event.id}`} className="font-medium text-text-primary hover:text-accent hover:underline">{event.name}</Link>
+              <p className="break-all text-xs text-text-secondary">/{event.slug}</p>
+            </div>
+            <dl className="grid grid-cols-3 gap-3 text-xs text-text-secondary">
+              <div><dt>Vendor</dt><dd className="mt-1 text-text-primary">{event.vendor?.name ?? "—"}</dd></div>
+              <div><dt>Foto</dt><dd className="mt-1 font-mono text-sm text-text-primary">{event.photos?.[0]?.count ?? 0}</dd></div>
+              <div><dt>Expired</dt><dd className="mt-1 text-text-primary">{formatDate(event.expires_at) ?? "—"}</dd></div>
+            </dl>
+            <EventStatusButton eventId={event.id} eventName={event.name} isActive={event.is_active} />
+          </Card>
+        ))}
+        {events.length === 0 ? <Card className="p-8 text-center text-sm text-text-secondary">Tidak ada event pada filter ini.</Card> : null}
+      </div>
+
+      <Card className="hidden overflow-x-auto p-0 lg:block">
         <table className="w-full min-w-[680px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
@@ -208,11 +226,11 @@ export default async function AdminEventsPage({
       </Card>
 
       {totalPages > 1 && (
-        <nav aria-label="Navigasi halaman" className="flex items-center justify-between">
+        <nav aria-label="Navigasi halaman" className="flex items-center justify-between gap-2">
           {page > 1 ? (
             <Link
               href={pageHref(page - 1)}
-              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+              className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-dusty-blue hover:bg-bg-warm"
             >
               ← Sebelumnya
             </Link>
@@ -225,7 +243,7 @@ export default async function AdminEventsPage({
           {page < totalPages ? (
             <Link
               href={pageHref(page + 1)}
-              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+              className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-dusty-blue hover:bg-bg-warm"
             >
               Berikutnya →
             </Link>

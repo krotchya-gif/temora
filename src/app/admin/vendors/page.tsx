@@ -54,11 +54,22 @@ export default async function AdminVendorsPage({
     countRequest = countRequest.or(`name.ilike.%${query}%,email.ilike.%${query}%`);
   }
 
-  const [{ data: vendors, count }, { data: events }] = await Promise.all([
-    request,
-    countRequest,
-    admin.from("events").select("id, vendor_id, is_active, photos(count)"),
-  ]);
+  const [{ data: vendorData }, { count }] = await Promise.all([request, countRequest]);
+  const vendors = (vendorData ?? []) as Array<{
+    id: string;
+    name: string;
+    email: string;
+    subscription_tier: string;
+    banned_at: string | null;
+    created_at: string;
+  }>;
+  const vendorIds = vendors.map((vendor) => vendor.id);
+  const { data: events } = vendorIds.length
+    ? await admin
+        .from("events")
+        .select("id, vendor_id, is_active, photos(count)")
+        .in("vendor_id", vendorIds)
+    : { data: [] };
 
   type EventRow = {
     id: string;
@@ -102,7 +113,31 @@ export default async function AdminVendorsPage({
         />
       </form>
 
-      <Card className="overflow-x-auto p-0">
+      <div className="space-y-3 lg:hidden">
+        {vendors.map((vendor) => (
+          <Card key={vendor.id} className="space-y-4 p-4">
+            <div>
+              <Link href={`/admin/vendors/${vendor.id}`} className="font-medium text-text-primary hover:text-accent hover:underline">
+                {vendor.name}
+              </Link>
+              <p className="break-all text-xs text-text-secondary">{vendor.email}</p>
+              {vendor.banned_at ? <span className="mt-2 inline-block rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-medium text-danger">Banned</span> : null}
+            </div>
+            <dl className="grid grid-cols-3 gap-3 text-xs text-text-secondary">
+              <div><dt>Event aktif</dt><dd className="mt-1 font-mono text-sm text-text-primary">{activeCount.get(vendor.id) ?? 0} / {eventCount.get(vendor.id) ?? 0}</dd></div>
+              <div><dt>Foto</dt><dd className="mt-1 font-mono text-sm text-text-primary">{photoCount.get(vendor.id) ?? 0}</dd></div>
+              <div><dt>Gabung</dt><dd className="mt-1 text-text-primary">{formatDate(vendor.created_at)}</dd></div>
+            </dl>
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              <span className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-medium ${TIER_BADGE[vendor.subscription_tier] ?? TIER_BADGE.free}`}>{vendor.subscription_tier}</span>
+              <TierSelect vendorId={vendor.id} vendorName={vendor.name} currentTier={vendor.subscription_tier} />
+            </div>
+          </Card>
+        ))}
+        {vendors.length === 0 ? <Card className="p-8 text-center text-sm text-text-secondary">Tidak ada vendor yang cocok.</Card> : null}
+      </div>
+
+      <Card className="hidden overflow-x-auto p-0 lg:block">
         <table className="w-full min-w-[680px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
@@ -114,17 +149,7 @@ export default async function AdminVendorsPage({
             </tr>
           </thead>
           <tbody>
-            {(vendors ?? []).map(
-              (
-                vendor: {
-                  id: string;
-                  name: string;
-                  email: string;
-                  subscription_tier: string;
-                  banned_at: string | null;
-                  created_at: string;
-                },
-              ) => (
+            {vendors.map((vendor) => (
                 <tr
                   key={vendor.id}
                   className="border-b border-border last:border-b-0"
@@ -170,9 +195,8 @@ export default async function AdminVendorsPage({
                     </div>
                   </td>
                 </tr>
-              ),
-            )}
-            {(vendors ?? []).length === 0 && (
+              ))}
+            {vendors.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-text-secondary">
                   Tidak ada vendor yang cocok.
@@ -184,11 +208,11 @@ export default async function AdminVendorsPage({
       </Card>
 
       {totalPages > 1 && (
-        <nav aria-label="Navigasi halaman" className="flex items-center justify-between">
+        <nav aria-label="Navigasi halaman" className="flex items-center justify-between gap-2">
           {page > 1 ? (
             <Link
               href={`/admin/vendors?q=${encodeURIComponent(query)}&page=${page - 1}`}
-              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+              className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-dusty-blue hover:bg-bg-warm"
             >
               ← Sebelumnya
             </Link>
@@ -201,7 +225,7 @@ export default async function AdminVendorsPage({
           {page < totalPages ? (
             <Link
               href={`/admin/vendors?q=${encodeURIComponent(query)}&page=${page + 1}`}
-              className="min-h-9 rounded-lg px-3 py-1.5 text-sm text-dusty-blue hover:bg-bg-warm"
+              className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm text-dusty-blue hover:bg-bg-warm"
             >
               Berikutnya →
             </Link>

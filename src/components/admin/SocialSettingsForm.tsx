@@ -13,9 +13,9 @@ type SocialSettingsFormProps = {
 };
 
 const FIELDS = [
-  { key: "instagram" as const, label: "URL Instagram", placeholder: "https://instagram.com/temora.id" },
-  { key: "tiktok" as const, label: "URL TikTok", placeholder: "https://tiktok.com/@temora.id" },
-  { key: "facebook" as const, label: "URL Facebook", placeholder: "https://facebook.com/temora.id" },
+  { key: "instagram" as const, label: "URL Instagram", placeholder: "https://instagram.com/temora.site" },
+  { key: "tiktok" as const, label: "URL TikTok", placeholder: "https://tiktok.com/@temora.site" },
+  { key: "facebook" as const, label: "URL Facebook", placeholder: "https://facebook.com/temora.site" },
 ];
 
 export function SocialSettingsForm({ initial }: SocialSettingsFormProps) {
@@ -62,8 +62,8 @@ export function SocialSettingsForm({ initial }: SocialSettingsFormProps) {
           />
         </label>
       ))}
-      <div className="flex items-center gap-3 sm:col-span-3">
-        <Button type="submit" size="sm" disabled={status === "saving"}>
+      <div className="flex flex-col items-stretch gap-3 sm:col-span-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <Button className="w-full sm:w-auto" type="submit" size="sm" disabled={status === "saving"}>
           {status === "saving" ? "Menyimpan…" : "Simpan Pengaturan"}
         </Button>
         {status === "saved" && (

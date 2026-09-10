@@ -234,7 +234,7 @@ supabase/
 | `/api/admin/showcase/reorder` | POST | Ubah urutan kartu showcase (naik/turun) | Superadmin (404 mask) |
 | `/api/admin/settings` | PATCH | Simpan platform_settings (KV whitelist, validasi per-key) | Superadmin (404 mask) |
 | `/api/admin/secrets` | PUT | Simpan rahasia (service account GA4/GSC) — nilai tidak pernah dikembalikan | Superadmin (404 mask) |
-| `/api/admin/analytics/stats` | GET | Angka GA4 + GSC real (server-side, cache 5 mnt) | Superadmin (404 mask) |
+| `/api/admin/analytics/stats` | GET | Angka GA4 + GSC real; provider independen, cache sukses 5 mnt; 200 sukses / 207 parsial / 502 gagal | Superadmin (404 mask) |
 | `/api/admin/events` | GET | 100 event konversi marketing terakhir | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/retry` | POST | Tandai event terkirim (retry manual) | Superadmin (404 mask) |
 | `/api/admin/utm/report` | GET | Laporan kunjungan + konversi per source kampanye | Superadmin (404 mask) |
@@ -464,7 +464,7 @@ landmark atau asset props yang dimuat oleh aplikasi.
 |---|---|---|
 | Error tracking | Log Node app di hPanel (Hostinger) | Request, error, deployment |
 | Logs | Supabase Logs | Query lambat, auth events |
-| Uptime | UptimeRobot | Ping `temora.id` tiap 5 menit |
+| Uptime | UptimeRobot | Ping `temora.site` tiap 5 menit |
 | Performance | — (nonaktif sementara) | Vercel Analytics no-op di luar Vercel; aktifkan alternatif (mis. Web Vitals) saat upgrade hosting menjelang launch |
 | Billing alerts | Xendit Dashboard + cron reconciliation harian | Webhook gagal / invoice pending > 24 jam |
 
@@ -484,7 +484,7 @@ Payment:    Xendit (invoice, payment link, webhook)
 WhatsApp:   WhatsApp Business Cloud API
 Libraries:  qrcode, jszip, sharp, zod, @supabase/ssr
 Phase 2:    @mediapipe/tasks-vision (segmentation) — task 011 tersedia, OFF sementara
-CI/CD:      GitHub Actions (lint/typecheck/build/test) + Hostinger Git auto-deploy
+CI/CD:      GitHub Actions (lint/typecheck/build/test) + Hostinger Git auto-deploy; Playwright mencakup viewport admin 360px dan desktop
 Monitoring: UptimeRobot · cron-job.org (pinger cron) · log Node app hPanel
 ```
 
@@ -499,7 +499,7 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `NEXT_PUBLIC_SUPABASE_URL` | client + server | 001 | URL project Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | 001 | Anon key (RLS enforced) |
 | `SUPABASE_SERVICE_ROLE_KEY` | server only | 001 | Service role — `admin.ts` saja |
-| `NEXT_PUBLIC_APP_URL` | client | 001 | Base URL app (`http://localhost:3000` dev, `https://temora.id` prod) — QR & redirect & metadataBase. **Produksi wajib `https://`** (og:image dsb. ditolak scraper bila http) |
+| `NEXT_PUBLIC_APP_URL` | client | 001 | Base URL app (`http://localhost:3000` dev, `https://temora.site` prod) — QR & redirect & metadataBase. **Produksi wajib `https://`** (og:image dsb. ditolak scraper bila http) |
 | `XENDIT_SECRET_KEY` | server | 008 | API key Xendit |
 | `XENDIT_WEBHOOK_TOKEN` | server | 008 | Verifikasi callback webhook |
 | `XENDIT_API_BASE` | server | 008 | Base URL API Xendit (default `https://api.xendit.co`) — override untuk sandbox |

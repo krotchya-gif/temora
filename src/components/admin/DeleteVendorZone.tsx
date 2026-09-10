@@ -45,7 +45,7 @@ export function DeleteVendorZone({ vendorId, vendorEmail }: DeleteVendorZoneProp
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="min-h-9 rounded-lg border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
+        className="min-h-11 rounded-lg border border-danger/40 px-3 text-xs font-medium text-danger transition-colors hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
       >
         Hapus Permanen…
       </button>
@@ -70,12 +70,12 @@ export function DeleteVendorZone({ vendorId, vendorEmail }: DeleteVendorZoneProp
         className="mt-3 w-full max-w-sm rounded-lg border border-danger/40 bg-bg-card px-3 py-2 font-mono text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger"
         autoComplete="off"
       />
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-3 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <button
           type="button"
           disabled={busy || typed.trim().toLowerCase() !== vendorEmail.toLowerCase()}
           onClick={() => void handleDelete()}
-          className="min-h-9 rounded-lg bg-danger px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-danger/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:pointer-events-none disabled:opacity-50"
+          className="min-h-11 rounded-lg bg-danger px-3 text-xs font-medium text-white transition-colors hover:bg-danger/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:pointer-events-none disabled:opacity-50"
         >
           {busy ? "Menghapus…" : "Hapus Permanen"}
         </button>
@@ -86,7 +86,7 @@ export function DeleteVendorZone({ vendorId, vendorEmail }: DeleteVendorZoneProp
             setTyped("");
             setError(null);
           }}
-          className="min-h-9 rounded-lg px-3 py-1.5 text-xs text-text-secondary hover:bg-bg-warm"
+          className="min-h-11 rounded-lg px-3 text-xs text-text-secondary hover:bg-bg-warm"
         >
           Batal
         </button>

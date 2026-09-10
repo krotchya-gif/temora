@@ -38,7 +38,7 @@ ini dan `admin/landing-settings` menulis **set kolom yang disjoint** dari row ya
 │    ├─ supabase-js ──► landing_settings (SELECT kolom seo_*/tracking_*, UPDATE saat Simpan)
 │    ├─ POST /api/seo/upload-sitemap ──► simpan file .xml ke kolom sitemap_content
 │    ├─ POST /api/seo/upload-robots  ──► simpan file .txt ke kolom robots_content
-│    ├─ GET  /api/analytics/stats    ──► angka GA4/GSC real (server-side Google API)
+│    ├─ GET  /api/admin/analytics/stats ─► angka GA4/GSC real (server-side Google API)
 │    └─ SELECT event_logs / utm_visits (+ join orders utk UTM)
 │
 ├─ Konsumen sisi PUBLIK (yang membuat setting ini "hidup"):
@@ -122,13 +122,15 @@ tiga objek style bersama di level modul).
   `landing_settings(key='hero')`; `ga_service_account` di-stringify untuk textarea.
 - Tombol **"Simpan Pengaturan"** di `PageHeader` memanggil `handleSave()` yang
   UPDATE semua kolom sekaligus (`|| null` agar string kosong tersimpan NULL;
-  `ga_service_account` di-`JSON.parse` dengan validasi format sebelum masuk DB).
+  `ga_service_account` di-`JSON.parse` lalu wajib memiliki tipe service account,
+  email client valid, dan PEM private key sebelum masuk DB). Kegagalan tulis DB
+  wajib dikembalikan sebagai status 500, bukan sukses semu.
 
 ### 3.4 Lazy-load data berat per tab
 
 ```tsx
 useEffect(() => {
-  if (tab === 'analytics') loadAnalytics()   // GET /api/analytics/stats
+  if (tab === 'analytics') loadAnalytics()   // GET /api/admin/analytics/stats
   if (tab === 'events') loadEvents()         // event_logs LIMIT 100
   if (tab === 'utm') loadUtmReport()         // utm_visits + orders
 }, [tab])
@@ -164,15 +166,31 @@ Dua bagian: (a) **ID tracking** (GA4/GTM/Clarity/GSC-meta) — hanya string yang
 disimpan; injeksi script dilakukan `SeoScripts.tsx` di sisi publik.
 (b) **Angka Real via Google API**: admin isi `ga_service_account` (JSON lengkap
 service account dengan private key), `tracking_ga4_property_id`, `tracking_gsc_site_url`.
-Saat tab dibuka → `GET /api/analytics/stats`:
-1. Guard: login + role `admin|owner` + `status='active'` (401/403)
+Nilai `tracking_gsc_site_url` wajib sama persis dengan `siteUrl` dari GSC
+`sites.list`. Produksi TEMORA memakai URL-prefix `https://temora.site/`; format
+`sc-domain:temora.site` hanya berlaku untuk Domain Property yang berbeda.
+Saat tab dibuka → `GET /api/admin/analytics/stats`:
+1. Guard: `app_metadata.role='superadmin'`; kegagalan dimask sebagai 404
 2. Server baca kredensial dari DB, tukar **JWT → OAuth token**
    (scope `analytics.readonly` + `webmasters.readonly`)
-3. Panggil GA4 `runReport` (users/sessions 7 hari) & GSC `searchAnalytics`
-   (clicks/impressions/ctr/position) — **hanya angka agregat yang keluar**,
-   private key tidak pernah dikirim ke browser
-4. Cache in-memory agar tidak hit Google tiap reload
-Jika belum dikonfigurasi/gagal → field `null` dan UI menampilkan status jujur.
+3. Panggil GA4 `runReport` (users/sessions 7 hari) dan dua query GSC:
+   query tanpa dimensi untuk total clicks/impressions/CTR/position, lalu query
+   berdimensi `query` dengan `rowLimit=5` hanya untuk daftar top queries.
+   **Hanya angka agregat yang keluar**; private key tidak pernah dikirim ke browser.
+4. Provider dieksekusi independen agar hasil GA4 tetap tampil saat GSC gagal
+   (atau sebaliknya). Response memakai 200 jika semua sukses, 207 jika parsial,
+   dan 502 bila semua provider terkonfigurasi gagal.
+5. Cache in-memory 5 menit hanya untuk hasil sukses dan dipisahkan berdasarkan
+   konfigurasi property; error tidak ditahan agar perbaikan permission bisa segera dites.
+Jika belum dikonfigurasi/gagal → field provider `null`, detail error aman, dan UI
+menampilkan status jujur beserta retry.
+
+Tracking publik: `tracking_gtm_id` harus berbentuk `GTM-…`. Jika GTM valid,
+container menjadi loader tracking utama. `gtag.js` langsung hanya dimuat sebagai
+fallback ketika GA4 Measurement ID valid tetapi GTM tidak dikonfigurasi.
+
+Verifikasi live 2026-09-10: `temora.site` 200, GTM terpasang, GA4 Data API 200,
+dan GSC Search Analytics 200 setelah identifier diselaraskan ke URL-prefix.
 
 ### 4.3 Tab "Marketing & Ads"
 
@@ -217,7 +235,7 @@ Ikuti urutan ini (pola terkunci — jangan bikin pola paralel):
    hidden input + tombol styled (atau komponen `ui/FileUploadButton.tsx`).
 5. **Backend (opsional)** — kalau butuh endpoint: buat `route.ts` dengan guard
    wajib di awal handler (auth + role matrix + `status='active'`), sanitasi error
-   via `lib/api-errors.ts`. Lihat `api/analytics/stats/route.ts` sebagai contoh.
+   via pola respons aman. Lihat `api/admin/analytics/stats/route.ts` sebagai contoh.
 6. **Sambungkan ke publik** — kalau setting-nya harus memengaruhi situs publik,
    tentukan konsumennya (`SeoScripts.tsx`, route `robots.txt/sitemap.xml/llms.txt`,
    atau layout metadata). Setting tanpa konsumen = fitur mati.
@@ -245,7 +263,7 @@ Ikuti urutan ini (pola terkunci — jangan bikin pola paralel):
 |---|---|
 | Halaman `/admin/seo` | Proxy + layout role-gate `admin` (konstanta shared `config/dashboard-roles.ts`) |
 | `POST /api/seo/upload-*` | Login + `admin|owner` + `status='active'` (sesi 52) |
-| `GET /api/analytics/stats` | Login + `admin|owner` + `status='active'`; kredensial tetap di server |
+| `GET /api/admin/analytics/stats` | Superadmin (404 mask); kredensial tetap di server |
 | `event_logs` UPDATE (retry) | RLS: hanya admin/owner |
 | `event_logs`/`utm_visits` INSERT publik | Policy anon terbatas (insert-only) |
 
