@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdminAction } from "@/lib/admin-audit";
 import { isImageBuffer } from "@/lib/security";
 import { ulid } from "@/lib/ulid";
+import { deleteStorageFile, uploadStorageFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -43,17 +44,13 @@ export async function POST(request: Request) {
   }
   const contentType = file.type === "image/png" ? "image/png" : "image/jpeg";
   const ext = contentType === "image/png" ? "png" : "jpg";
-  // Key relatif bucket showcase (tanpa folder "showcase/"); storage_path DB
-  // berformat {bucket}/{key} agar moments.ts (/object/public/{storage_path}) benar.
-  const key = `${ulid()}.${ext}`;
+  const key = `showcase/${ulid()}.${ext}`;
 
   const admin = createAdminClient();
-  const { error: upError } = await admin.storage
-    .from("showcase")
-    .upload(key, buffer, { contentType });
-
-  if (upError) {
-    console.error("[admin] showcase upload:", upError.message);
+  try {
+    await uploadStorageFile(key, buffer, contentType);
+  } catch (error) {
+    console.error("[admin] showcase upload:", error);
     return NextResponse.json({ error: "Upload gagal." }, { status: 502 });
   }
 
@@ -68,7 +65,7 @@ export async function POST(request: Request) {
   const { data, error } = await admin
     .from("showcase_photos")
     .insert({
-      storage_path: `showcase/${key}`,
+      storage_path: key,
       title,
       caption: caption || null,
       sort_order: (last?.sort_order ?? 0) + 1,
@@ -79,7 +76,7 @@ export async function POST(request: Request) {
 
   if (error || !data) {
     console.error("[admin] showcase insert:", error?.message);
-    await admin.storage.from("showcase").remove([key]);
+    await deleteStorageFile(key);
     return NextResponse.json({ error: "Gagal menyimpan." }, { status: 500 });
   }
 
@@ -89,7 +86,7 @@ export async function POST(request: Request) {
     action: "showcase_upload",
     targetType: "photo",
     targetId: data.id,
-    detail: { title, path: `showcase/${key}` },
+    detail: { title, path: key },
   });
 
   return NextResponse.json({ ok: true, id: data.id });

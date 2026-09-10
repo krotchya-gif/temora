@@ -10,14 +10,12 @@ export type SponsorRow = {
   created_at: string;
 };
 
-/** URL publik logo — kolom DB berformat {bucket}/{key} (database.md §6). */
+import { publicStorageUrl } from "@/lib/storage";
+
+/** URL publik logo dari media.temora.site. */
 export function sponsorLogoUrl(logoPath: string | null): string | null {
   if (!logoPath) return null;
-  const [bucket, ...rest] = logoPath.split("/");
-  if (!bucket || !rest.length) return null;
-  const { NEXT_PUBLIC_SUPABASE_URL } = process.env;
-  if (!NEXT_PUBLIC_SUPABASE_URL) return null;
-  return `${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${rest.join("/")}`;
+  return publicStorageUrl(logoPath);
 }
 
 /** Public URL tanpa env (client-side) — perlu base URL dari props. */
@@ -26,7 +24,6 @@ export function sponsorLogoUrlFromBase(
   logoPath: string | null,
 ): string | null {
   if (!logoPath) return null;
-  const [bucket, ...rest] = logoPath.split("/");
-  if (!bucket || !rest.length) return null;
-  return `${baseUrl}/storage/v1/object/public/${bucket}/${rest.join("/")}`;
+  if (/^https?:\/\//i.test(logoPath)) return logoPath;
+  return `${baseUrl.replace(/\/$/, "")}/public/${logoPath}`;
 }

@@ -424,7 +424,7 @@ export function CameraStage({
           try {
             const img = new Image();
             img.crossOrigin = "anonymous";
-            img.src = `${base}/storage/v1/object/public/${s.logo_path}`;
+            img.src = `${process.env.NEXT_PUBLIC_HOSTINGER_MEDIA_URL ?? base}/public/${s.logo_path}`;
             await img.decode();
             const w = Math.min(
               logoH * 2,

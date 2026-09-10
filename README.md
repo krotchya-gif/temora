@@ -16,7 +16,7 @@ Platform SaaS virtual photobooth untuk vendor event (WO, fotografer, EO): tamu s
 | Hosting | Hostinger shared — Git deploy (prototipe; build `next build --webpack` + config `next.config.mjs`, lihat architecture.md §2) |
 | Database | Supabase (PostgreSQL 15 + RLS) |
 | Auth | Supabase Auth |
-| Storage | Supabase Storage (photos, thumbs, frames, zips) |
+| Storage | Hostinger media subdomain (`media.temora.site`); Supabase hanya Database/Auth/Realtime |
 | Payment | Xendit |
 | Notifikasi | WhatsApp Business Cloud API |
 | AI (Phase 2) | MediaPipe Tasks Vision (client-side, lazy-load) |
@@ -97,6 +97,8 @@ Temora Photos/
 17. Upload tamu via API service role; dedup offline via `client_upload_id`
 18. Tamu anonim di MVP — tanpa nama/email wajib
 19. Supabase clients: `client` (browser) · `server` (vendor session) · `admin` (service role)
+20. File upload baru disimpan di `media.temora.site`, bukan Supabase Storage. File lama
+    di Supabase Storage tidak dimigrasikan karena project masih development/testing.
 
 ## Referensi
 

@@ -30,6 +30,7 @@ yarn-error.log*
 
 # env files
 .env*
+media-service/config.local.php
 !.env.example
 
 # vercel

@@ -6,6 +6,7 @@ import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
+import { publicStorageUrl } from "@/lib/storage";
 import {
   Lightbox,
   type LightboxPhoto,
@@ -125,7 +126,7 @@ export function GalleryClient({
               {
                 id: row.id,
                 thumbUrl: row.thumb_path
-                  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${row.thumb_path}`
+                  ? publicStorageUrl(row.thumb_path)
                   : null,
                 width: row.width,
                 height: row.height,

@@ -3,6 +3,7 @@ import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { publicStorageUrl } from "@/lib/storage";
+import { uploadStorageFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -131,24 +132,20 @@ export async function POST(
     );
   }
 
-  // Path convention database.md §6 — key relatif bucket frames: {vendor_id}/{event_id}/frame.png.
-  // frame_url (DB) = publicStorageUrl berformat {bucket}/{key} → "frames/" + key.
-  const key = `${event.vendor_id}/${event.id}/frame.png`;
+  const key = `frames/${event.vendor_id}/${event.id}/frame.png`;
   const admin = createAdminClient();
 
-  const { error: uploadError } = await admin.storage
-    .from("frames")
-    .upload(key, buffer, { contentType: "image/png", upsert: true });
-
-  if (uploadError) {
-    console.error("[frame.upload]", uploadError.message);
+  try {
+    await uploadStorageFile(key, buffer, "image/png");
+  } catch (error) {
+    console.error("[frame.upload]", error);
     return NextResponse.json(
       { error: "Gagal menyimpan frame. Coba sekali lagi ya." },
       { status: 500 },
     );
   }
 
-  const frameUrl = publicStorageUrl(`frames/${key}`);
+  const frameUrl = publicStorageUrl(key);
   const { error: updateError } = await admin
     .from("events")
     .update({ frame_url: frameUrl })

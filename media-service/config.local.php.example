@@ -1,0 +1,3 @@
+<?php
+// Salin menjadi config.local.php di Hostinger, lalu isi secret yang sama dengan aplikasi Next.js.
+const TEMORA_STORAGE_SECRET = 'ganti-dengan-secret-random-panjang';

@@ -3,6 +3,7 @@ import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { z } from "zod";
+import { deleteStorageFile, uploadStorageFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -81,9 +82,8 @@ export async function POST(
   let logoPath: string | null = null;
 
   const admin = createAdminClient();
-  // Key objek relatif bucket; kolom DB berformat {bucket}/{key} (database.md §6).
-  const objectKey = `${eventId}/${crypto.randomUUID()}.png`;
-  const dbLogoPath = `sponsors/${objectKey}`;
+  const objectKeyBase = `sponsors/${eventId}/${crypto.randomUUID()}`;
+  let objectKey = `${objectKeyBase}.png`;
 
   if (logo instanceof File && logo.size > 0) {
     if (logo.size > 2_000_000) {
@@ -95,14 +95,14 @@ export async function POST(
     if (!isPng && !isJpeg) {
       return NextResponse.json({ error: "Logo harus PNG atau JPEG." }, { status: 415 });
     }
-    const { error: upErr } = await admin.storage
-      .from("sponsors")
-      .upload(objectKey, logo, { contentType: isPng ? "image/png" : "image/jpeg" });
-    if (upErr) {
-      console.error("[sponsors.upload]", upErr.message);
+    objectKey = `${objectKeyBase}.${isPng ? "png" : "jpg"}`;
+    try {
+      await uploadStorageFile(objectKey, bytes, isPng ? "image/png" : "image/jpeg");
+    } catch (error) {
+      console.error("[sponsors.upload]", error);
       return NextResponse.json({ error: "Logo belum tersimpan. Coba lagi ya." }, { status: 500 });
     }
-    logoPath = dbLogoPath;
+    logoPath = objectKey;
   }
 
   const { data, error } = await admin
@@ -118,7 +118,7 @@ export async function POST(
   if (error || !data) {
     console.error("[sponsors.create]", error?.message);
     if (logoPath) {
-      await admin.storage.from("sponsors").remove([objectKey]).catch(() => undefined);
+      await deleteStorageFile(objectKey);
     }
     return NextResponse.json({ error: "Sponsor belum tersimpan." }, { status: 500 });
   }

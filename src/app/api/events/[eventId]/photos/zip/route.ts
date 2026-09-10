@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { allowRequest } from "@/lib/rate-limit";
 import { isSameOrigin } from "@/lib/security";
+import { downloadStorageFile } from "@/lib/storage";
 import {
   advanceJob,
   createJob,
@@ -109,11 +110,10 @@ export async function POST(
 
     const zip = new JSZip();
     for (const [i, row] of (rows ?? []).entries()) {
-      const { data: blob, error: dlError } = await admin.storage
-        .from("photos")
-        .download(row.storage_path);
-      if (dlError || !blob) continue;
-      zip.file(`momen-${String(i + 1).padStart(4, "0")}.jpg`, await blob.arrayBuffer());
+      try {
+        const blob = await downloadStorageFile(row.storage_path);
+        zip.file(`momen-${String(i + 1).padStart(4, "0")}.jpg`, blob.bytes);
+      } catch { continue; }
     }
 
     // JPEG sudah terkompres — STORE cepat tanpa overhead CPU.
@@ -174,6 +174,17 @@ export async function GET(
   );
   if (!status) {
     return NextResponse.json({ error: "Job tidak ditemukan." }, { status: 404 });
+  }
+
+  if (new URL(request.url).searchParams.get("download") === "1") {
+    if (status.status !== "done") return NextResponse.json({ error: "ZIP belum siap." }, { status: 409 });
+    const finalKey = `zips/${owned.event.id}/temora-${owned.event.slug}-${jobId}.zip`;
+    try {
+      const file = await downloadStorageFile(finalKey);
+      return new NextResponse(file.bytes, { headers: { "Content-Type": "application/zip", "Content-Disposition": `attachment; filename="temora-${owned.event.slug}.zip"` } });
+    } catch {
+      return NextResponse.json({ error: "ZIP sudah tidak tersedia." }, { status: 404 });
+    }
   }
 
   if (status.status === "running") {

@@ -189,7 +189,7 @@ export function SponsorManager({ eventId, isPro, sponsors: initial }: SponsorMan
               {s.logo_path ? (
                 // eslint-disable-next-line @next/next/no-img-element -- URL publik Storage
                 <img
-                  src={`${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/v1/object/public/${s.logo_path}`}
+                  src={`${process.env.NEXT_PUBLIC_HOSTINGER_MEDIA_URL ?? ""}/public/${s.logo_path}`}
                   alt={`Logo ${s.name}`}
                   className="h-10 w-10 rounded-lg border border-border bg-bg-warm object-contain p-1"
                 />

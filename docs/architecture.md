@@ -70,7 +70,7 @@
 | UI | Tailwind CSS 4 + Radix UI + Lucide Icons | Komponen accessible, konsisten, cepat |
 | Database | Supabase (PostgreSQL 15) | SQL relasional cocok, RLS built-in, free tier generous |
 | Auth | Supabase Auth | Email/password, terintegrasi langsung dengan DB & RLS |
-| Storage | Supabase Storage | Foto, frame, ZIP — terintegrasi dengan RLS |
+| Storage | Hostinger media subdomain | File upload persisten di `media.temora.site`; Supabase hanya Database/Auth/Realtime |
 | Hosting | Hostinger shared — Git deploy (tahap prototipe) | Biaya nol tambahan selama MVP belum monetisasi; re-evaluasi Vercel/VPS sebelum launch gate (task 015–017) |
 | Payment | Xendit | Invoice + payment link + webhook, populer di Indonesia |
 | WhatsApp | WhatsApp Business Cloud API | Notifikasi ke vendor + deep-link aktivasi |
@@ -478,7 +478,7 @@ Font:       Cormorant Garamond (display) · Plus Jakarta Sans (body) · JetBrain
 Backend:    Next.js API Routes (Node.js 20+)
 Database:   Supabase (PostgreSQL 15)
 Auth:       Supabase Auth (email/password)
-Storage:    Supabase Storage (photos, thumbs, frames, zips)
+Storage:    Hostinger media subdomain (media.temora.site)
 Hosting:    Hostinger shared, Git deploy (prototipe; build --webpack)
 Payment:    Xendit (invoice, payment link, webhook)
 WhatsApp:   WhatsApp Business Cloud API
@@ -510,8 +510,23 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `WA_GRAPH_BASE` | server | 009 | Base URL Graph API Meta (default `https://graph.facebook.com`) |
 | `NEXT_PUBLIC_WA_ADMIN_NUMBER` | client | 009/017 | Nomor admin aktivasi (format 62…, tanpa +) |
 | `CRON_SECRET` | server | 015 | Bearer token proteksi route `/api/cron/*` (dipanggil pinger eksternal) |
+| `HOSTINGER_MEDIA_URL` | server + public URL builder | storage | Base URL media service (`https://media.temora.site`) |
+| `NEXT_PUBLIC_HOSTINGER_MEDIA_URL` | client + server | storage | Public media base URL untuk thumbnail/frame/logo/showcase |
+| `HOSTINGER_UPLOAD_URL` | server only | storage | Endpoint PHP upload media service |
+| `HOSTINGER_STORAGE_SECRET` | server only | storage | Shared secret Next.js ↔ media service |
 
 Secret **tidak pernah** di-commit. Preview & production pakai nilai berbeda (task 015 §4.1).
+
+### 11.1 Media storage Hostinger
+
+Upload baru dikirim server-to-server dari API Next.js ke `media.temora.site`.
+Subdomain memiliki document root terpisah dari project Git deploy utama agar
+file tetap persisten saat aplikasi diperbarui. Area `public` berisi frame,
+thumbnail, sponsor, dan showcase; area `private` berisi foto resolusi penuh dan
+ZIP. File private hanya dibaca melalui API Next.js setelah ownership check.
+Handler PHP memverifikasi `HOSTINGER_STORAGE_SECRET`, whitelist area, path aman,
+MIME/magic bytes, dan batas ukuran. File development lama di Supabase Storage
+tidak dimigrasikan.
 
 ---
 

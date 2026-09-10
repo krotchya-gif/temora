@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { deleteStorageFile } from "@/lib/storage";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -84,9 +84,7 @@ export async function DELETE(
 
   // Purge objek logo (database.md §9.5) bila ada.
   if (sponsor.logo_path) {
-    const objectKey = sponsor.logo_path.replace(/^sponsors\//, "");
-    const admin = createAdminClient();
-    await admin.storage.from("sponsors").remove([objectKey]).catch(() => undefined);
+    await deleteStorageFile(sponsor.logo_path).catch(() => undefined);
   }
 
   return NextResponse.json({ ok: true });

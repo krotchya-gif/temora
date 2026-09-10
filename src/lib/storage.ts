@@ -1,61 +1,61 @@
-// Helper URL Storage (database.md §6):
-// thumbs & frames publik → URL langsung; photos privat → signed URL server-side.
+// Hostinger media service adapter.
+// Database/Auth/Realtime tetap di Supabase; file tidak lagi disimpan di Supabase Storage.
 
-import type { createAdminClient } from "@/lib/supabase/admin";
+type MediaArea = "photos" | "thumbs" | "frames" | "sponsors" | "showcase" | "zips";
 
-type Admin = ReturnType<typeof createAdminClient>;
-
-export function publicStorageUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  return `${base}/storage/v1/object/public/${path}`;
+function baseUrl() {
+  return (process.env.HOSTINGER_MEDIA_URL || process.env.NEXT_PUBLIC_HOSTINGER_MEDIA_URL || "https://media.temora.site").replace(/\/$/, "");
 }
 
-/**
- * Hapus semua objek di bawah prefix — REKURSIF terhadap subfolder
- * (entri folder dari list() punya id null). Dipakai purge event & cron TTL:
- * tanpa rekursi, photos/{eventId}/{tableId}/*.jpg dan zips/{eventId}/…
- * tertinggal sebagai orphan yang menggerus kuota Storage.
- */
-export async function removePrefix(
-  admin: Admin,
-  bucket: string,
-  prefix: string,
-): Promise<number> {
-  let removed = 0;
+function secret() {
+  const value = process.env.HOSTINGER_STORAGE_SECRET;
+  if (!value) throw new Error("HOSTINGER_STORAGE_SECRET belum dikonfigurasi.");
+  return value;
+}
 
-  async function walk(dir: string): Promise<void> {
-    const filePaths: string[] = [];
-    const subDirs: string[] = [];
+function safeKey(key: string) {
+  if (!/^(photos|thumbs|frames|sponsors|showcase|zips)\/[A-Za-z0-9._/-]+$/.test(key) || key.includes("..")) throw new Error("Invalid media key.");
+  return key;
+}
 
-    // Listing dirampungkan dulu sebelum delete agar offset pagination stabil.
-    for (let offset = 0; ; offset += 500) {
-      const { data: entries, error } = await admin.storage
-        .from(bucket)
-        .list(dir, { limit: 500, offset });
-      if (error || !entries || entries.length === 0) break;
+export function publicStorageUrl(path: string): string {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${baseUrl()}/public/${safeKey(path)}`;
+}
 
-      for (const entry of entries) {
-        if (entry.id === null) {
-          subDirs.push(entry.name);
-          continue;
-        }
-        if (entry.name !== ".emptyFolderPlaceholder") {
-          filePaths.push(`${dir}/${entry.name}`);
-        }
-      }
-      if (entries.length < 500) break;
-    }
+export async function uploadStorageFile(key: string, body: Blob | Buffer | ArrayBuffer | Uint8Array | string, contentType: string) {
+  const form = new FormData();
+  form.append("key", safeKey(key));
+  form.append("file", new Blob([body as unknown as BlobPart], { type: contentType }), key.split("/").pop());
+  const response = await fetch(process.env.HOSTINGER_UPLOAD_URL || `${baseUrl()}/upload.php`, {
+    method: "POST",
+    headers: { "X-Storage-Secret": secret() },
+    body: form,
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`media upload failed (${response.status})`);
+  return (await response.json()) as { ok: true; key: string; url?: string };
+}
 
-    if (filePaths.length > 0) {
-      const { error: rmError } = await admin.storage.from(bucket).remove(filePaths);
-      if (!rmError) removed += filePaths.length;
-    }
+export async function downloadStorageFile(key: string) {
+  const response = await fetch(`${baseUrl()}/download.php?key=${encodeURIComponent(safeKey(key))}`, { headers: { "X-Storage-Secret": secret() }, cache: "no-store" });
+  if (!response.ok) throw new Error(`media download failed (${response.status})`);
+  return { bytes: await response.arrayBuffer(), contentType: response.headers.get("content-type") || "application/octet-stream" };
+}
 
-    for (const sub of subDirs) {
-      await walk(`${dir}/${sub}`);
-    }
-  }
+export async function deleteStorageFile(key: string) {
+  const response = await fetch(`${baseUrl()}/delete.php`, { method: "POST", headers: { "Content-Type": "application/json", "X-Storage-Secret": secret() }, body: JSON.stringify({ key: safeKey(key) }), cache: "no-store" });
+  return response.ok;
+}
 
-  await walk(prefix);
-  return removed;
+export async function deleteStoragePrefix(keyPrefix: string) {
+  const prefix = keyPrefix.replace(/^\/+|\/+$/g, "");
+  const response = await fetch(`${baseUrl()}/delete.php`, { method: "POST", headers: { "Content-Type": "application/json", "X-Storage-Secret": secret() }, body: JSON.stringify({ prefix }), cache: "no-store" });
+  return response.ok;
+}
+
+/** Kompatibilitas purge lama: bucket Supabase menjadi prefix key Hostinger. */
+export async function removePrefix(_admin: unknown, bucket: MediaArea, prefix: string): Promise<number> {
+  return (await deleteStoragePrefix(`${bucket}/${prefix}`)) ? 1 : 0;
 }

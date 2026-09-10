@@ -5,6 +5,7 @@ import { isJpegBuffer } from "@/lib/security";
 import { allowRequest, getClientIp } from "@/lib/rate-limit";
 import { enqueueWa } from "@/lib/whatsapp";
 import { ulid } from "@/lib/ulid";
+import { deleteStorageFile, uploadStorageFile } from "@/lib/storage";
 import {
   MAX_UPLOAD_BYTES,
   uploadSchema,
@@ -139,20 +140,15 @@ export async function POST(
     }
   }
 
-  // Path convention database.md §6 — key relatif bucket (tanpa folder nama bucket).
-  // Kolom DB yang dikonsumsi publicStorageUrl harus berformat {bucket}/{key}
-  // (jadi thumb_path = "thumbs/" + key), sedangkan key upload TIDAK boleh
-  // menyertakan folder bucket.
+  // Key menyertakan area media agar URL publik/private dapat dibedakan.
   const fileId = ulid();
-  const photoPath = `${event.id}/${tableId}/${fileId}.jpg`;
-  const thumbKey = `${event.id}/${fileId}_320.jpg`;
+  const photoPath = `photos/${event.id}/${tableId}/${fileId}.jpg`;
+  const thumbKey = `thumbs/${event.id}/${fileId}_320.jpg`;
 
-  const { error: photoError } = await admin.storage
-    .from("photos")
-    .upload(photoPath, imageBuffer, { contentType: "image/jpeg" });
-
-  if (photoError) {
-    console.error("[upload] storage photos:", photoError.message);
+  try {
+    await uploadStorageFile(photoPath, imageBuffer, "image/jpeg");
+  } catch (error) {
+    console.error("[upload] media photos:", error);
     return jsonError("Momen gagal tersimpan. Coba sekali lagi ya.", 502);
   }
 
@@ -163,10 +159,12 @@ export async function POST(
     // image/jpeg agar tak bisa ditanam text/html/svg (task 019 §2.3).
     const thumbBuffer = Buffer.from(await thumb.arrayBuffer());
     if (isJpegBuffer(thumbBuffer)) {
-      const { error: thumbError } = await admin.storage
-        .from("thumbs")
-        .upload(thumbKey, thumbBuffer, { contentType: "image/jpeg" });
-      if (!thumbError) storedThumbPath = `thumbs/${thumbKey}`;
+      try {
+        await uploadStorageFile(thumbKey, thumbBuffer, "image/jpeg");
+        storedThumbPath = thumbKey;
+      } catch (error) {
+        console.error("[upload] media thumb:", error);
+      }
     }
   }
 
@@ -207,8 +205,8 @@ export async function POST(
     }
 
     console.error("[upload] insert photos:", insertError.message);
-    await admin.storage.from("photos").remove([photoPath]);
-    if (storedThumbPath) await admin.storage.from("thumbs").remove([thumbKey]);
+    await deleteStorageFile(photoPath);
+    if (storedThumbPath) await deleteStorageFile(storedThumbPath);
     return jsonError("Momen gagal tersimpan. Coba sekali lagi ya.", 500);
   }
 

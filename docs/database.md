@@ -374,40 +374,35 @@ supabase.channel(`photos:${eventId}`)
 ```
 > Hanya subscribe ke channel event aktif — jangan global subscribe (hemat koneksi & kuota realtime).
 
-## 6. Storage Buckets
+## 6. File Storage Hostinger
 
-| Bucket | Access | Isi |
+| Area | Access | Isi |
 |---|---|---|
-| `photos` | **Private** — akses hanya signed URL server-side (900s); insert via service role only | Foto tamu JPEG |
-| `thumbs` | Public read | Thumbnail 320px |
-| `frames` | Public read | Frame PNG vendor |
-| `zips` | Private — signed URL 15 menit | Hasil export ZIP |
-| `showcase` | Public read | Foto kurasi platform (input superadmin) |
-| `sponsors` | Public read | Logo sponsor (input vendor Pro, task 013) |
+| `private/photos` | **Private** — dibaca lewat API Next.js setelah ownership check | Foto tamu JPEG |
+| `public/thumbs` | Public read | Thumbnail 320px |
+| `public/frames` | Public read | Frame PNG vendor |
+| `private/zips` | Private — dibaca lewat API Next.js | Hasil export ZIP |
+| `public/showcase` | Public read | Foto kurasi platform |
+| `public/sponsors` | Public read | Logo sponsor |
 
 Path convention:
 ```
 photos/{event_id}/{table_id}/{ulid}.jpg
 thumbs/{event_id}/{ulid}_320.jpg
 frames/{vendor_id}/{event_id}/frame.png
-zips/{event_id}/temora-{slug}.zip
+zips/{event_id}/{job_id}.zip
 sponsors/{event_id}/{ulid}.png
+showcase/{ulid}.jpg
 ```
 
-> ⚠️ **Konvensi path (2 aturan berbeda — jangan tertukar):**
-> 1. **Key objek di Storage = relatif terhadap bucket, TANPA folder bernama bucket.**
->    `storage.from("thumbs").upload("7fa0/…", …)` → key `7fa0/…` (bukan `thumbs/7fa0/…`).
-> 2. **Kolom DB yang dikonsumsi `publicStorageUrl`/`/object/public/{path}` WAJIB
->    berformat `{bucket}/{key}`** (mis. `thumb_path = "thumbs/7fa0/…"`).
->    Pengecualian: `storage_path` bucket privat (`photos`) = key apa adanya
->    (dipakai `createSignedUrl(key)`), dan `frame_url`/`showcase.storage_path`
->    berformat `{bucket}/{key}` karena dipakai public URL.
->
-> Bug 2026-08-26 (dua ronde): (1) key upload sempat menyertakan folder bucket →
-> URL publik `thumbs`/`frames`/`showcase` 404; (2) saat koreksi, prefix bucket
-> sempat dihapus dari kolom DB → `publicStorageUrl` tanpa bucket → 404 lagi.
-> Konvensi di atas adalah bentuk final yang benar. Detail migrasi & uji:
-> `docs/qa-report.md` §6c.
+Path pada kolom database adalah relative key media service tanpa prefix bucket.
+File public memakai URL `HOSTINGER_MEDIA_URL`; file private tidak pernah
+diekspos sebagai URL langsung.
+
+> **Konvensi:** key di kolom DB sama dengan key media service dan selalu diawali area
+> (`photos/`, `thumbs/`, `frames/`, dan seterusnya). URL publik dibentuk menjadi
+> `https://media.temora.site/public/{key}`; foto dan ZIP private hanya lewat API Next.js.
+> File lama di Supabase Storage tidak dimigrasikan karena environment masih testing.
 
 ## 7. Data Retention & Privacy
 

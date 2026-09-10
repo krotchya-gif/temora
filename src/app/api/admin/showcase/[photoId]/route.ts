@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSuperAdminOrNull } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdminAction } from "@/lib/admin-audit";
+import { deleteStorageFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -97,9 +98,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Gagal menghapus." }, { status: 500 });
   }
 
-  await admin.storage
-    .from("showcase")
-    .remove([row.storage_path.replace(/^showcase\//, "")]);
+  await deleteStorageFile(row.storage_path);
 
   await logAdminAction({
     actorId: actor.id,

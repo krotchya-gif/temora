@@ -1,6 +1,7 @@
 // Model kartu momen showcase + resolver URL gambar satu pintu (docs/qa-report.md §7).
 // Prioritas: external_url (placeholder Unsplash/Wikimedia/picsum) →
-// objek storage bucket publik 'showcase' (upload superadmin).
+// objek media publik 'showcase' (upload superadmin).
+import { publicStorageUrl } from "@/lib/storage";
 
 export type MomentCard = {
   id: string;
@@ -14,9 +15,10 @@ type ShowcaseRow = {
   external_url: string | null;
 };
 
-export function momentImageUrl(row: ShowcaseRow, publicBase: string): string {
+export function momentImageUrl(row: ShowcaseRow, _publicBase: string): string {
+  void _publicBase;
   if (row.external_url) return row.external_url;
-  return `${publicBase}/storage/v1/object/public/${row.storage_path ?? ""}`;
+  return publicStorageUrl(row.storage_path ?? "");
 }
 
 /** Fallback gambar stabil per id agar UI tak pernah kosong. */

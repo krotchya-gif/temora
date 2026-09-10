@@ -84,7 +84,7 @@ export default async function PrintQrPage({ params }: PrintQrPageProps) {
                       // eslint-disable-next-line @next/next/no-img-element -- URL publik Storage
                       <img
                         key={s.logo_path}
-                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/v1/object/public/${s.logo_path}`}
+                        src={`${process.env.HOSTINGER_MEDIA_URL ?? ""}/public/${s.logo_path}`}
                         alt={s.name}
                         className="qr-card-sponsor-logo"
                       />

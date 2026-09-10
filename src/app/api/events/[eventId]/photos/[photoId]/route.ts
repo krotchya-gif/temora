@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { isSameOrigin } from "@/lib/security";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { downloadStorageFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
-// GET — signed URL resolusi penuh untuk lightbox (bucket photos privat).
+// GET — stream foto privat melalui API yang sudah mengautentikasi user.
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ eventId: string; photoId: string }> },
@@ -32,20 +33,23 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const admin = createAdminClient();
-  const { data: signed, error } = await admin.storage
-    .from("photos")
-    .createSignedUrl(photo.storage_path, 900);
+  const url = new URL(_request.url);
+  if (!url.searchParams.has("raw")) {
+    return NextResponse.json({ ok: true, signedUrl: `/api/events/${eventId}/photos/${photoId}?raw=1` });
+  }
 
-  if (error || !signed) {
-    console.error("[photos.signed]", error?.message);
+  try {
+    const media = await downloadStorageFile(photo.storage_path);
+    return new NextResponse(media.bytes, {
+      headers: { "Content-Type": media.contentType, "Cache-Control": "private, max-age=300", "X-Content-Type-Options": "nosniff" },
+    });
+  } catch (error) {
+    console.error("[photos.download]", error);
     return NextResponse.json(
       { error: "Gagal membuka momen. Coba lagi ya." },
       { status: 500 },
     );
   }
-
-  return NextResponse.json({ ok: true, signedUrl: signed.signedUrl });
 }
 
 // DELETE — soft delete per database.md §7 (cron hard-delete Storage 30 hari).

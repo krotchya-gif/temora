@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqualStr } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { removePrefix } from "@/lib/storage";
+import { deleteStorageFile, removePrefix } from "@/lib/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -60,13 +60,11 @@ export async function GET(request: Request) {
 
   for (const photo of stale ?? []) {
     if (photo.storage_path) {
-      await admin.storage.from("photos").remove([photo.storage_path]);
+      await deleteStorageFile(photo.storage_path);
       summary.removedObjects += 1;
     }
     if (photo.thumb_path) {
-      await admin.storage
-        .from("thumbs")
-        .remove([photo.thumb_path.replace(/^thumbs\//, "")]);
+      await deleteStorageFile(photo.thumb_path);
       summary.removedObjects += 1;
     }
     const { error } = await admin.from("photos").delete().eq("id", photo.id);

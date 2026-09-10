@@ -11,6 +11,7 @@
 import JSZip from "jszip";
 import { ulid } from "@/lib/ulid";
 import type { createAdminClient } from "@/lib/supabase/admin";
+import { deleteStorageFile, downloadStorageFile, uploadStorageFile } from "@/lib/storage";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -34,11 +35,11 @@ export type ZipJobStatus = {
 //   {eventId}/{jobId}/{index}.jpg        — staging per foto
 //   {eventId}/temora-{slug}-{jobId}.zip  — hasil akhir
 function statusPath(eventId: string, jobId: string) {
-  return `${eventId}/jobs/${jobId}.json`;
+  return `zips/${eventId}/jobs/${jobId}.json`;
 }
 
 function stagingPath(eventId: string, jobId: string, index: number) {
-  return `${eventId}/${jobId}/${String(index).padStart(5, "0")}.jpg`;
+  return `zips/${eventId}/${jobId}/${String(index).padStart(5, "0")}.jpg`;
 }
 
 async function writeStatus(
@@ -48,13 +49,7 @@ async function writeStatus(
   status: ZipJobStatus,
 ) {
   const body = JSON.stringify(status);
-  const { error } = await admin.storage
-    .from("zips")
-    .upload(statusPath(eventId, jobId), body, {
-      contentType: "application/json",
-      upsert: true,
-    });
-  if (error) throw new Error(`zip status write: ${error.message}`);
+  await uploadStorageFile(statusPath(eventId, jobId), body, "application/json");
 }
 
 export async function getStatus(
@@ -62,12 +57,10 @@ export async function getStatus(
   eventId: string,
   jobId: string,
 ): Promise<ZipJobStatus | null> {
-  const { data, error } = await admin.storage
-    .from("zips")
-    .download(statusPath(eventId, jobId));
-  if (error || !data) return null;
+  let data: ArrayBuffer;
+  try { data = (await downloadStorageFile(statusPath(eventId, jobId))).bytes; } catch { return null; }
   try {
-    return JSON.parse(await data.text()) as ZipJobStatus;
+    return JSON.parse(new TextDecoder().decode(data)) as ZipJobStatus;
   } catch {
     return null;
   }
@@ -125,17 +118,9 @@ export async function advanceJob(
 
     let processed = status.processed;
     for (const [i, row] of (rows ?? []).entries()) {
-      const { data: blob, error: dlError } = await admin.storage
-        .from("photos")
-        .download(row.storage_path);
-      if (dlError || !blob) continue; // objek hilang → lewati, jangan gagalkan job
-
-      const { error: upError } = await admin.storage
-        .from("zips")
-        .upload(stagingPath(eventId, jobId, from + i), await blob.arrayBuffer(), {
-          contentType: "image/jpeg",
-        });
-      if (upError) throw new Error(`zip stage: ${upError.message}`);
+      let blob: ArrayBuffer;
+      try { blob = (await downloadStorageFile(row.storage_path)).bytes; } catch { continue; }
+      await uploadStorageFile(stagingPath(eventId, jobId, from + i), blob, "image/jpeg");
       processed += 1;
     }
 
@@ -170,40 +155,27 @@ async function finalizeJob(
 
   const zip = new JSZip();
   for (let i = 0; i < status.total; i++) {
-    const { data, error } = await admin.storage
-      .from("zips")
-      .download(stagingPath(eventId, jobId, i));
-    if (error || !data) continue; // baris dilewati saat staging → nomor bolong
-    zip.file(`momen-${String(i + 1).padStart(4, "0")}.jpg`, await data.arrayBuffer());
+    let data: ArrayBuffer;
+    try { data = (await downloadStorageFile(stagingPath(eventId, jobId, i))).bytes; } catch { continue; }
+    zip.file(`momen-${String(i + 1).padStart(4, "0")}.jpg`, data);
   }
 
   // JPEG sudah terkompres — STORE cepat & tanpa untung-untungan CPU.
   const buffer = await zip.generateAsync({ type: "nodebuffer", compression: "STORE" });
 
-  const finalPath = `${eventId}/temora-${slug}-${jobId}.zip`;
-  const { error: upError } = await admin.storage
-    .from("zips")
-    .upload(finalPath, buffer, {
-      contentType: "application/zip",
-      upsert: true,
-    });
-  if (upError) throw new Error(`zip final upload: ${upError.message}`);
-
-  const { data: signed, error: signError } = await admin.storage
-    .from("zips")
-    .createSignedUrl(finalPath, SIGNED_URL_SECONDS);
-  if (signError || !signed) throw new Error(`zip sign: ${signError?.message}`);
+  const finalPath = `zips/${eventId}/temora-${slug}-${jobId}.zip`;
+  await uploadStorageFile(finalPath, buffer, "application/zip");
 
   // Bersihkan staging setelah ZIP final aman tersimpan.
   const staging = Array.from({ length: status.total }, (_, i) =>
     stagingPath(eventId, jobId, i),
   );
-  await admin.storage.from("zips").remove(staging);
+  await Promise.all(staging.map((path) => deleteStorageFile(stagingPath(eventId, jobId, Number(path.split("/").pop()?.split(".")[0] ?? 0)))));
 
   const done: ZipJobStatus = {
     ...status,
     status: "done",
-    downloadUrl: signed.signedUrl,
+    downloadUrl: `/api/events/${eventId}/photos/zip?job=${jobId}&download=1`,
     expiresAt: new Date(Date.now() + SIGNED_URL_SECONDS * 1000).toISOString(),
   };
   await writeStatus(admin, eventId, jobId, done);

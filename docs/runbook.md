@@ -26,23 +26,20 @@
 4. Arahkan aplikasi ke project hasil restore (update `NEXT_PUBLIC_SUPABASE_URL` + keys di env Node app hPanel) atau dump & import delta ke production.
 5. PITR tersedia di plan berbayar Supabase — pastikan aktif sebelum go-live (checklist 015).
 
-## 3. Storage threshold ≥ 80% (~800 MB)
+## 3. Media storage Hostinger
 
-Ambang upgrade: free tier Supabase = 1 GB; **≥ 80% → langsung upgrade Supabase Pro $25/bln** (architecture.md §7).
-
-1. Cek pemakaian: Supabase Dashboard → **Settings → Usage** → Storage.
-2. Di atas ambang:
-   - Upgrade plan (kartu di org settings). Tidak ada downtime.
-   - Jalankan `GET /api/cron/photo-ttl` manual (`Authorization: Bearer $CRON_SECRET`) untuk memaksa pembersihan foto expired.
-   - Cek event besar lewat dashboard vendor → hapus foto sampah / event uji.
-3. Preventif: pastikan pinger eksternal (cron-job.org / UptimeRobot) memicu `GET /api/cron/photo-ttl` harian dengan header `Authorization: Bearer $CRON_SECRET` (architecture.md §12).
+1. Pastikan `media.temora.site` aktif dan document root-nya menunjuk ke folder service media.
+2. Pastikan folder `public/` writable untuk `thumbs`, `frames`, `sponsors`, dan `showcase`.
+3. Pastikan folder `private/` tidak dapat diakses langsung dari web; akses private hanya lewat `download.php` dengan secret.
+4. Pantau disk usage Hostinger. Bersihkan file expired/soft-deleted melalui cron aplikasi sebelum storage penuh.
+5. Jangan menaruh `HOSTINGER_STORAGE_SECRET` di repo atau environment browser.
 
 ## 4. Insiden umum
 
 | Gejala | Cek pertama | Aksi |
 |---|---|---|
 | Tamu "acara sudah selesai" padahal belum | `events.expires_at` | Perpanjang `expires_at` (SQL via CLI, bukan DDL) |
-| Upload gagal massal | Log Node app hPanel (route upload) | Lihat error storage; cek kuota bucket & status Supabase |
+| Upload gagal massal | Log Node app hPanel + log PHP Hostinger | Cek URL/secret media, permission folder, ukuran file, dan magic bytes |
 | Webhook Xendit tidak masuk | Xendit Dashboard → Webhooks log | Pastikan URL `temora.id/api/billing/webhook` & token per-env |
 | WA tidak terkirim | `whatsapp_logs` (status/error) | Token Meta expired → refresh; quiet hours menahan sampai pagi |
 | Cron tidak jalan | Riwayat job di cron-job.org / UptimeRobot | Header `Authorization: Bearer $CRON_SECRET` mismatch pemicu paling sering |
@@ -138,4 +135,4 @@ curl -X PUT "https://<ref>.supabase.co/auth/v1/admin/users/<USER_ID>" \
 ## 8. Ban & penghapusan vendor (task 019)
 
 - **Ban** (via `/admin/vendors/[id]`): menolak login baru, memblokir sesi hidup, dan menonaktifkan seluruh event vendor. Unban hanya memulihkan login.
-- **Hapus permanen**: purge Storage semua event → delete baris `vendors` (kaskade events/photos/subscriptions/wa_logs) → delete user auth. Data tidak dapat dipulihkan kecuali PITR database; Storage tidak tercakup PITR — pastikan sebelum mengonfirmasi.
+- **Hapus permanen**: purge media semua event → delete baris `vendors` (kaskade events/photos/subscriptions/wa_logs) → delete user auth. Data tidak dapat dipulihkan kecuali backup database dan backup Hostinger terpisah.
