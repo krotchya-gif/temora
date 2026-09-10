@@ -39,7 +39,7 @@ export async function uploadStorageFile(key: string, body: Blob | Buffer | Array
 }
 
 export async function downloadStorageFile(key: string) {
-  const response = await fetch(`${baseUrl()}/download.php?key=${encodeURIComponent(safeKey(key))}`, { headers: { "X-Storage-Secret": secret() }, cache: "no-store" });
+  const response = await fetch(`${baseUrl()}/media-get.php?key=${encodeURIComponent(safeKey(key))}`, { headers: { "X-Storage-Secret": secret() }, cache: "no-store" });
   if (!response.ok) throw new Error(`media download failed (${response.status})`);
   return { bytes: await response.arrayBuffer(), contentType: response.headers.get("content-type") || "application/octet-stream" };
 }
