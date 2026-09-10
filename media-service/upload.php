@@ -17,6 +17,12 @@ if ($mime === 'image/jpeg' && @getimagesize($tmp) === false) json_response(['ok'
 if ($mime === 'image/png' && @getimagesize($tmp) === false) json_response(['ok' => false, 'error' => 'Invalid image'], 415);
 
 $dir = dirname($target);
-if (!is_dir($dir) && !mkdir($dir, 0750, true)) json_response(['ok' => false, 'error' => 'Cannot create directory'], 500);
+// 0755 agar static handler (user berbeda) bisa traversal tiap level folder
+// (photos/{event}/{table}/); area private tetap aman via private/.htaccess.
+if (!is_dir($dir) && !mkdir($dir, 0755, true)) json_response(['ok' => false, 'error' => 'Cannot create directory'], 500);
 if (!move_uploaded_file($tmp, $target)) json_response(['ok' => false, 'error' => 'Cannot save file'], 500);
+// File upload PHP default 0600 milik user proses PHP — static handler (user
+// berbeda) melempar 404 untuk file publik. Samakan 0644 agar dapat di-serve;
+// area private tetap aman via private/.htaccess + media-get.php.
+@chmod($target, 0644);
 json_response(['ok' => true, 'key' => $key]);

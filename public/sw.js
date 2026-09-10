@@ -7,13 +7,13 @@
 //  - Navigasi: network-first, fallback cache (offline → shell terakhir).
 //  - Aset statis & LUT: cache-first.
 //  - POST, /api/*, request Supabase: network-only (auth/RLS wajib online).
-const CACHE_VERSION = "temora-v1";
+const CACHE_VERSION = "temora-v2";
 
 const PRECACHE_URLS = [
   "/",
   "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
+  "/icons/web-app-manifest-192x192.png",
+  "/icons/web-app-manifest-512x512.png",
   "/icons/maskable-512.png",
   "/logos/temora-wordmark.svg",
 ];

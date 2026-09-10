@@ -139,20 +139,23 @@ CREATE TABLE whatsapp_logs (
 ```sql
 CREATE TABLE admin_audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  actor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  actor_email TEXT NOT NULL,           -- snapshot; tahan bila akun terhapus nanti
-  action TEXT NOT NULL,                -- set_tier | edit_vendor | ban_vendor |
-                                       -- unban_vendor | delete_vendor |
-                                       -- set_event_status | delete_photo
-  target_type TEXT NOT NULL,           -- vendor | event | photo
-  target_id TEXT,
-  detail JSONB NOT NULL DEFAULT '{}',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   actor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+   actor_email TEXT NOT NULL,           -- snapshot; tahan bila akun terhapus nanti
+   action TEXT NOT NULL,                -- set_tier | edit_vendor | ban_vendor |
+                                        -- unban_vendor | delete_vendor |
+                                        -- set_event_status | delete_photo |
+                                        -- edit_settings | showcase_upload |
+                                        -- showcase_edit | showcase_delete |
+                                        -- event_retry
+   target_type TEXT NOT NULL,           -- vendor | event | photo
+   target_id TEXT,
+   detail JSONB NOT NULL DEFAULT '{}',
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX idx_audit_time ON admin_audit_logs(created_at DESC);
 CREATE INDEX idx_audit_target ON admin_audit_logs(target_type, target_id);
 ```
-> Append-only: ditulis service role dari API admin; **tanpa policy** INSERT/UPDATE/DELETE untuk role biasa (immutable). Read via policy superadmin (`auth.jwt() -> 'app_metadata' ->> 'role' = 'superadmin'`) atau langsung service-role client di halaman `/admin/audit`.
+> Append-only: ditulis service role dari API admin; **tanpa policy** INSERT/UPDATE/DELETE untuk role biasa (immutable). Read via policy superadmin (`auth.jwt() -> 'app_metadata' ->> 'role' = 'superadmin'`) atau langsung service-role client di halaman `/admin/audit`. Daftar aksi aktual = union `AdminAction` di `src/lib/admin-audit.ts` (12 aksi per 2026-09-10 — live: `edit_settings` 20, `showcase_upload` 6, `event_retry` 5, dst.): `edit_settings` dipakai route settings+secrets; `showcase_edit` dipakai PATCH item **dan** reorder; halaman `/admin/audit` memetakan badge warna per aksi (fallback netral bila aksi baru belum dipetakan).
 
 ### 2.6d showcase_photos (task showcase moments)
 ```sql
@@ -170,7 +173,7 @@ CREATE TABLE showcase_photos (
 );
 CREATE INDEX idx_showcase_order ON showcase_photos(sort_order, created_at DESC);
 ```
-> Konten kurasi milik platform — diinput **superadmin** lewat `/admin/showcase`, BUKAN foto tamu vendor (privasi, keputusan terkunci #8). RLS: SELECT anon/authenticated hanya baris `deleted_at IS NULL`; tanpa policy tulis → mutasi eksklusif service role dari API admin. Bucket `showcase` PUBLIC + storage policy select. Dipakai: rope landing (24 terbaru) & halaman `/moments`.
+> Konten kurasi milik platform — diinput **superadmin** lewat `/admin/showcase`, BUKAN foto tamu vendor (privasi, keputusan terkunci #8). RLS: SELECT anon/authenticated hanya baris `deleted_at IS NULL`; tanpa policy tulis → mutasi eksklusif service role dari API admin. Area media `public/showcase` dibaca publik. Saat gambar diganti, API mengunggah ke key `showcase/{ulid}.{ext}` baru, mengubah `storage_path` dan mengosongkan `external_url`, lalu menghapus objek lama setelah update DB sukses; bila update DB gagal, objek baru dibersihkan. Dipakai: rope landing (24 terbaru) & halaman `/moments`.
 
 ### 2.6e platform_settings (task sosial media)
 ```sql

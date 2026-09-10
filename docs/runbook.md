@@ -30,9 +30,11 @@
 
 1. Pastikan `media.temora.site` aktif dan document root-nya menunjuk ke folder service media.
 2. Pastikan folder `public/` writable untuk `thumbs`, `frames`, `sponsors`, dan `showcase`.
-3. Pastikan folder `private/` tidak dapat diakses langsung dari web; akses private hanya lewat `download.php` dengan secret.
-4. Pantau disk usage Hostinger. Bersihkan file expired/soft-deleted melalui cron aplikasi sebelum storage penuh.
-5. Jangan menaruh `HOSTINGER_STORAGE_SECRET` di repo atau environment browser.
+3. Pastikan folder `private/` tidak dapat diakses langsung dari web (dijaga `private/.htaccess`); akses private hanya lewat `media-get.php` dengan secret.
+4. Permission: file `0644`, folder `0755` (`upload.php` menulis begitu sejak patch 2026-09-10). Gejala klasik salah permission: thumbnail 404 padahal file ada di disk, folder terdeteksi ada (403), cache-buster tetap 404 — perbaiki dengan recurse File Manager/SSH (`find public private -type d -exec chmod 755 {} +` + `-type f -exec chmod 644 {} +`), detail `media-service/README.md`.
+5. Pantau disk usage Hostinger. Bersihkan file expired/soft-deleted melalui cron aplikasi sebelum storage penuh.
+6. Jangan menaruh `HOSTINGER_STORAGE_SECRET` di repo atau environment browser.
+7. Data lama era Supabase tidak dimigrasikan (keputusan terkunci #20–21): 8 foto lama yatim — thumb 404 + `storage_path` tanpa prefix area ditolak `safeKey` (lightbox/ZIP gagal). Hidupkan via backfill (unzip Supabase → upload key baru → update kolom), bukan via fallback kode.
 
 ## 4. Insiden umum
 

@@ -4,6 +4,8 @@
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
+*Patch 1.6 (2026-09-10): halaman photobooth membaca event+table via service role dengan 4 status eksplisit (aktif/selesai/tautan-salah/gangguan, §5); base URL QR dinormalisasi tanpa trailing slash (§5); PATCH showcase multipart ganti gambar+judul+kutipan satu aksi (§3.3).*
+*Patch 1.7 (2026-09-10): file media ditulis `0644`, folder `0755` — default `0600` tak ter-serve sebagai statis (thumbnail 404 padahal file ada). Detail §11.1, runbook §3, qa-report.*
 
 ---
 
@@ -230,7 +232,8 @@ supabase/
 | `/api/admin/vendors/[vendorId]` | DELETE | Hapus permanen (purge storage → cascade → auth user; confirmEmail wajib) | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/status` | PATCH | Set is_active event | Superadmin (404 mask) |
 | `/api/admin/events/[eventId]/photos/[photoId]` | DELETE | Soft delete foto (moderasi) | Superadmin (404 mask) |
-| `/api/admin/showcase` | POST/PATCH/DELETE | Kurasi foto Moments (upload/edit/hapus) | Superadmin (404 mask) |
+| `/api/admin/showcase` | POST | Tambah foto kurasi Moments (multipart) | Superadmin (404 mask) |
+| `/api/admin/showcase/[photoId]` | PATCH/DELETE | Edit gambar/judul/kutipan (PATCH JSON atau multipart) / hapus; replace gambar memakai path baru lalu purge file lama | Superadmin (404 mask) |
 | `/api/admin/showcase/reorder` | POST | Ubah urutan kartu showcase (naik/turun) | Superadmin (404 mask) |
 | `/api/admin/settings` | PATCH | Simpan platform_settings (KV whitelist, validasi per-key) | Superadmin (404 mask) |
 | `/api/admin/secrets` | PUT | Simpan rahasia (service account GA4/GSC) — nilai tidak pernah dikembalikan | Superadmin (404 mask) |
@@ -315,7 +318,10 @@ Trigger (event_created | photo_milestone | invoice | payment_ok | expiry_reminde
 ### Guest Auth (No Login)
 ```
 1. Scan QR → /p/[eventId]/[tableId]
-2. Read event + table via anon key (RLS: event aktif & belum expired)
+2. Server page membaca event + table via service role, lalu memeriksa `is_active`
+   dan `expires_at` secara eksplisit. Row tidak ada → tautan tidak valid; event
+   nonaktif/expired → layar selesai; kegagalan query → layar gangguan + retry.
+   Data yang diteruskan ke client tetap hanya field publik photobooth.
 3. Upload foto via POST /api/.../photos/upload (server pakai service role — bukan insert anon langsung)
 4. Tamu TIDAK bisa SELECT foto — galeri hanya milik vendor
 5. Tamu bisa POST saved/scan endpoints (token/session validated di server)
@@ -327,6 +333,7 @@ Detail aturan terkunci: `docs/database.md` §2.7. Ringkas:
 - Free: max 1 event **aktif**, unlimited nonaktif.
 - Downgrade: event aktif tetap jalan; block create/activate baru sampai ≤1 aktif.
 - `ends_at` informasi saja — tidak memblokir tamu.
+- Base URL QR dinormalisasi tanpa trailing slash sebelum path `/p/...` ditambahkan.
 
 ---
 
@@ -525,8 +532,9 @@ file tetap persisten saat aplikasi diperbarui. Area `public` berisi frame,
 thumbnail, sponsor, dan showcase; area `private` berisi foto resolusi penuh dan
 ZIP. File private hanya dibaca melalui API Next.js setelah ownership check.
 Handler PHP memverifikasi `HOSTINGER_STORAGE_SECRET`, whitelist area, path aman,
-MIME/magic bytes, dan batas ukuran. File development lama di Supabase Storage
-tidak dimigrasikan.
+MIME/magic bytes, dan batas ukuran. File ditulis `0644` dan folder `0755`
+(patch 1.7 — default `0600` tak terbaca static handler). File development lama
+di Supabase Storage tidak dimigrasikan.
 
 ---
 
@@ -556,7 +564,7 @@ Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
 | Bagian | Lokasi | Keterangan |
 |--------|--------|------------|
 | Web App Manifest | `src/app/manifest.ts` | Route handler Next → `/manifest.webmanifest`. Name, icons 192/512, `display: standalone`, `theme_color` = token `--color-bg-base` (#F9F6F1) |
-| Icon set | `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png`, `apple-touch-icon-180.png` | Generate via `node scripts/gen-pwa-icons.mjs` (PNG encoder murni Node/zlib, tanpa dependency). Desain: monogram "T" putih di lingkaran `dusty-blue` (#8FA8B8) di atas `bg-base` — sesuai design-system §8 |
+| Icon set | `public/favicon.ico`, `public/icons/favicon-96x96.png`, `apple-touch-icon.png`, `web-app-manifest-192x192.png`, `web-app-manifest-512x512.png`, `maskable-512.png` (lockup wordmark + ring-O; maskable & `public/og.png` 1200×630 di-generate `node scripts/build-brand-images.mjs` dari `public/logos/logo.png` — encoder/decode PNG murni Node/zlib, tanpa dependency) — sesuai design-system §8 |
 | Service Worker | `public/sw.js` | Statis di `public/` → ikut Git deploy; **tanpa** integrasi Next build. Versi cache via konstanta `CACHE_VERSION`; update = bump versi |
 | Install Prompt | `src/components/PwaInstallPrompt.tsx` | Client component di root layout. Kalau user dismiss, waktu disimpan di localStorage (`temora_pwa_dismissed`) dan prompt boleh muncul lagi setelah 24 jam. Sembunyi di halaman photobooth (`/p/`) |
 

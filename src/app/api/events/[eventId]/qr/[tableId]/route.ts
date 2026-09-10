@@ -27,8 +27,9 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  ).replace(/\/+$/, "");
   const targetUrl = `${appUrl}/p/${eventId}/${tableId}`;
 
   const svg = await QRCode.toString(targetUrl, {

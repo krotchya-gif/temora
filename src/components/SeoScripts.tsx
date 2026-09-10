@@ -40,7 +40,7 @@ export async function SeoScripts() {
       "@id": `${base.origin}/#organization`,
       name: "TEMORA",
       url: base.origin,
-      logo: `${base.origin}/logos/temora-wordmark.svg`,
+      logo: `${base.origin}/logos/logo.png`,
       sameAs: sameAs.length > 0 ? sameAs : undefined,
     },
   ];

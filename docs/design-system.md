@@ -295,6 +295,10 @@ Max width konten `max-w-6xl`; padding `px-4 sm:px-6 lg:px-8`.
   44px (`min-h-11`). Baris aksi harus membungkus (`flex-wrap`) pada layar sempit.
 - Async panel wajib membedakan loading, error + retry, empty, dan success; tombol
   yang sedang mengirim request tidak dapat ditekan berulang.
+- Editor Showcase menampilkan preview gambar per item, input judul, textarea
+  kutipan, dan aksi "Ganti foto" + "Simpan perubahan". File yang baru dipilih
+  harus terlihat sebagai preview lokal sebelum disimpan; error tetap mempertahankan
+  draft. Semua aksi minimal 44px dan tersusun vertikal pada viewport sempit.
 
 ---
 
@@ -338,6 +342,7 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Setelah simpan/share sukses (tamu) | "Momen sekarang ada di HP-mu ✨" |
 | Field link kustom (form event) | Label "Link kustom (opsional)" · helper "Kosongkan untuk otomatis dari nama event." |
 | Event berakhir | "Acara ini sudah selesai. Terima kasih sudah jadi bagian dari momennya." |
+| Photobooth gagal dimuat | "Momennya belum bisa dibuka. Coba muat ulang sebentar lagi, ya." + CTA "Coba lagi" |
 | Consent body (photobooth) | "Foto yang kamu ambil tersimpan ke galeri acara dan hanya bisa dilihat oleh penyelenggara. Foto otomatis terhapus paling lambat 30 hari setelah acara berakhir." |
 | Kamera ditolak | "Izin kamera belum aktif. Izinkan akses kamera lewat pengaturan browser-mu, lalu coba lagi ya." |
 | Kamera error umum | "Kamera belum bisa diakses. Tutup aplikasi lain yang memakai kamera, lalu coba lagi ya." |
@@ -380,12 +385,12 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 
 | Asset | Spec |
 |-------|------|
-| Logo (wordmark) | "TEMORA" Cormorant Garamond, tracked +50 |
-| Monogram | "T" dalam lingkaran, `dusty-blue` di atas `bg-base` |
-| Favicon | Monogram 32×32px |
-| OG Image | 1200×630px, warm ivory bg, tagline display font |
+| Logo (wordmark) | "TEMORA" Cormorant Garamond, tracked +50 — teks di nav/header/footer. Citra kanonik: `public/logos/logo.png` (lockup wordmark + ring-O emas + tagline, 800×457) untuk JSON-LD `Organization.logo`, precache SW, dan sumber generate OG/maskable |
+| Monogram | Ring-O emas (huruf O pada lockup `logo.png`) — dipakai sebagai mark kompak bila wordmark penuh tak muat |
+| Favicon | `public/favicon.ico` (multi-ukuran, legacy) + `public/icons/favicon-96x96.png` (96×96, tab modern); iOS: `public/icons/apple-touch-icon.png` (180×180) |
+| OG Image | `public/og.png` 1200×630 — lockup logo di tengah warm ivory (`bg-base`); generate `node scripts/build-brand-images.mjs`, jangan edit manual |
 | Watermark | Free/Basic wajib memakai "Keep it close. Keep it TEMORA." di kanan bawah. Pro dapat mengubah teks/posisi atau memilih tanpa watermark (`watermark_text = NULL`). |
-| PWA icons | Monogram "T" putih di lingkaran `dusty-blue` (#8FA8B8), latar penuh `bg-base` (#F9F6F1). `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png` (safe zone 80%), `apple-touch-icon-180.png`. Generate: `node scripts/gen-pwa-icons.mjs` |
+| PWA icons | Lockup wordmark: `public/icons/web-app-manifest-192x192.png`, `web-app-manifest-512x512.png`, `maskable-512.png` (lockup 80% safe zone di atas ivory — generate `node scripts/build-brand-images.mjs`), `apple-touch-icon.png`. `favicon.svg` 3MB peninggalan generator DILARANG dipakai/dikembalikan (boros, nol fungsi di atas `.ico`+PNG) |
 
 ---
 

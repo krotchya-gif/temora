@@ -71,8 +71,11 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [ogImage],
     },
     icons: {
-      icon: "/logos/temora-wordmark.svg",
-      apple: "/icons/apple-touch-icon-180.png",
+      icon: [
+        { url: "/favicon.ico" },
+        { url: "/icons/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      ],
+      apple: "/icons/apple-touch-icon.png",
     },
   };
 }

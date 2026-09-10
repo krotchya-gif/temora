@@ -18,6 +18,11 @@ const ACTION_BADGE: Record<string, string> = {
   delete_vendor: "bg-danger/15 text-danger",
   set_event_status: "bg-bg-warm text-text-secondary",
   delete_photo: "bg-warning/15 text-warning",
+  edit_settings: "bg-muted-mauve/15 text-muted-mauve",
+  event_retry: "bg-dusty-blue/15 text-dusty-blue",
+  showcase_upload: "bg-success/15 text-success",
+  showcase_edit: "bg-accent/15 text-accent",
+  showcase_delete: "bg-danger/15 text-danger",
 };
 
 function formatDate(iso: string): string {

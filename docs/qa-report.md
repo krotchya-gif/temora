@@ -523,3 +523,79 @@ yang gagal hanyalah render setelah refresh; kini aman.
 - `npm run typecheck` ✓; `npm run lint` ✓; 64 unit tests ✓; production build ✓.
 - Playwright mengenali 8 skenario termasuk admin viewport 360px dan desktop;
   eksekusi live skenario admin membutuhkan `E2E_ADMIN_EMAIL/PASSWORD`.
+
+## Ronde Editor Showcase Moments (2026-09-10)
+
+- Setiap kartu `/admin/showcase` kini dapat mengganti gambar, judul, dan kutipan
+  dalam satu aksi simpan, lengkap dengan preview lokal dan status per kartu.
+- Replace gambar memakai key media baru; database diperbarui sebelum objek lama
+  dihapus. Jika update database gagal, objek baru dibersihkan.
+- Gambar eksternal yang diganti berpindah ke `storage_path` lokal dan
+  `external_url` dikosongkan agar hanya ada satu sumber gambar aktif.
+- Validasi client + server: JPEG/PNG, 1KB–10MB, dan magic bytes; endpoint tetap
+  hanya dapat diakses superadmin.
+- Database live: 12 baris aktif (1 media lokal, 11 external URL); seluruh baris
+  memiliki field judul/kutipan dan dapat melalui alur editor baru.
+- Typecheck ✓; lint ✓; 64 unit tests ✓; production build ✓; Playwright mengenali
+  9 skenario termasuk keberadaan editor showcase pada viewport 360px.
+
+## Ronde Status QR Event (2026-09-10)
+
+- Record live event terbaru `rumah` terverifikasi aktif, belum kedaluwarsa, dan
+  memiliki delapan meja; query anon RLS untuk event serta meja juga berhasil.
+- URL event/meja live merender photobooth dengan HTTP 200. Diagnosis menemukan
+  halaman lama menyamakan row tidak ditemukan, error koneksi, dan event berakhir
+  menjadi satu layar "Acara ini sudah selesai".
+- Halaman photobooth kini membaca status server-side dan membedakan empat hasil:
+  aktif, event selesai, tautan salah, serta gangguan pemuatan dengan CTA retry.
+- Generator QR menghapus trailing slash dari `NEXT_PUBLIC_APP_URL`, sehingga URL
+  kanonik selalu berbentuk `https://temora.site/p/{eventId}/{tableId}`.
+- Verifikasi production build lokal terhadap data live: event aktif membuka
+  photobooth, UUID meja salah membuka layar tautan tidak ditemukan, dan event
+  nonaktif membuka layar acara selesai.
+- `npm run typecheck` ✓; `npm run lint` ✓; 64 unit tests ✓; production build ✓.
+
+## Ronde Thumbnail 404 pasca-migrasi Hostinger (2026-09-10)
+
+- Gejala: thumbnail grid vendor 404 untuk foto **baru** (upload via Hostinger
+  sukses, row DB terisi), padahal file ada di disk dengan nama persis DB.
+  Probe: folder event 403 (ada, listing ditolak) vs kontrol folder ngawur 404;
+  file 404 dengan maupun tanpa cache-buster (bukan cache CDN, bukan salah nama,
+  bukan salah docroot). Kode dashboard (`publicStorageUrl`) terbukti benar.
+- Root cause: `upload.php` tidak `chmod` — file JPEG `0600` milik user PHP tak
+  terbaca static handler (user berbeda) → 404; folder `mkdir 0750` menghambat
+  traversal tiap level (`photos/{event}/{table}/`, `thumbs/{event}/`).
+- Fix: `upload.php` → `mkdir 0755` + `@chmod($target, 0644)`; file existing
+  di-recurse (folder 755, file 644). `private/` tetap aman via
+  `private/.htaccess` + `media-get.php`. Detail deploy: `media-service/README.md`,
+  runbook §3.
+- Verifikasi: kedua thumb event `rumah` HTTP 200 + gambar tampil dari publik.
+- Sisa: 8 foto era Supabase tetap yatim (byte di bucket Supabase,
+  `storage_path` tanpa prefix area → `safeKey` menolak; lightbox/ZIP ikut gagal)
+  — menunggu backfill. 1 pasang file yatim tanpa row (`01M25C4TK…`) aman dihapus.
+
+## Ronde Favicon & Brand Images (2026-09-10)
+
+- Temuan: set ikon kanonik (`icon-192/512`, `maskable`, `apple-180`, `og.png`,
+  `og.svg`) terhapus dari working copy dan diganti paket RealFaviconGenerator
+  (lockup wordmark + ring-O) + `logos/logo.png` — tetapi referensi kode
+  (`manifest.ts`, `layout.tsx`, `sw.js` precache) masih menunjuk nama lama.
+  Dampak: ikon manifest 404, `icons.apple` 404, `icons.icon` memakai wordmark
+  SVG (tak terbaca di tab), `cache.addAll` SW **gagal total** (satu URL 404
+  menggagalkan seluruh precache), fallback OG `/og.png` 404.
+- Fix: wiring ke file baru (`manifest.ts` → `web-app-manifest-192/512` +
+  `maskable-512`; `layout.tsx` → `favicon.ico` + `favicon-96x96` +
+  `apple-touch-icon.png`; JSON-LD `Organization.logo` → `logos/logo.png`;
+  `sw.js` precache ikut nama baru + bump `temora-v2`); `og.png` 1200×630 +
+  `maskable-512.png` (safe zone 80% ivory) di-generate
+  `node scripts/build-brand-images.mjs` dari `logos/logo.png` (decode/encode
+  PNG murni Node/zlib — hasil visual OK: wordmark tajam di atas ivory);
+  `favicon.svg` 3MB (PNG base64) + `scripts/gen-pwa-icons.mjs` (monogram lama,
+  nama konflik) dihapus; docs (§13.1, design-system §8) + patch 1.8.
+- Susulan: `apple-touch-icon.png` + `web-app-manifest-192/512.png` di-flatten
+  ke ivory opak via script yang sama — iOS menempel transparan ke hitam (tanpa
+  alpha blending), dan launcher Android menaruh ikon `any` apa adanya di atas
+  wallpaper (teks gelap tenggelam di wallpaper gelap). Diverifikasi visual.
+- Catatan desain: lockup penuh di tab 16px memang kurang terbaca dan transparan
+  → hitam di iOS — itu konsekuensi paket yang dipilih; mark kompak = ring-O
+  (design-system §8).

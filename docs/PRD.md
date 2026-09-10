@@ -161,7 +161,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 ### Resolved (v1.2)
 
 4. ~~Guest data (nama/email) wajib atau tetap anonim?~~ → **Tamu anonim sepenuhnya di MVP** (tanpa nama/email wajib). Lihat database.md §7.
-5. **Showcase Moments** (enhancement pasca-MVP, 2026-08-26): galeri kurasi platform yang diinput superadmin — tampil di landing (rope interaktif "tali momen") dan halaman publik `/moments`. Konten eksklusif kurasi admin; foto tamu vendor tetap privat (keputusan #8). Detail: `docs/qa-report.md` §8.
+5. **Showcase Moments** (enhancement pasca-MVP, 2026-08-26; editor lengkap 2026-09-10): galeri kurasi platform yang diinput superadmin — tampil di landing (rope interaktif "tali momen") dan halaman publik `/moments`. Setiap item dapat diganti gambarnya serta diedit judul dan kutipannya tanpa membuat item baru. Konten eksklusif kurasi admin; foto tamu vendor tetap privat (keputusan #8). Detail: `docs/qa-report.md` §8.
 
 ---
 
