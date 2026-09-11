@@ -254,6 +254,11 @@ Location pages dapat dikembangkan berdasarkan area operasional, misalnya:
 
 **Keep The Moments Close.**
 
+Homepage visual direction (2026-09-11): hero dibuat minimal dan brand-led;
+wordmark TEMORA menjadi pusat, lalu interaksi hover/focus memunculkan motif
+kamera. CTA vendor tetap tersedia, tetapi homepage tidak menjadikan stock photo
+sebagai visual hero utama.
+
 ### Homepage Supporting Copy
 
 > A virtual photobooth made for the people, laughter, and little moments worth remembering.

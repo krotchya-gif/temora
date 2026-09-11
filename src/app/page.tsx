@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Camera, Download, QrCode } from "lucide-react";
+import { BrandHero } from "@/components/marketing/BrandHero";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { RopeMoments } from "@/components/marketing/RopeMoments";
-import { TrackedWaCta } from "@/components/marketing/TrackedWaCta";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { getWhatsAppUrl, HOW_IT_WORKS_STEPS } from "@/lib/constants";
+import { HOW_IT_WORKS_STEPS } from "@/lib/constants";
 import { momentImageUrl, type MomentCard } from "@/lib/moments";
 import { createClient } from "@/lib/supabase/server";
 
@@ -58,51 +58,7 @@ export default async function HomePage() {
 
   return (
     <MarketingLayout>
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-glow-accent" aria-hidden />
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-20 lg:px-8 lg:pb-24 lg:pt-16">
-          <div className="animate-fade-up space-y-6">
-            <h1 className="font-display text-5xl leading-[1.06] text-text-primary sm:text-6xl lg:text-[4rem]">
-              Keep The Moments Close.
-            </h1>
-            <p className="max-w-md text-lg leading-relaxed text-text-secondary">
-              A virtual photobooth made for the people, laughter, and little
-              moments worth remembering.
-            </p>
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <TrackedWaCta href={getWhatsAppUrl()} />
-              <Button href="/how-it-works" variant="secondary" size="lg">
-                Lihat Cara Kerja
-              </Button>
-            </div>
-          </div>
-
-          {/* Polaroid signature (design-system §3.4) */}
-          <div
-            className="animate-fade-up lg:justify-self-end"
-            style={{ animationDelay: "120ms" }}
-          >
-            <figure className="group relative w-full max-w-sm rotate-2 rounded-md bg-bg-card p-3 pb-14 shadow-card transition-transform duration-300 hover:rotate-0 motion-reduce:transition-none sm:max-w-md">
-              <div className="overflow-hidden rounded-sm">
-                <Image
-                  src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&h=1000&q=80"
-                  alt="Tamu acara tertawa bersama saat foto candid"
-                  width={800}
-                  height={1000}
-                  priority
-                  className="animate-develop aspect-[4/5] w-full object-cover"
-                />
-              </div>
-              <figcaption className="absolute inset-x-0 bottom-4 text-center">
-                <span className="font-display text-xl italic text-text-primary">
-                  142 momen terkumpul
-                </span>
-              </figcaption>
-            </figure>
-          </div>
-        </div>
-      </section>
+      <BrandHero />
 
       {/* Value strip */}
       <section className="border-y border-border bg-bg-warm">
@@ -124,7 +80,7 @@ export default async function HomePage() {
       </section>
 
       {/* How it works preview */}
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+      <section id="cara-kerja" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <h2 className="max-w-md font-display text-3xl leading-tight text-text-primary sm:text-4xl">
           Tiga langkah, momen terabadikan
         </h2>

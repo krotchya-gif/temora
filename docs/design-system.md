@@ -277,6 +277,14 @@ Muncul sebelum kamera aktif:
 
 ## 4. Layout
 
+### Homepage hero (brand-led)
+
+Homepage memakai hero minimal berpusat pada wordmark TEMORA. Interaksi hover
+atau focus pada wordmark memunculkan kamera dan ripple halus; pada layar sentuh,
+focus/tap menjadi fallback. CTA vendor tetap terlihat di bawah brand stage,
+tetapi visual utama bukan stock photo atau dashboard. Copy pendukung tetap
+menjelaskan bahwa TEMORA adalah virtual photobooth.
+
 ### Photobooth Page (mobile-first, `min-h-dvh`)
 ```
 ┌──────────────────────┐
