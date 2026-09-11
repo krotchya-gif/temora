@@ -7,7 +7,7 @@
 *Patch 1.6 (2026-09-10): halaman photobooth membaca event+table via service role dengan 4 status eksplisit (aktif/selesai/tautan-salah/gangguan, §5); base URL QR dinormalisasi tanpa trailing slash (§5); PATCH showcase multipart ganti gambar+judul+kutipan satu aksi (§3.3).*
 *Patch 1.7 (2026-09-10): file media ditulis `0644`, folder `0755` — default `0600` tak ter-serve sebagai statis (thumbnail 404 padahal file ada). Detail §11.1, runbook §3, qa-report.*
 *Patch 1.8 (2026-09-11): setup studio memperbarui preview kamera secara live; konfigurasi kartu QR event (template, judul, subjudul, tagline) disimpan di `events` dan dipakai halaman print A4. Migration cover, camera setup, QR card, dan watermark diverifikasi di production.*
-*Patch 1.9 (2026-09-12): upload foto tamu memakai RPC `insert_guest_photo_atomic` untuk lock row event, validasi kuota, deduplikasi, dan insert atomik (`20260912090000_atomic_guest_photo_insert.sql`). Migration ini masih menunggu penerapan production; seluruh apply dan verifikasi remote wajib melalui MCP Supabase.*
+*Patch 1.9 (2026-09-12): upload foto tamu memakai RPC `insert_guest_photo_atomic` untuk lock row event, validasi kuota, deduplikasi, dan insert atomik (`20260912090000_atomic_guest_photo_insert.sql`). Migration diterapkan dan diverifikasi di production melalui MCP Supabase pada 2026-09-12; advisory yang sudah ada tetap dicatat di qa-report dan bukan akibat migration ini.*
 
 ---
 
@@ -256,6 +256,8 @@ supabase/
 3. Consent screen privasi → "Oke, Mengerti"
 4. POST /api/events/[eventId]/tables/[tableId]/scan → increment scan_count (1× per sesi)
 5. WebRTC: minta izin kamera → getUserMedia({ video: true, facingMode: 'user' })
+   → toggle flash mencoba menyalakan torch fisik via `MediaStreamTrack.applyConstraints`;
+   jika browser/device tidak mendukung torch, UI memakai fallback flash layar saat capture.
 6. Canvas: tampilkan frame overlay (PNG transparan dari events.frame_url),
    preset kamera dan filter LUT dari konfigurasi event (`camera_preset`,
    `filter_id`, `filter_strength`). Guest tidak dapat mengubah preset/filter;

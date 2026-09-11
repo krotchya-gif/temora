@@ -626,10 +626,40 @@ yang gagal hanyalah render setelah refresh; kini aman.
   `20260912090000_atomic_guest_photo_insert.sql`: RPC mengunci row event,
   memvalidasi event/table/expiry/quota, menangani dedup, lalu insert foto secara
   atomik. API upload kini membersihkan media jika RPC gagal atau request menjadi
-  duplikat. Migration perlu diaplikasikan ke database production saat deploy.
+  duplikat.
 - Verifikasi lokal: lint ✓, typecheck ✓, unit test 64/64 ✓, coverage 93.26% ✓,
   production build ✓. Warning Vitest tentang `configLoader: native` tidak
   menggagalkan test, tetapi sebaiknya dibereskan sebelum upgrade Vite berikutnya.
 - Device lab nyata dan E2E penuh tidak dijalankan pada ronde ini karena dev
   server sengaja tetap dimatikan; checklist iOS Safari, kamera fisik, Web Share,
   QR cetak, dan offline queue masih harus diverifikasi sebelum launch.
+
+## Ronde Visual Cara Kerja (2026-09-12)
+
+- `/how-it-works` dibandingkan langsung dengan referensi Morements, lalu diubah
+  dari grid kartu generik menjadi alur editorial tiga langkah yang tetap sesuai
+  scope produk TEMORA.
+- Audit visual pertama menemukan foto hero kolaps, mockup kamera terlalu besar,
+  QR hanya berupa ikon, dan galeri berupa blok warna. Seluruhnya diperbaiki:
+  hero memakai foto lokal bergaya cetak, QR dihasilkan valid, langkah kamera
+  memakai screenshot UI tamu nyata dalam frame HP, dan galeri memakai foto.
+- Render aktual diverifikasi pada desktop browser dan viewport mobile 360×800.
+  Hero, wrapping judul, urutan konten, QR, kamera, galeri, CTA, serta footer tidak
+  mengalami overflow horizontal. Gambar kamera yang lazy-loaded juga diverifikasi
+  setelah masuk viewport. Indikator `N` hitam pada screenshot mobile berasal dari
+  Next.js dev tools dan tidak tampil pada production build.
+
+## Verifikasi upload atomik dan flash kamera (2026-09-12)
+
+- Migration `20260912090000_atomic_guest_photo_insert` diterapkan ke project
+  Supabase production `ekuunbcyplxibcnnroeb` melalui MCP Supabase.
+- Verifikasi SQL: function `public.insert_guest_photo_atomic` tersedia;
+  `service_role` memiliki `EXECUTE`, sedangkan `anon` dan `authenticated` tidak.
+- Advisory Supabase masih memiliki temuan lama yang tidak berasal dari migration
+  ini: `rls_auto_enable` terlalu terbuka, proteksi password bocor belum aktif,
+  serta beberapa advisory indeks/RLS performa.
+- Toggle flash kamera sekarang mencoba torch fisik melalui
+  `MediaStreamTrack.applyConstraints`; perangkat yang tidak mendukungnya
+  memakai fallback flash layar saat capture.
+- Uji capture dengan kamera fisik masih harus dilakukan di device nyata setelah
+  deploy karena browser automation lokal tidak menyediakan input kamera.

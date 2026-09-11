@@ -1,8 +1,10 @@
 # Design System — TEMORA
 
-*Versi: 1.4 · Tanggal: 2026-09-11 · Status: Approved*
+*Versi: 1.5 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: token & microcopy v1.0 (kanonik) + motion, imagery & brand assets dari draft lanjutan.*
 *Brand foundation: [BRAND.md](BRAND.md)*
+
+*Patch 1.5 (2026-09-12): halaman Cara Kerja memakai alur editorial tiga langkah—hero foto bergaya cetak, timeline bernomor, QR valid, visual kamera/galeri berbasis aset lokal, dan CTA penutup. Langkah kamera memakai screenshot UI tamu nyata di dalam frame HP (`guest-camera-ui-mockup.png`); komponen live tetap digunakan untuk dashboard/editor. Halaman tidak memakai tiga kartu fitur simetris atau blok warna palsu.*
 
 ---
 

@@ -175,6 +175,7 @@ export function CameraStage({
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState(false);
   const [flashEnabled, setFlashEnabled] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
   const [zoom, setZoom] = useState<(typeof ZOOM_LEVELS)[number]>(1);
   const [banner, setBanner] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -189,6 +190,7 @@ export function CameraStage({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const torchActiveRef = useRef(false);
 
   const frameImgRef = useRef<HTMLImageElement | null>(null);
   const frameUsableRef = useRef(false);
@@ -209,6 +211,30 @@ export function CameraStage({
 
   const openCameraRef =
     useRef<(mode: Facing) => Promise<void>>(async () => undefined);
+
+  const applyTorch = useCallback(async (enabled: boolean, stream = streamRef.current) => {
+    const track = stream?.getVideoTracks()[0];
+    if (!track) {
+      torchActiveRef.current = false;
+      setTorchSupported(false);
+      return false;
+    }
+
+    try {
+      await track.applyConstraints({
+        advanced: [{ torch: enabled } as MediaTrackConstraintSet],
+      });
+      torchActiveRef.current = enabled;
+      setTorchSupported(true);
+      return true;
+    } catch {
+      // Safari/iOS and some camera drivers do not expose torch controls.
+      // The capture path keeps the software flash fallback for these devices.
+      torchActiveRef.current = false;
+      setTorchSupported(false);
+      return false;
+    }
+  }, []);
 
   const openCamera = useCallback(async (mode: Facing) => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -234,6 +260,7 @@ export function CameraStage({
         videoRef.current.srcObject = stream;
         videoRef.current.play().catch(() => undefined);
       }
+      void applyTorch(flashEnabled, stream);
       setFacing(mode);
       setPhase("live");
     } catch (err) {
@@ -248,7 +275,7 @@ export function CameraStage({
       }
       setPhase("error");
     }
-  }, []);
+  }, [applyTorch, flashEnabled]);
 
   useEffect(() => {
     openCameraRef.current = openCamera;
@@ -365,7 +392,7 @@ export function CameraStage({
     const vh = video.videoHeight;
 
     setBusy(true);
-    if (flashEnabled) {
+    if (flashEnabled && !torchActiveRef.current) {
       setFlash(true);
       setTimeout(() => setFlash(false), 180);
     }
@@ -793,7 +820,7 @@ export function CameraStage({
           {phase === "live" || phase === "starting" ? (
             <>
               <div className="grid w-full grid-cols-[3rem_1fr_3rem] items-center gap-3">
-                <button type="button" onClick={() => setFlashEnabled((value) => !value)} aria-pressed={flashEnabled} aria-label={flashEnabled ? "Matikan flash layar" : "Aktifkan flash layar"} className={cn("grid h-12 w-12 place-items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue", flashEnabled ? "border-accent-secondary bg-accent-secondary text-text-primary" : "border-white/25 text-bg-base/70 hover:border-white/50 hover:text-bg-base")}>
+                <button type="button" onClick={() => { const next = !flashEnabled; setFlashEnabled(next); void applyTorch(next).then((applied) => { if (next && !applied) setBanner("Flash otomatis memakai cahaya layar di perangkat ini."); else if (applied) setBanner(null); }); }} aria-pressed={flashEnabled} aria-label={flashEnabled ? "Matikan flash" : "Aktifkan flash"} title={torchSupported ? "Flash kamera aktif" : "Flash layar sebagai fallback"} className={cn("grid h-12 w-12 place-items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue", flashEnabled ? "border-accent-secondary bg-accent-secondary text-text-primary" : "border-white/25 text-bg-base/70 hover:border-white/50 hover:text-bg-base")}>
                   {flashEnabled ? <Zap className="h-5 w-5" strokeWidth={1.5} aria-hidden /> : <ZapOff className="h-5 w-5" strokeWidth={1.5} aria-hidden />}
                 </button>
                 <p className="text-center text-[11px] font-medium uppercase tracking-[0.24em] text-bg-base/65">Kamera {facing === "user" ? "depan" : "belakang"}</p>

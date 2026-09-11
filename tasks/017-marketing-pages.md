@@ -1,6 +1,6 @@
 # Task 017 — Marketing Pages (Landing + Pricing + How It Works)
 
-*Status: Selesai (2026-08-28) — seluruh AC terverifikasi (manual owner + Lighthouse ≥85) · Prioritas: High · Phase: MVP (syarat sebelum onboarding vendor pertama)*
+*Status: Selesai (2026-09-12) — baseline AC tetap terverifikasi; halaman Cara Kerja dipoles dengan alur editorial tiga langkah dan screenshot UI guest camera nyata dalam frame HP · Prioritas: High · Phase: MVP (syarat sebelum onboarding vendor pertama)*
 
 Depends on: 001 (design tokens + font siap)
 
@@ -14,7 +14,7 @@ Menutup gap akuisisi vendor: route `/`, `/pricing`, `/how-it-works` dibangun sun
 
 - **Landing `/`**: hero H1 "Keep The Moments Close." (BRAND.md §10) + supporting copy + CTA WhatsApp deep-link admin (`wa.me` pre-filled) + section how-it-works ringkas + footer brand.
 - **`/pricing`**: 3 tier sesuai PRD §3 MUST 5 — Free (1 event aktif, unlimited nonaktif) / Basic Rp 49K / Pro Rp 299K; kartu perbandingan sederhana, CTA "Mulai Gratis" (signup).
-- **`/how-it-works`**: 3 langkah visual — tamu scan QR → ambil momen di browser → vendor kelola & unduh ZIP.
+- **`/how-it-works`**: 3 langkah visual — tamu scan QR → ambil momen di browser → vendor kelola & unduh ZIP. Presentasi final memakai hero editorial berbasis foto, timeline bernomor, QR valid, visual kamera/galeri dengan foto lokal, dan CTA penutup; bukan grid tiga kartu simetris atau placeholder blok warna.
 - SEO on-page: title/meta per halaman sesuai BRAND.md §9–10, semantic HTML, OG image placeholder (design-system §8).
 - Semua statis (server component, tanpa JS interaktif selain link CTA).
 

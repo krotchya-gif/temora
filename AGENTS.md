@@ -65,6 +65,16 @@ Sebelum membuat commit atau menjalankan push:
 6. Pastikan tidak ada secret, `.env`, artifact test, atau file sementara yang ikut staged.
 7. Hanya setelah semua langkah di atas selesai, buat commit dan push. Ringkas commit hash, hasil verifikasi, migration yang diterapkan, serta item yang masih pending di laporan akhir.
 
+## 7. Visual Review Gate
+
+Setiap perubahan UI, layout, mockup, atau polish wajib melewati review visual sebelum dinyatakan selesai:
+
+1. Render halaman aktual dan inspeksi screenshot pada viewport mobile 360×800 serta desktop 1440×900. Lulus build saja tidak membuktikan kualitas visual.
+2. Bandingkan hasil terhadap referensi dan `docs/design-system.md`: hierarchy, alignment, spacing, proporsi, wrapping teks, kualitas aset, konsistensi komponen, serta state hover/focus/empty/error yang relevan.
+3. Cari dan perbaiki placeholder palsu, ikon yang menyamar sebagai konten nyata, pengulangan mockup, clipping/overflow, ruang kosong janggal, serta pola generik yang gagal pada Anti-Slop Gate.
+4. Lakukan minimal satu putaran audit setelah implementasi; jika hasil belum kuat, revisi dan render ulang. Jangan menggunakan kata "selesai", "bagus", atau "sesuai referensi" sebelum inspeksi visual benar-benar dilakukan.
+5. Jika dev server sengaja dimatikan atau akses browser tidak tersedia, nyatakan verifikasi visual masih pending dan minta owner menyalakan server; jangan menggantinya dengan klaim berdasarkan lint/typecheck/build.
+
 ---
 
 *Inkonsistensi antara file ini dan `README.md`/`docs/` → yang di `docs/` yang benar; laporkan agar file ini dirapikan.*
