@@ -25,7 +25,7 @@ export default async function PrintQrPage({ params }: PrintQrPageProps) {
 
   const { data: event } = await supabase
     .from("events")
-    .select("id, name")
+    .select("id, name, qr_template, qr_title, qr_subtitle, qr_tagline")
     .eq("id", eventId)
     .maybeSingle();
   if (!event) notFound();
@@ -65,17 +65,19 @@ export default async function PrintQrPage({ params }: PrintQrPageProps) {
         {/* Grid 2×4 per halaman A4 (task 005 §2). */}
         <ul className="qr-print-grid">
           {tables?.map((table) => (
-            <li key={table.id} className="qr-card">
+            <li key={table.id} className={`qr-card qr-card-${event.qr_template ?? "bloom"}`}>
               {/* eslint-disable-next-line @next/next/no-img-element -- SVG dari API sendiri */}
               <img
                 src={`/api/events/${eventId}/qr/${table.id}`}
                 alt={`QR untuk ${table.label}`}
                 className="qr-card-image"
               />
-              <p className="qr-card-event font-display">{event.name}</p>
+              <p className="qr-card-overline">SCAN &amp; JEPRET</p>
+              <p className="qr-card-event font-display">{event.qr_title || event.name}</p>
+              {event.qr_subtitle ? <p className="qr-card-subtitle">{event.qr_subtitle}</p> : null}
               <p className="qr-card-label">{table.label}</p>
               <p className="qr-card-tagline font-display">
-                {SITE_TAGLINE}
+                {event.qr_tagline || SITE_TAGLINE}
               </p>
               {qrSponsors?.length ? (
                 <div className="qr-card-sponsors">

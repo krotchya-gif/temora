@@ -188,6 +188,31 @@
   background: var(--color-bg-card);
 }
 
+.qr-card-overline {
+  font-size: 2.5mm;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--color-text-secondary);
+}
+
+.qr-card-subtitle {
+  max-width: 70mm;
+  font-size: 3.1mm;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.qr-card-rose { border-color: color-mix(in srgb, var(--color-muted-mauve) 60%, var(--color-border)); }
+.qr-card-rose .qr-card-label { color: var(--color-muted-mauve); }
+.qr-card-mono { border-color: var(--color-text-primary); border-radius: 0; }
+.qr-card-mono .qr-card-label { color: var(--color-text-primary); }
+.qr-card-night { background: var(--color-text-primary); border-color: var(--color-text-primary); }
+.qr-card-night .qr-card-event, .qr-card-night .qr-card-label { color: var(--color-bg-base); }
+.qr-card-night .qr-card-overline, .qr-card-night .qr-card-subtitle, .qr-card-night .qr-card-tagline { color: var(--color-border); }
+.qr-card-paper { background: var(--color-bg-warm); border-color: var(--color-accent-secondary); }
+.qr-card-paper .qr-card-label { color: var(--color-accent); }
+
 .qr-card-image {
   width: 38mm;
   height: 38mm;

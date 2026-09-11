@@ -69,6 +69,11 @@ CREATE TABLE events (
   filter_id TEXT,                         -- NULL = Warna Asli; id dari katalog LUT terkurasi
   filter_strength NUMERIC NOT NULL DEFAULT 0.78
     CHECK (filter_strength >= 0 AND filter_strength <= 1),
+  qr_template TEXT NOT NULL DEFAULT 'bloom'
+    CHECK (qr_template IN ('bloom','rose','mono','night','paper')),
+  qr_title TEXT,
+  qr_subtitle TEXT,
+  qr_tagline TEXT NOT NULL DEFAULT 'Keep the moments close.',
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   expires_at TIMESTAMPTZ,              -- TTL foto; diset app layer saat create (default NOW()+30 hari), tanpa DB default
   photo_limit INT DEFAULT 100,         -- diset saat create dari tier vendor; NULL = unlimited (Pro)

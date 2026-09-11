@@ -220,6 +220,10 @@ export async function POST(request: Request) {
       camera_preset: input.cameraPreset ?? "mono-minimal",
       filter_id: input.filterId ?? null,
       filter_strength: input.filterStrength ?? 0.78,
+      qr_template: input.qrTemplate ?? "bloom",
+      qr_title: input.qrTitle ?? null,
+      qr_subtitle: input.qrSubtitle ?? null,
+      qr_tagline: input.qrTagline ?? "Keep the moments close.",
     })
     .select("id")
     .single();

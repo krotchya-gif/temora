@@ -31,6 +31,10 @@ export const CAMERA_PRESETS = [
 
 export type CameraPreset = (typeof CAMERA_PRESETS)[number];
 
+export const QR_TEMPLATES = ["bloom", "rose", "mono", "night", "paper"] as const;
+
+export type QrTemplate = (typeof QR_TEMPLATES)[number];
+
 export const FILTER_IDS = [
   "portra-400",
   "cobi-3",
@@ -69,6 +73,10 @@ export const eventCreateSchema = z.object({
   cameraPreset: z.enum(CAMERA_PRESETS).optional(),
   filterId: z.enum(FILTER_IDS).nullable().optional(),
   filterStrength: z.number().min(0).max(1).optional(),
+  qrTemplate: z.enum(QR_TEMPLATES).optional(),
+  qrTitle: z.string().trim().max(80, "Judul kartu QR maksimal 80 karakter.").nullable().optional(),
+  qrSubtitle: z.string().trim().max(120, "Subjudul kartu QR maksimal 120 karakter.").nullable().optional(),
+  qrTagline: z.string().trim().min(1).max(80, "Tagline kartu QR maksimal 80 karakter.").optional(),
 });
 
 export const eventUpdateSchema = z.object({
@@ -88,6 +96,10 @@ export const eventUpdateSchema = z.object({
   cameraPreset: z.enum(CAMERA_PRESETS).optional(),
   filterId: z.enum(FILTER_IDS).nullable().optional(),
   filterStrength: z.number().min(0).max(1).optional(),
+  qrTemplate: z.enum(QR_TEMPLATES).optional(),
+  qrTitle: z.string().trim().max(80).nullable().optional(),
+  qrSubtitle: z.string().trim().max(120).nullable().optional(),
+  qrTagline: z.string().trim().min(1).max(80).optional(),
 });
 
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;

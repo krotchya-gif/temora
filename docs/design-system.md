@@ -200,10 +200,13 @@ preview perangkat yang memperlihatkan hasilnya secara langsung.
 - Tema event mengubah aksen preview memakai token tema §2.2. Tidak boleh ada
   hex baru atau warna pilihan yang hanya tersimpan di client.
 - Form setup menyediakan pilihan preset kamera dan filter default. Preview
-  perangkat di sisi kanan saat ini memvisualisasikan tema, frame, dan watermark;
-  pilihan preset/filter ditunjukkan melalui kontrol setup, lalu diterapkan pada
-  guest camera setelah disimpan. Jangan mengklaim preview editor sebagai live
-  rendering penuh dari setiap preset/filter.
+  perangkat di sisi kanan memperbarui shell kamera, label preset, treatment
+  warna, frame, dan watermark secara live saat kontrol berubah; hasil final
+  tetap mengikuti konfigurasi yang disimpan.
+- Setup yang sama menyediakan pengaturan kartu QR: template visual, judul,
+  subjudul, dan tagline. Preview kartu memakai copy sementara yang sama dengan
+  halaman print A4; QR tetap valid, tidak diubah bentuknya, dan ukurannya tetap
+  minimal 4×4 cm.
 - Konfigurasi event kanonik: `camera_preset` (`darkroom`, `rose-gold`,
   `berry-pop`, `mono-minimal`), `filter_id` (null = Warna Asli), dan
   `filter_strength` (0–1). Nilainya disimpan di database, divalidasi server,

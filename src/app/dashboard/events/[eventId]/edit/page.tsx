@@ -31,7 +31,7 @@ export default async function EditEventPage({ params }: EditEventProps) {
   const { data: event } = await supabase
     .from("events")
     .select(
-      "id, name, slug, theme, starts_at, ends_at, location, is_active, frame_url, watermark_text, watermark_position, camera_preset, filter_id, filter_strength",
+      "id, name, slug, theme, starts_at, ends_at, location, is_active, frame_url, watermark_text, watermark_position, camera_preset, filter_id, filter_strength, qr_template, qr_title, qr_subtitle, qr_tagline",
     )
     .eq("id", eventId)
     .maybeSingle();
@@ -88,6 +88,10 @@ export default async function EditEventPage({ params }: EditEventProps) {
             filterId: event.filter_id,
             filterStrength: Number(event.filter_strength ?? 0.78),
             frameUrl: event.frame_url,
+            qrTemplate: event.qr_template ?? "bloom",
+            qrTitle: event.qr_title ?? "",
+            qrSubtitle: event.qr_subtitle ?? "",
+            qrTagline: event.qr_tagline ?? "Keep the moments close.",
           }}
         />
       </Card>
