@@ -21,12 +21,12 @@ export function MomentsGrid({ items }: MomentsGridProps) {
   return (
     <>
       <div className="columns-2 gap-4 md:columns-3 lg:columns-4">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setActive(item)}
-            className="group mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl border border-border bg-bg-card text-left shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none"
+            className={`group mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl border border-border bg-bg-card text-left shadow-soft transition-all duration-300 hover:-translate-y-1 hover:rotate-0 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none ${index % 4 === 1 ? "rotate-[0.8deg]" : index % 4 === 2 ? "-rotate-[0.6deg]" : index % 4 === 3 ? "rotate-[0.35deg]" : ""}`}
             aria-label={`Lihat momen ${item.title}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- gambar eksternal/publik statis */}
@@ -42,7 +42,7 @@ export function MomentsGrid({ items }: MomentsGridProps) {
                   img.src = picsumFallback(item.id);
                 }
               }}
-              className="w-full bg-bg-warm object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
+              className="w-full bg-bg-warm object-cover transition-transform duration-500 group-hover:scale-[1.025] motion-reduce:transition-none"
             />
             <span className="block px-4 py-3">
               <span className="font-display text-lg leading-tight text-text-primary">

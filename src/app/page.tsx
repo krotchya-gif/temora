@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Camera, Download, QrCode } from "lucide-react";
 import { BrandHero } from "@/components/marketing/BrandHero";
@@ -140,14 +139,22 @@ export default async function HomePage() {
                 </Button>
               </div>
             </div>
-            <div className="relative min-h-[220px] bg-bg-warm lg:min-h-full">
-              <Image
-                src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80"
-                alt="Meja tamu dengan dekorasi hangat di acara pernikahan"
-                fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
-              />
+            <div className="relative flex min-h-[260px] items-center justify-center overflow-hidden bg-bg-warm p-8 lg:min-h-full">
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full border border-accent-secondary/30" aria-hidden />
+              <div className="relative w-full max-w-[250px] rotate-2 rounded-2xl border border-border bg-bg-card p-5 shadow-card transition-transform duration-300 hover:rotate-0 motion-reduce:transition-none">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-accent">Scan &amp; jepret</p>
+                    <p className="mt-2 font-display text-2xl leading-none text-text-primary">party dirumah</p>
+                    <p className="mt-1 text-[10px] text-text-secondary">Setiap tamu punya satu cerita.</p>
+                  </div>
+                  <QrCode className="h-12 w-12 text-text-primary" strokeWidth={1.5} aria-hidden />
+                </div>
+                <div className="mt-6 flex items-center justify-between border-t border-border pt-3 text-[10px] text-text-secondary">
+                  <span>Tanpa install app</span>
+                  <span className="font-mono text-accent">TEMORA</span>
+                </div>
+              </div>
             </div>
           </div>
         </Card>

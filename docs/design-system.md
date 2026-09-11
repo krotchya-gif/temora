@@ -291,6 +291,14 @@ aksen halus. Pada layar sentuh mockup tetap terlihat tanpa bergantung pada
 hover. Homepage masih memiliki section pendukung cara kerja, showcase momen,
 dan CTA akhir di bawah hero; visual hero bukan lagi stock photo.
 
+### Moments archive (`/moments`)
+
+Halaman Moments adalah editorial archive, bukan dashboard galeri: hero memakai
+eyebrow dan headline display yang tenang, CTA vendor sekunder, lalu masonry
+gallery dengan variasi rotasi halus. Card foto menampilkan judul/caption,
+memberi lift saat hover/focus, dan membuka lightbox untuk melihat momen lebih
+besar. Empty state tetap menjelaskan bahwa kurasi sedang disiapkan.
+
 ### Photobooth Page (mobile-first, `min-h-dvh`)
 ```
 ┌──────────────────────┐
