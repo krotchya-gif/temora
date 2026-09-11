@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { Camera, ChevronDown, Images, Sparkles, SwitchCamera, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function BrandHero() {
-  const [logoVideoFailed, setLogoVideoFailed] = useState(false);
-
   return (
     <section className="relative flex min-h-[calc(100dvh-73px)] items-center justify-center overflow-hidden bg-bg-base px-5 py-16 sm:px-8">
       <div className="pointer-events-none absolute inset-0 bg-glow-accent" aria-hidden />
@@ -26,23 +23,8 @@ export function BrandHero() {
               </span>
             </span>
             <span className="pointer-events-none absolute left-1/2 top-12 h-16 w-16 -translate-x-1/2 rounded-full border border-accent-secondary/40 opacity-0 transition-all duration-500 group-hover:scale-150 group-hover:opacity-100 group-focus-visible:scale-150 group-focus-visible:opacity-100 motion-reduce:transition-none lg:left-0 lg:translate-x-0" aria-hidden />
-            <span className="relative mx-auto block w-[min(88vw,32rem)] lg:mx-0" aria-label="TEMORA">
-              <span aria-hidden className="block py-8 font-display text-7xl tracking-[0.08em] text-text-primary sm:text-9xl lg:text-8xl">
-                TEMORA
-              </span>
-              {!logoVideoFailed && (
-                <video
-                  className="pointer-events-none absolute inset-0 h-full w-full object-contain mix-blend-multiply"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  aria-hidden="true"
-                  onError={() => setLogoVideoFailed(true)}
-                >
-                  <source src="/brand/temora-logo-reveal.mp4" type="video/mp4" />
-                </video>
-              )}
+            <span aria-hidden className="relative block font-display text-7xl tracking-[0.08em] text-text-primary sm:text-9xl lg:text-8xl">
+              TEMORA
             </span>
             <span className="mt-3 block text-xs uppercase tracking-[0.28em] text-text-secondary">
               Keep the moments close.
