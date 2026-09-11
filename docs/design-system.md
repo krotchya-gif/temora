@@ -282,12 +282,14 @@ Muncul sebelum kamera aktif:
 
 ### Homepage hero (brand-led)
 
-Homepage memakai hero minimal berpusat pada wordmark TEMORA. Interaksi hover
+Homepage memakai hero minimal berpusat pada wordmark TEMORA, tetapi tetap
+menunjukkan product proof melalui mockup HP portrait di samping/bawah brand
+stage. Mockup menampilkan guest camera TEMORA (nama event, frame, filter, sisa
+foto, shutter, dan galeri) dengan animasi masuk yang lembut. Interaksi hover
 pointer atau focus keyboard pada wordmark memunculkan ikon kamera dan lingkaran
-aksen halus. Pada layar sentuh hero tetap tampil statis dengan CTA vendor yang
-jelas; tidak ada state tap khusus. Homepage masih memiliki section pendukung
-cara kerja, showcase momen, dan CTA akhir di bawah hero. Visual utama bukan
-stock photo atau dashboard.
+aksen halus. Pada layar sentuh mockup tetap terlihat tanpa bergantung pada
+hover. Homepage masih memiliki section pendukung cara kerja, showcase momen,
+dan CTA akhir di bawah hero; visual hero bukan lagi stock photo.
 
 ### Photobooth Page (mobile-first, `min-h-dvh`)
 ```

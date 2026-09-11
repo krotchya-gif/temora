@@ -80,6 +80,14 @@
     animation: polaroid-develop 0.8s ease-out both;
   }
 
+  .animate-phone-float {
+    animation: phone-float 5.5s ease-in-out infinite;
+  }
+
+  .animate-phone-shutter {
+    animation: phone-shutter 2.8s ease-in-out infinite;
+  }
+
   /* Tali Momen §5: goyangan lembut kartu yang menggantung (pause saat hover). */
   .animate-rope-sway {
     transform-origin: top center;
@@ -108,6 +116,30 @@
   }
   to {
     filter: none;
+  }
+}
+
+@keyframes phone-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(1.2deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(-1.2deg);
+  }
+}
+
+@keyframes phone-shutter {
+  0%,
+  72%,
+  100% {
+    transform: scale(1);
+  }
+  78% {
+    transform: scale(1.08);
+  }
+  84% {
+    transform: scale(1);
   }
 }
 
