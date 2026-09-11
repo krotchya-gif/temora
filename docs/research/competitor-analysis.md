@@ -38,3 +38,14 @@ TEMORA **bukan** bersaing di fitur teknis semata. Diferensiasi:
 ## 5. Watchlist
 
 Pantau tiap kuartal: harga tier kompetitor, fitur baru, ulasan vendor di komunitas WO/fotografer Indonesia. Update dokumen ini saat ada perubahan signifikan.
+
+## 6. Riset Morements & Invistory (2026-09-11)
+
+| Referensi | Temuan | Implikasi TEMORA |
+|---|---|---|
+| Morements | Homepage minimal dan brand-led; guest camera immersive dengan nama event, tanggal, filter/frame, zoom, kamera, sisa kuota, dan galeri. Pricing memakai kuota tamu. | Homepage TEMORA tidak perlu penuh fitur. Guest camera harus terasa seperti produk event yang dikonfigurasi vendor, bukan kamera generik. |
+| Invistory | Homepage menjelaskan platform lewat feature blocks, mockup dashboard, pricing, dan alur tiga langkah. | Homepage TEMORA perlu menjelaskan flow vendor: buat event → custom tampilan → bagikan QR → kumpulkan momen. |
+
+Keputusan UX: konfigurasi kamera tamu adalah milik event. Vendor memilih cover, frame,
+preset kamera, filter, watermark, dan kuota di setup event; guest camera membaca
+konfigurasi itu dari server dan tidak menyediakan override filter/preset untuk tamu.

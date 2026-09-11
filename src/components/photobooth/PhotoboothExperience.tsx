@@ -69,6 +69,9 @@ export function PhotoboothExperience({
           frameUrl={event.frameUrl}
           watermarkText={event.watermarkText}
           watermarkPosition={event.watermarkPosition}
+          cameraPreset={event.cameraPreset}
+          filterId={event.filterId}
+          filterStrength={event.filterStrength}
           remaining={remaining}
           frameSponsors={frameSponsors}
           onToast={showToast}

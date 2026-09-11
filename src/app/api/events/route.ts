@@ -217,6 +217,9 @@ export async function POST(request: Request) {
           ? input.watermarkText ?? null
           : DEFAULT_WATERMARK_TEXT,
       watermark_position: input.watermarkPosition,
+      camera_preset: input.cameraPreset ?? "mono-minimal",
+      filter_id: input.filterId ?? null,
+      filter_strength: input.filterStrength ?? 0.78,
     })
     .select("id")
     .single();

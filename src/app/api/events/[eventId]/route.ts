@@ -20,7 +20,7 @@ async function resolveOwnedEvent(eventId: string) {
   // RLS e_owner: event vendor lain tidak terlihat.
   const { data: event } = await supabase
     .from("events")
-    .select("id, vendor_id, name, slug, theme, starts_at, ends_at, location, is_active, photo_limit, expires_at, cover_template, cover_image_url, cover_title, cover_subtitle, cover_button_text, watermark_text, watermark_position")
+    .select("id, vendor_id, name, slug, theme, starts_at, ends_at, location, is_active, photo_limit, expires_at, cover_template, cover_image_url, cover_title, cover_subtitle, cover_button_text, watermark_text, watermark_position, camera_preset, filter_id, filter_strength")
     .eq("id", eventId)
     .maybeSingle();
   if (!event) return { error: "notfound" as const };
@@ -139,6 +139,9 @@ export async function PUT(
     cover_title: input.coverTitle,
     cover_subtitle: input.coverSubtitle,
     cover_button_text: input.coverButtonText,
+    camera_preset: input.cameraPreset,
+    filter_id: input.filterId,
+    filter_strength: input.filterStrength,
   };
   const changes = Object.fromEntries(
     Object.entries(dbInput).filter(([, v]) => v !== undefined),

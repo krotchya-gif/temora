@@ -199,9 +199,17 @@ preview perangkat yang memperlihatkan hasilnya secara langsung.
   dan teks tombol; frame foto tetap wajib PNG transparan rasio 3:4 sesuai §3.3.
 - Tema event mengubah aksen preview memakai token tema §2.2. Tidak boleh ada
   hex baru atau warna pilihan yang hanya tersimpan di client.
-- Preview kamera menampilkan rasio 3:4, watermark, dan label filter sebagai
-  simulasi visual. Preset filter/kamera belum menjadi konfigurasi event di MVP;
-  jangan tampilkan kontrol seolah-olah nilainya tersimpan.
+- Preview kamera menampilkan rasio 3:4, watermark, preset kamera, dan filter
+  aktif sebagai simulasi visual. Preset filter/kamera adalah konfigurasi event
+  yang disimpan vendor dan dibaca halaman photobooth tamu; jangan tampilkan
+  kontrol tamu yang dapat mengubahnya bila vendor memilih satu tampilan resmi.
+- Konfigurasi event kanonik: `camera_preset` (`darkroom`, `rose-gold`,
+  `berry-pop`, `mono-minimal`), `filter_id` (null = Warna Asli), dan
+  `filter_strength` (0–1). Nilainya disimpan di database, divalidasi server,
+  dan diteruskan ke guest camera melalui server-rendered event state.
+- Guest camera wajib WYSIWYG terhadap setup vendor: cover, frame, filter,
+  preset kamera, watermark, kuota, dan aksen tema berasal dari event yang sama.
+  Guest tidak boleh mengubah filter/preset; vendor mengubahnya dari setup event.
 - CTA utama memakai microcopy "Simpan perubahan" atau "Simpan event". Link
   sekunder membuka photobooth/QR setelah event tersimpan.
 - Editor cover visual memakai preview perangkat portrait di tengah, navigasi

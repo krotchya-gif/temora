@@ -22,6 +22,25 @@ export const WATERMARK_POSITIONS = [
 
 export type WatermarkPosition = (typeof WATERMARK_POSITIONS)[number];
 
+export const CAMERA_PRESETS = [
+  "darkroom",
+  "rose-gold",
+  "berry-pop",
+  "mono-minimal",
+] as const;
+
+export type CameraPreset = (typeof CAMERA_PRESETS)[number];
+
+export const FILTER_IDS = [
+  "portra-400",
+  "cobi-3",
+  "remy-24",
+  "lenox-340",
+  "faded-47",
+  "ektar-100",
+  "trix-400",
+] as const;
+
 const optionalWatermarkText = z
   .string()
   .trim()
@@ -47,6 +66,9 @@ export const eventCreateSchema = z.object({
   isActive: z.boolean().optional().default(true),
   watermarkText: optionalWatermarkText,
   watermarkPosition: z.enum(WATERMARK_POSITIONS).optional(),
+  cameraPreset: z.enum(CAMERA_PRESETS).optional(),
+  filterId: z.enum(FILTER_IDS).nullable().optional(),
+  filterStrength: z.number().min(0).max(1).optional(),
 });
 
 export const eventUpdateSchema = z.object({
@@ -63,6 +85,9 @@ export const eventUpdateSchema = z.object({
   coverTitle: z.string().trim().max(80, "Judul cover maksimal 80 karakter.").nullable().optional(),
   coverSubtitle: z.string().trim().max(120, "Subjudul cover maksimal 120 karakter.").nullable().optional(),
   coverButtonText: z.string().trim().min(1).max(30, "Teks tombol maksimal 30 karakter.").optional(),
+  cameraPreset: z.enum(CAMERA_PRESETS).optional(),
+  filterId: z.enum(FILTER_IDS).nullable().optional(),
+  filterStrength: z.number().min(0).max(1).optional(),
 });
 
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;

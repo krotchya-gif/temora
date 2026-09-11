@@ -254,7 +254,10 @@ supabase/
 3. Consent screen privasi → "Oke, Mengerti"
 4. POST /api/events/[eventId]/tables/[tableId]/scan → increment scan_count (1× per sesi)
 5. WebRTC: minta izin kamera → getUserMedia({ video: true, facingMode: 'user' })
-6. Canvas: tampilkan frame overlay (PNG transparan dari events.frame_url)
+6. Canvas: tampilkan frame overlay (PNG transparan dari events.frame_url),
+   preset kamera dan filter LUT dari konfigurasi event (`camera_preset`,
+   `filter_id`, `filter_strength`). Guest tidak dapat mengubah preset/filter;
+   setup vendor adalah sumber tampilan kamera dan hasil foto.
 7. Tamu tap "Ambil Momen"
 8. Canvas → JPEG adaptif (mulai quality 0.86, minimum normal 0.72); bila masih
    >800KB, resolusi diturunkan bertahap sebelum quality diturunkan lebih jauh.

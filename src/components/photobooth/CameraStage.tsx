@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, ImageOff, Palette, SwitchCamera, X } from "lucide-react";
+import { CameraOff, ImageOff, SwitchCamera, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { GreenScreenCanvas } from "@/components/photobooth/GreenScreenCanvas";
@@ -10,7 +10,7 @@ import { MomentComposer } from "@/components/photobooth/MomentComposer";
 import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
 import { FALLBACK_LUTS, getLuts, type LutDef, type LutId } from "@/lib/ai/lut";
 import { ENABLE_BACKGROUNDS } from "@/lib/ai/feature-flags";
-import type { WatermarkPosition } from "@/lib/validation/event";
+import type { CameraPreset, WatermarkPosition } from "@/lib/validation/event";
 import {
   getPendingUploads,
   queuePendingUpload,
@@ -30,6 +30,11 @@ export type CameraStageProps = {
   watermarkText: string | null;
   /** Posisi watermark preset (design-system §8) — default kanan bawah. */
   watermarkPosition: WatermarkPosition;
+  /** Preset kamera yang dipilih vendor; tamu tidak dapat menggantinya. */
+  cameraPreset: CameraPreset;
+  /** Filter LUT event; null = warna asli. */
+  filterId: string | null;
+  filterStrength: number;
   /** Sisa kuota foto event; null = unlimited. 0 → capture dinonaktifkan. */
   remaining: number | null;
   /** Sponsor aktif posisi frame (task 013) — logo digambar ke hasil foto. */
@@ -52,7 +57,12 @@ const MAX_LONG_SIDE = 1440;
 const TARGET_BYTES = 800_000;
 const THUMB_LONG_SIDE = 320;
 const MIN_DELIVERY_LONG_SIDE = 960;
-const DEFAULT_LUT_STRENGTH = 0.78;
+const CAMERA_PRESET_LABELS: Record<CameraPreset, string> = {
+  darkroom: "Darkroom Film",
+  "rose-gold": "Rose Gold",
+  "berry-pop": "Berry Pop",
+  "mono-minimal": "Mono Minimal",
+};
 
 // Rasio capture kanonik 3:4 portrait (design-system §3.3) — semua device
 // menghasilkan foto 3:4 agar frame template selalu menutupi penuh.
@@ -129,6 +139,9 @@ export function CameraStage({
   frameUrl,
   watermarkText,
   watermarkPosition,
+  cameraPreset,
+  filterId,
+  filterStrength,
   remaining,
   frameSponsors,
   onToast,
@@ -144,8 +157,8 @@ export function CameraStage({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [strip, setStrip] = useState<StripItem[]>([]);
   const [activeBg, setActiveBg] = useState<BgId | null>(null);
-  const [activeLut, setActiveLut] = useState<LutId | null>(null);
-  const [lutStrength, setLutStrength] = useState(DEFAULT_LUT_STRENGTH);
+  const [activeLut, setActiveLut] = useState<LutId | null>(filterId);
+  const [lutStrength] = useState(filterStrength);
   const [readyGrade, setReadyGrade] = useState<string | null>(null);
   const gradeKey = `${activeLut}:${lutStrength}`;
   // Daftar filter dari manifest.json (sync: scripts/sync-luts.mjs); fallback
@@ -613,7 +626,13 @@ export function CameraStage({
 
       <div className="flex flex-1 flex-col justify-between gap-5 px-4 pb-6 pt-4">
         {/* Stage */}
-        <div className="relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-xl bg-text-primary shadow-card">
+        <div className={cn(
+          "relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-xl bg-text-primary shadow-card",
+          cameraPreset === "rose-gold" && "ring-2 ring-muted-mauve/70",
+          cameraPreset === "berry-pop" && "ring-2 ring-accent-secondary/80",
+          cameraPreset === "darkroom" && "ring-2 ring-text-primary",
+          cameraPreset === "mono-minimal" && "ring-1 ring-border",
+        )}>
           <video
             ref={videoRef}
             autoPlay
@@ -834,80 +853,15 @@ export function CameraStage({
             </div>
           ) : null}
 
-          {/* Selektor Filter warna (3D LUT) — lazy-load .cube saat dipilih */}
+          {/* Filter dan tampilan kamera dikunci oleh setup vendor. */}
           {phase === "live" ? (
-            <div className="w-full max-w-sm space-y-2">
-            <div
-              role="group"
-              aria-label="Filter warna"
-              className="flex w-full max-w-sm items-center gap-2 overflow-x-auto py-1"
-            >
-              <button
-                type="button"
-                onClick={() => { setActiveLut(null); setReadyGrade(null); }}
-                aria-pressed={activeLut === null}
-                className={cn(
-                  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
-                  activeLut === null
-                    ? "border-accent bg-accent/10 text-accent"
-                    : "border-border text-text-secondary hover:bg-bg-warm",
-                )}
-              >
-                <Palette className="h-3.5 w-3.5" aria-hidden />
-                Warna Asli
-              </button>
-              {luts.map((lut) => (
-                <button
-                  key={lut.id}
-                  type="button"
-                  onClick={() => {
-                    setReadyGrade(null);
-                    setLutStrength(lut.strength);
-                    setActiveLut(lut.id);
-                  }}
-                  aria-pressed={activeLut === lut.id}
-                  className={cn(
-                    "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
-                    activeLut === lut.id
-                      ? "border-accent bg-accent/10 text-accent"
-                      : "border-border text-text-secondary hover:bg-bg-warm",
-                  )}
-                >
-                  {lut.label}
-                </button>
-              ))}
-            </div>
-              {activeLut ? (
-                <div className="flex items-center gap-2">
-                  <label className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-bg-card px-3 text-xs text-text-secondary">
-                    <span>Intensitas</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={Math.round(lutStrength * 100)}
-                      onChange={(event) => setLutStrength(Number(event.target.value) / 100)}
-                      aria-label="Intensitas filter"
-                      className="min-w-0 flex-1 accent-accent"
-                    />
-                    <output className="w-8 text-right font-mono text-[11px] text-text-primary">
-                      {Math.round(lutStrength * 100)}%
-                    </output>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveLut(null);
-                      setLutStrength(DEFAULT_LUT_STRENGTH);
-                    }}
-                    aria-label="Matikan filter"
-                    className="ml-auto inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-warm"
-                  >
-                    <X className="h-4 w-4" aria-hidden />
-                  </button>
-                </div>
-              ) : null}
+            <div className="flex w-full max-w-sm flex-wrap items-center justify-center gap-2 text-xs text-text-secondary">
+              <span className="rounded-full border border-border bg-bg-card px-3 py-2">
+                Kamera · {CAMERA_PRESET_LABELS[cameraPreset]}
+              </span>
+              <span className="rounded-full border border-border bg-bg-card px-3 py-2">
+                Filter · {activeLut ? (luts.find((lut) => lut.id === activeLut)?.label ?? "Siap") : "Warna Asli"}
+              </span>
             </div>
           ) : null}
 

@@ -64,6 +64,11 @@ CREATE TABLE events (
   watermark_text TEXT,                 -- NULL = tanpa watermark (khusus Pro)
   watermark_position TEXT NOT NULL DEFAULT 'bottom-right'
     CHECK (watermark_position IN ('bottom-right','bottom-left','top-right','top-left')), -- preset posisi (Pro)
+  camera_preset TEXT NOT NULL DEFAULT 'mono-minimal'
+    CHECK (camera_preset IN ('darkroom','rose-gold','berry-pop','mono-minimal')),
+  filter_id TEXT,                         -- NULL = Warna Asli; id dari katalog LUT terkurasi
+  filter_strength NUMERIC NOT NULL DEFAULT 0.78
+    CHECK (filter_strength >= 0 AND filter_strength <= 1),
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   expires_at TIMESTAMPTZ,              -- TTL foto; diset app layer saat create (default NOW()+30 hari), tanpa DB default
   photo_limit INT DEFAULT 100,         -- diset saat create dari tier vendor; NULL = unlimited (Pro)

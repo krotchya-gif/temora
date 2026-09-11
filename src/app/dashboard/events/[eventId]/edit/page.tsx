@@ -31,7 +31,7 @@ export default async function EditEventPage({ params }: EditEventProps) {
   const { data: event } = await supabase
     .from("events")
     .select(
-      "id, name, slug, theme, starts_at, ends_at, location, is_active, frame_url, watermark_text, watermark_position",
+      "id, name, slug, theme, starts_at, ends_at, location, is_active, frame_url, watermark_text, watermark_position, camera_preset, filter_id, filter_strength",
     )
     .eq("id", eventId)
     .maybeSingle();
@@ -84,6 +84,9 @@ export default async function EditEventPage({ params }: EditEventProps) {
             isActive: event.is_active,
             watermarkText: event.watermark_text ?? "",
             watermarkPosition: event.watermark_position ?? "bottom-right",
+            cameraPreset: event.camera_preset ?? "mono-minimal",
+            filterId: event.filter_id,
+            filterStrength: Number(event.filter_strength ?? 0.78),
             frameUrl: event.frame_url,
           }}
         />
