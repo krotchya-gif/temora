@@ -26,19 +26,13 @@ export function BrandHero() {
               </span>
             </span>
             <span className="pointer-events-none absolute left-1/2 top-12 h-16 w-16 -translate-x-1/2 rounded-full border border-accent-secondary/40 opacity-0 transition-all duration-500 group-hover:scale-150 group-hover:opacity-100 group-focus-visible:scale-150 group-focus-visible:opacity-100 motion-reduce:transition-none lg:left-0 lg:translate-x-0" aria-hidden />
-            <span className="relative mx-auto flex min-h-44 w-[min(88vw,32rem)] items-center justify-center lg:mx-0" aria-label="TEMORA">
-              <span
-                aria-hidden
-                className={cn(
-                  "font-display text-7xl tracking-[0.08em] text-text-primary sm:text-9xl lg:text-8xl",
-                  !logoVideoFailed && "sr-only motion-reduce:not-sr-only",
-                )}
-              >
+            <span className="relative mx-auto block w-[min(88vw,32rem)] lg:mx-0" aria-label="TEMORA">
+              <span aria-hidden className="block py-8 font-display text-7xl tracking-[0.08em] text-text-primary sm:text-9xl lg:text-8xl">
                 TEMORA
               </span>
               {!logoVideoFailed && (
                 <video
-                  className="pointer-events-none absolute inset-0 h-full w-full object-contain mix-blend-multiply motion-reduce:hidden"
+                  className="pointer-events-none absolute inset-0 h-full w-full object-contain mix-blend-multiply"
                   autoPlay
                   loop
                   muted

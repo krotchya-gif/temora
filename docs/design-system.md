@@ -289,9 +289,9 @@ foto, shutter, dan galeri) dengan animasi masuk yang lembut. Interaksi hover
 pointer atau focus keyboard pada wordmark memunculkan ikon kamera dan lingkaran
 aksen halus. Pada layar sentuh mockup tetap terlihat tanpa bergantung pada
 hover. Wordmark memakai asset video `public/brand/temora-logo-reveal.mp4`
-sebagai satu-satunya visual logo di hero; video diputar muted, loop, dan inline
-tanpa ditumpuk dengan wordmark kedua. Teks TEMORA hanya muncul sebagai fallback
-saat video gagal dimuat atau reduced motion aktif. Homepage masih memiliki section
+sebagai lapisan brand reveal; video diputar muted, loop, dan inline, sementara
+teks TEMORA tetap menjadi fallback aksesibel dan tetap terlihat jika asset gagal
+dimuat. Homepage masih memiliki section
 pendukung cara kerja, showcase momen, dan CTA akhir di bawah hero; visual hero
 bukan lagi stock photo.
 
