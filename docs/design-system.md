@@ -199,17 +199,20 @@ preview perangkat yang memperlihatkan hasilnya secara langsung.
   dan teks tombol; frame foto tetap wajib PNG transparan rasio 3:4 sesuai §3.3.
 - Tema event mengubah aksen preview memakai token tema §2.2. Tidak boleh ada
   hex baru atau warna pilihan yang hanya tersimpan di client.
-- Preview kamera menampilkan rasio 3:4, watermark, preset kamera, dan filter
-  aktif sebagai simulasi visual. Preset filter/kamera adalah konfigurasi event
-  yang disimpan vendor dan dibaca halaman photobooth tamu; jangan tampilkan
-  kontrol tamu yang dapat mengubahnya bila vendor memilih satu tampilan resmi.
+- Form setup menyediakan pilihan preset kamera dan filter default. Preview
+  perangkat di sisi kanan saat ini memvisualisasikan tema, frame, dan watermark;
+  pilihan preset/filter ditunjukkan melalui kontrol setup, lalu diterapkan pada
+  guest camera setelah disimpan. Jangan mengklaim preview editor sebagai live
+  rendering penuh dari setiap preset/filter.
 - Konfigurasi event kanonik: `camera_preset` (`darkroom`, `rose-gold`,
   `berry-pop`, `mono-minimal`), `filter_id` (null = Warna Asli), dan
   `filter_strength` (0–1). Nilainya disimpan di database, divalidasi server,
   dan diteruskan ke guest camera melalui server-rendered event state.
-- Guest camera wajib WYSIWYG terhadap setup vendor: cover, frame, filter,
-  preset kamera, watermark, kuota, dan aksen tema berasal dari event yang sama.
-  Guest tidak boleh mengubah filter/preset; vendor mengubahnya dari setup event.
+- Guest camera membaca cover, frame, filter, preset kamera, watermark, kuota,
+  dan aksen tema dari event yang sama. Filter aktif diterapkan ke preview live
+  dan hasil capture; preset kamera saat ini mengubah aksen ring dan label preset
+  pada shell kamera yang dipakai bersama. Guest tidak boleh mengubah
+  filter/preset; vendor mengubahnya dari setup event.
 - CTA utama memakai microcopy "Simpan perubahan" atau "Simpan event". Link
   sekunder membuka photobooth/QR setelah event tersimpan.
 - Editor cover visual memakai preview perangkat portrait di tengah, navigasi
@@ -280,10 +283,11 @@ Muncul sebelum kamera aktif:
 ### Homepage hero (brand-led)
 
 Homepage memakai hero minimal berpusat pada wordmark TEMORA. Interaksi hover
-atau focus pada wordmark memunculkan kamera dan ripple halus; pada layar sentuh,
-focus/tap menjadi fallback. CTA vendor tetap terlihat di bawah brand stage,
-tetapi visual utama bukan stock photo atau dashboard. Copy pendukung tetap
-menjelaskan bahwa TEMORA adalah virtual photobooth.
+pointer atau focus keyboard pada wordmark memunculkan ikon kamera dan lingkaran
+aksen halus. Pada layar sentuh hero tetap tampil statis dengan CTA vendor yang
+jelas; tidak ada state tap khusus. Homepage masih memiliki section pendukung
+cara kerja, showcase momen, dan CTA akhir di bawah hero. Visual utama bukan
+stock photo atau dashboard.
 
 ### Photobooth Page (mobile-first, `min-h-dvh`)
 ```
