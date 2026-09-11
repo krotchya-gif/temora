@@ -1,6 +1,6 @@
 # Database — TEMORA (Supabase PostgreSQL)
 
-*Versi: 1.2 · Tanggal: 2026-08-25 · Status: Approved*
+*Versi: 1.3 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: skema MVP v1.0 (kanonik) + realtime publication + retention & migration strategy.*
 
 ---
@@ -458,12 +458,12 @@ diekspos sebagai URL langsung.
 1. Semua string user-generated di-sanitize (strip `< > \``, batasi panjang).
 2. Tulisan multi-step (upload file + insert row) → transaksi / RPC supaya atomik.
 3. Jangan simpan secret di DB; `.env` single source of truth.
-4. Migrasi via `supabase migration` files — tidak ada DDL manual di dashboard.
+4. Migrasi wajib memiliki file di `supabase/migrations/`; apply dan verifikasi schema/RLS/advisor dilakukan melalui MCP Supabase. Tidak ada DDL manual di dashboard.
 5. TTL foto: job harian hapus foto event yang `expires_at` sudah lewat (Storage + row).
 
 ## 10. Migration Strategy
 
-- Gunakan Supabase CLI: `supabase migration new <name>` → edit file → `supabase db push`.
+- Buat file dengan Supabase CLI: `supabase migration new <name>` → edit file → gunakan MCP Supabase untuk apply dan verifikasi remote; CLI lokal hanya boleh menjadi alat pendukung iterasi.
 - **Never** edit migration yang sudah applied — selalu buat migration baru.
 - Test lokal dengan `supabase start` + `supabase db reset` sebelum push ke production.
 - RLS policies ditaruh di migration yang sama dengan tabelnya.

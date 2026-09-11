@@ -1,12 +1,13 @@
 # Architecture — TEMORA
 
-*Versi: 1.4 · Tanggal: 2026-09-11 · Status: Approved*
+*Versi: 1.5 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
 *Patch 1.6 (2026-09-10): halaman photobooth membaca event+table via service role dengan 4 status eksplisit (aktif/selesai/tautan-salah/gangguan, §5); base URL QR dinormalisasi tanpa trailing slash (§5); PATCH showcase multipart ganti gambar+judul+kutipan satu aksi (§3.3).*
 *Patch 1.7 (2026-09-10): file media ditulis `0644`, folder `0755` — default `0600` tak ter-serve sebagai statis (thumbnail 404 padahal file ada). Detail §11.1, runbook §3, qa-report.*
 *Patch 1.8 (2026-09-11): setup studio memperbarui preview kamera secara live; konfigurasi kartu QR event (template, judul, subjudul, tagline) disimpan di `events` dan dipakai halaman print A4. Migration cover, camera setup, QR card, dan watermark diverifikasi di production.*
+*Patch 1.9 (2026-09-12): upload foto tamu memakai RPC `insert_guest_photo_atomic` untuk lock row event, validasi kuota, deduplikasi, dan insert atomik (`20260912090000_atomic_guest_photo_insert.sql`). Migration ini masih menunggu penerapan production; seluruh apply dan verifikasi remote wajib melalui MCP Supabase.*
 
 ---
 

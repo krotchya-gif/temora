@@ -20,6 +20,7 @@
 
 4. **Dokumen tidak ada di daftar itu? Berarti belum ada keputusannya** — tanyakan atau usulkan update docs dulu, jangan mengarang.
 5. **Implementasi wajib setia pada desain yang tertulis.** Jika `docs/`/task menentukan metode A, kerjakan metode A **sampai benar-benar tuntas** — dilarang diam-diam memakai "metode B/C", shortcut, stub, atau workaround lain lalu melaporkannya sebagai selesai. Jika metode yang ditulis ternyata tidak memungkinkan: **stop** → ajukan perubahan ke `docs/` → tunggu keputusan & doc diupdate → baru lanjut dengan cara yang baru disetujui.
+6. **Sebelum commit atau push, seluruh dokumentasi wajib disinkronkan dengan kondisi aktual.** Audit perubahan kode, migration, route, UI, status testing, dan deployment; update dokumen pemiliknya beserta versi/tanggal/status bila berubah. Jangan commit/push bila ada fakta aktual yang hanya tersimpan di kode, chat, atau catatan lokal.
 
 ## 2. Urutan Kerja Eksekusi
 
@@ -41,7 +42,7 @@
 3. Luluskan **Anti-Slop Gate** design-system §11 sebelum deliver UI apa pun.
 4. **RLS adalah guard pertama, API route guard kedua** (defense in depth) — limit tier/foto dicek di keduanya.
 5. **Service role key hanya di API routes/server**, never client.
-6. Migrasi DB hanya via file `supabase/migrations/` (CLI) — tidak ada DDL manual dashboard; migration applied tidak boleh diedit.
+6. Migrasi DB wajib memiliki file di `supabase/migrations/` dan seluruh eksekusi, penerapan ke project Supabase, serta verifikasi schema/RLS/advisor wajib dilakukan menggunakan **MCP Supabase**. Tidak ada DDL manual dashboard atau eksekusi remote yang hanya dicatat secara lokal; migration applied tidak boleh diedit. Jika MCP Supabase tidak tersedia atau gagal terhubung, hentikan klaim selesai dan laporkan blocker.
 7. Secret hanya via `.env` — tidak ada key di kode/git.
 8. Mobile-first: `min-h-dvh` (bukan `min-h-screen`), cek viewport 360px, `prefers-reduced-motion` didukung.
 
@@ -51,6 +52,18 @@
 - Jalankan lint + typecheck + build sebelum klaim task tuntas (pipeline CI task 015 adalah standar minimal).
 - Setiap item acceptance criteria di task aktif harus benar-benar teruji/demokan — jangan mencentang berdasar asumsi.
 - Temuan desain baru saat koding → catat & update docs dalam commit yang sama.
+
+## 6. Release Checklist Wajib
+
+Sebelum membuat commit atau menjalankan push:
+
+1. Baca `git diff` dan `git status`; cocokkan setiap perubahan dengan dokumen pemiliknya.
+2. Jalankan pencarian silang untuk status lama, checklist unchecked, tanggal/versi, route, env, migration, dan fitur yang berubah.
+3. Update `docs/`, `tasks/`, `README.md`, atau `docs/qa-report.md` yang relevan dengan data aktual. Catatan historis boleh dipertahankan, tetapi status terkini harus jelas dan tidak kontradiktif.
+4. Jika ada migration database, gunakan MCP Supabase untuk apply/verify migration, RLS, dan advisor; simpan hasil verifikasinya di dokumentasi pada commit yang sama.
+5. Jalankan lint, typecheck, test, dan build. Jangan menyatakan selesai bila salah satunya gagal atau belum dijalankan.
+6. Pastikan tidak ada secret, `.env`, artifact test, atau file sementara yang ikut staged.
+7. Hanya setelah semua langkah di atas selesai, buat commit dan push. Ringkas commit hash, hasil verifikasi, migration yang diterapkan, serta item yang masih pending di laporan akhir.
 
 ---
 
