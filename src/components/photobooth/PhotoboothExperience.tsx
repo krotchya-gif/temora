@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ConsentScreen } from "@/components/photobooth/ConsentScreen";
+import { CoverScreen } from "@/components/photobooth/CoverScreen";
 import { CameraStage } from "@/components/photobooth/CameraStage";
 import { themeAccent, type PhotoboothEvent } from "@/lib/events";
 
@@ -23,6 +24,7 @@ export function PhotoboothExperience({
   frameSponsors,
 }: PhotoboothExperienceProps) {
   const [consented, setConsented] = useState(false);
+  const [coverSeen, setCoverSeen] = useState(false);
   const [toast, setToast] = useState<{ key: number; message: string } | null>(
     null,
   );
@@ -56,7 +58,9 @@ export function PhotoboothExperience({
 
   return (
     <div style={{ "--event-accent": themeAccent(event.theme) } as React.CSSProperties}>
-      {consented ? (
+      {!coverSeen ? (
+        <CoverScreen event={event} onContinue={() => setCoverSeen(true)} />
+      ) : consented ? (
         <CameraStage
           eventId={event.id}
           eventName={event.name}

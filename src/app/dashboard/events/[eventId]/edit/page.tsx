@@ -6,7 +6,7 @@ import { EventForm } from "@/components/dashboard/EventForm";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Edit Event",
+  title: "Setup Tampilan Event",
 };
 
 type EditEventProps = {
@@ -40,7 +40,7 @@ export default async function EditEventPage({ params }: EditEventProps) {
   if (!event) notFound();
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="space-y-6">
       <Link
         href={`/dashboard/events/${eventId}`}
         className="inline-flex text-sm text-text-secondary transition-colors hover:text-accent"
@@ -49,9 +49,9 @@ export default async function EditEventPage({ params }: EditEventProps) {
       </Link>
 
       <div>
-        <h1 className="font-display text-3xl text-text-primary">Edit event</h1>
+        <h1 className="font-display text-3xl text-text-primary">Setup tampilan event</h1>
         <p className="mt-1 font-mono text-xs text-text-secondary">
-          /p/{event.slug} · link kustom bersifat permanen
+          /p/{event.slug} · cover, kamera, filter, dan watermark
         </p>
       </div>
 
@@ -84,6 +84,7 @@ export default async function EditEventPage({ params }: EditEventProps) {
             isActive: event.is_active,
             watermarkText: event.watermark_text ?? "",
             watermarkPosition: event.watermark_position ?? "bottom-right",
+            frameUrl: event.frame_url,
           }}
         />
       </Card>

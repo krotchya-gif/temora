@@ -20,7 +20,7 @@ async function resolveOwnedEvent(eventId: string) {
   // RLS e_owner: event vendor lain tidak terlihat.
   const { data: event } = await supabase
     .from("events")
-    .select("id, vendor_id, name, slug, theme, starts_at, ends_at, location, is_active, photo_limit, expires_at, watermark_text, watermark_position")
+    .select("id, vendor_id, name, slug, theme, starts_at, ends_at, location, is_active, photo_limit, expires_at, cover_template, cover_image_url, cover_title, cover_subtitle, cover_button_text, watermark_text, watermark_position")
     .eq("id", eventId)
     .maybeSingle();
   if (!event) return { error: "notfound" as const };
@@ -134,6 +134,11 @@ export async function PUT(
         ? undefined
         : input.watermarkText,
     watermark_position: input.watermarkPosition,
+    cover_template: input.coverTemplate,
+    cover_image_url: input.coverImageUrl,
+    cover_title: input.coverTitle,
+    cover_subtitle: input.coverSubtitle,
+    cover_button_text: input.coverButtonText,
   };
   const changes = Object.fromEntries(
     Object.entries(dbInput).filter(([, v]) => v !== undefined),
@@ -186,6 +191,7 @@ export async function DELETE(
     await removePrefix(admin, "photos", event.id);
     await removePrefix(admin, "thumbs", event.id);
     await removePrefix(admin, "frames", `${event.vendor_id}/${event.id}`);
+    await removePrefix(admin, "covers", `${event.vendor_id}/${event.id}`);
     await removePrefix(admin, "zips", event.id);
   } catch (err) {
     console.error("[events.delete] storage purge:", err);

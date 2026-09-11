@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Images, QrCode } from "lucide-react";
+import { CalendarDays, Camera, Images, Palette, QrCode } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { EventStatusControls } from "@/components/dashboard/EventStatusControls";
 import { EventSubNav } from "@/components/dashboard/EventSubNav";
@@ -105,6 +105,39 @@ export default async function EventDetailPage({ params }: EventDetailProps) {
 
       <EventSubNav eventId={eventId} />
 
+      <section className="space-y-4" aria-labelledby="event-setup-heading">
+        <div>
+          <p className="text-xs font-medium tracking-[0.14em] text-accent uppercase">Setup event</p>
+          <h2 id="event-setup-heading" className="mt-1 font-display text-2xl text-text-primary">
+            Sekarang bikin tampilannya terasa kamu
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-text-secondary">
+            Detail event sudah tersimpan. Lanjutkan dengan mengatur apa yang akan
+            dilihat tamu saat mereka scan QR dan mulai mengambil foto.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Link href={`/dashboard/events/${eventId}/cover`} className="group rounded-xl border border-border bg-bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-muted-mauve/15 text-muted-mauve"><Palette className="h-4 w-4" aria-hidden /></span>
+            <p className="mt-4 text-sm font-medium text-text-primary">Edit cover</p>
+            <p className="mt-1 text-xs leading-relaxed text-text-secondary">Template, foto, judul, subjudul, dan tombol.</p>
+            <span className="mt-3 inline-block text-xs font-medium text-accent group-hover:underline">Edit cover →</span>
+          </Link>
+          <Link href={`/dashboard/events/${eventId}/qr`} className="group rounded-xl border border-border bg-bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-secondary/15 text-accent"><QrCode className="h-4 w-4" aria-hidden /></span>
+            <p className="mt-4 text-sm font-medium text-text-primary">Kartu QR</p>
+            <p className="mt-1 text-xs leading-relaxed text-text-secondary">Buat meja dan siapkan kartu untuk dicetak.</p>
+            <span className="mt-3 inline-block text-xs font-medium text-accent group-hover:underline">Kelola QR →</span>
+          </Link>
+          <Link href={`/dashboard/events/${eventId}/gallery`} className="group rounded-xl border border-border bg-bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-dusty-blue/15 text-dusty-blue"><Camera className="h-4 w-4" aria-hidden /></span>
+            <p className="mt-4 text-sm font-medium text-text-primary">Hasil foto</p>
+            <p className="mt-1 text-xs leading-relaxed text-text-secondary">Lihat momen yang sudah dikumpulkan tamu.</p>
+            <span className="mt-3 inline-block text-xs font-medium text-accent group-hover:underline">Buka galeri →</span>
+          </Link>
+        </div>
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -134,17 +167,6 @@ export default async function EventDetailPage({ params }: EventDetailProps) {
         </Link>
       </Card>
 
-      <Card className="flex flex-col items-start justify-between gap-3 bg-bg-warm px-5 py-4 sm:flex-row sm:items-center">
-        <p className="text-sm text-text-secondary">
-          Ubah nama, tema, jadwal, atau frame event ini.
-        </p>
-        <Link
-          href={`/dashboard/events/${eventId}/edit`}
-          className="inline-flex min-h-11 items-center rounded-lg border border-accent/30 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
-        >
-          Edit Event
-        </Link>
-      </Card>
     </div>
   );
 }

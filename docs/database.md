@@ -55,6 +55,12 @@ CREATE TABLE events (
   ends_at TIMESTAMPTZ,                 -- informasi saja (tanggal acara); tidak memblokir akses tamu
   location TEXT,
   frame_url TEXT,                      -- PNG transparan di Storage
+  cover_template TEXT NOT NULL DEFAULT 'bloom'
+    CHECK (cover_template IN ('bloom','rose','mono','night','paper')),
+  cover_image_url TEXT,                -- JPG/PNG cover publik, opsional
+  cover_title TEXT,                    -- NULL = pakai nama event
+  cover_subtitle TEXT,
+  cover_button_text TEXT NOT NULL DEFAULT 'Mulai motret',
   watermark_text TEXT,                 -- NULL = tanpa watermark (khusus Pro)
   watermark_position TEXT NOT NULL DEFAULT 'bottom-right'
     CHECK (watermark_position IN ('bottom-right','bottom-left','top-right','top-left')), -- preset posisi (Pro)

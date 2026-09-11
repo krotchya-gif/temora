@@ -184,6 +184,32 @@ Hasil foto distyle seperti Polaroid:
 </div>
 ```
 
+### 3.5a Event setup studio (dashboard vendor)
+Halaman buat/edit event memakai pola "setup studio" yang terinspirasi editor
+event visual: form tetap menjadi sumber perubahan, tetapi selalu ditemani
+preview perangkat yang memperlihatkan hasilnya secara langsung.
+
+- Layout desktop dua kolom: pengaturan di kiri, preview sticky di kanan; mobile
+  berubah menjadi satu kolom dengan preview di bagian atas.
+- Urutan section: identitas & jadwal, cover/frame, tampilan kamera, lalu
+  watermark dan status. Setiap section punya judul, deskripsi singkat, dan
+  whitespace yang cukup — bukan satu form panjang tanpa orientasi.
+- Cover dashboard adalah layar pembuka tamu yang dikonfigurasi terpisah dari
+  frame foto. Editor cover menyimpan template, foto opsional, judul, subjudul,
+  dan teks tombol; frame foto tetap wajib PNG transparan rasio 3:4 sesuai §3.3.
+- Tema event mengubah aksen preview memakai token tema §2.2. Tidak boleh ada
+  hex baru atau warna pilihan yang hanya tersimpan di client.
+- Preview kamera menampilkan rasio 3:4, watermark, dan label filter sebagai
+  simulasi visual. Preset filter/kamera belum menjadi konfigurasi event di MVP;
+  jangan tampilkan kontrol seolah-olah nilainya tersimpan.
+- CTA utama memakai microcopy "Simpan perubahan" atau "Simpan event". Link
+  sekunder membuka photobooth/QR setelah event tersimpan.
+- Editor cover visual memakai preview perangkat portrait di tengah, navigasi
+  template kiri/kanan, indikator posisi, dan empat kontrol ringkas: Foto, Judul,
+  Subjudul, Tombol. Tombol "Selesai" menyimpan cover ke event.
+- Semua preview lokal harus diberi alt yang jelas, fokus keyboard terlihat, dan
+  motion dihentikan saat `prefers-reduced-motion` aktif.
+
 ### 3.6 EmptyState
 Ilustrasi line-art sederhana + satu kalimat brand voice.
 Contoh galeri kosong: *"Belum ada momen yang terabadikan. Bagikan QR code-nya dulu, ya."*

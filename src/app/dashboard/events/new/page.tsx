@@ -25,7 +25,7 @@ export default async function NewEventPage() {
     : "free") as "free" | "basic" | "pro";
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="space-y-6">
       <Link
         href="/dashboard/events"
         className="inline-flex text-sm text-text-secondary transition-colors hover:text-accent"
@@ -36,13 +36,13 @@ export default async function NewEventPage() {
       <div>
         <h1 className="font-display text-3xl text-text-primary">Buat event baru</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Nama event dan link kustom tidak bisa diganti setelah dibuat — pastikan
-          sudah pas ya.
+          Isi detail dasar dulu. Setelah event dibuat, kamu bisa mengatur tampilan
+          cover, kamera, filter, dan kartu QR-nya.
         </p>
       </div>
 
-      <Card className="p-6">
-        <EventForm mode="create" tier={tier} />
+      <Card className="max-w-2xl p-6">
+        <EventForm mode="create" tier={tier} appearance={false} />
       </Card>
     </div>
   );

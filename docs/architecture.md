@@ -167,12 +167,13 @@ supabase/
 | `/dashboard/events` | List semua event | Yes |
 | `/dashboard/events/new` | Buat event baru | Yes |
 | `/dashboard/events/[eventId]` | Detail event | Yes |
+| `/dashboard/events/[eventId]/edit` | Workspace setup event: cover/frame, tampilan kamera, filter, watermark | Yes |
+| `/dashboard/events/[eventId]/cover` | Editor cover visual: template, foto, judul, subjudul, tombol | Yes |
 | `/dashboard/events/[eventId]/gallery` | Galeri foto + download ZIP | Yes |
 | `/dashboard/events/[eventId]/moments` | Feed moments real-time + moderasi (task 012) | Yes |
 | `/dashboard/events/[eventId]/sponsors` | Kelola logo sponsor (task 013, Pro) | Yes |
 | `/dashboard/events/[eventId]/analytics` | Analytics agregat + heatmap (task 014) | Yes |
 | `/dashboard/events/[eventId]/qr` | Generate + cetak QR meja | Yes |
-| `/dashboard/events/[eventId]/edit` | Edit event + upload frame kustom (slug immutable) | Yes |
 | `/dashboard/settings` | Profil, WA opt-in, subscription | Yes |
 | `/dashboard/billing` | Invoice, pembayaran, history | Yes |
 

@@ -1,7 +1,7 @@
 // Hostinger media service adapter.
 // Database/Auth/Realtime tetap di Supabase; file tidak lagi disimpan di Supabase Storage.
 
-type MediaArea = "photos" | "thumbs" | "frames" | "sponsors" | "showcase" | "zips";
+type MediaArea = "photos" | "thumbs" | "frames" | "covers" | "sponsors" | "showcase" | "zips";
 
 function baseUrl() {
   return (process.env.HOSTINGER_MEDIA_URL || process.env.NEXT_PUBLIC_HOSTINGER_MEDIA_URL || "https://media.temora.site").replace(/\/$/, "");
@@ -14,7 +14,7 @@ function secret() {
 }
 
 function safeKey(key: string) {
-  if (!/^(photos|thumbs|frames|sponsors|showcase|zips)\/[A-Za-z0-9._/-]+$/.test(key) || key.includes("..")) throw new Error("Invalid media key.");
+  if (!/^(photos|thumbs|frames|covers|sponsors|showcase|zips)\/[A-Za-z0-9._/-]+$/.test(key) || key.includes("..")) throw new Error("Invalid media key.");
   return key;
 }
 

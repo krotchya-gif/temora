@@ -65,7 +65,7 @@ const loadPhotoboothState = cache(
 
   const { data: row, error: eventError } = await admin
     .from("events")
-    .select("id, name, slug, theme, frame_url, watermark_text, watermark_position, is_active, expires_at")
+    .select("id, name, slug, theme, frame_url, cover_template, cover_image_url, cover_title, cover_subtitle, cover_button_text, watermark_text, watermark_position, is_active, expires_at")
     .eq(isUuid(eventIdParam) ? "id" : "slug", eventIdParam)
     .maybeSingle();
 
@@ -87,6 +87,11 @@ const loadPhotoboothState = cache(
     slug: row.slug,
     theme: row.theme,
     frameUrl: row.frame_url,
+    coverTemplate: row.cover_template ?? "bloom",
+    coverImageUrl: row.cover_image_url,
+    coverTitle: row.cover_title,
+    coverSubtitle: row.cover_subtitle,
+    coverButtonText: row.cover_button_text ?? "Mulai motret",
     watermarkText: row.watermark_text,
     watermarkPosition: row.watermark_position ?? "bottom-right",
   };

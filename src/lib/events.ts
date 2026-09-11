@@ -9,6 +9,11 @@ export type PhotoboothEvent = {
   slug: string;
   theme: string | null;
   frameUrl: string | null;
+  coverTemplate: "bloom" | "rose" | "mono" | "night" | "paper";
+  coverImageUrl: string | null;
+  coverTitle: string | null;
+  coverSubtitle: string | null;
+  coverButtonText: string;
   watermarkText: string | null;
   watermarkPosition: WatermarkPosition;
 };

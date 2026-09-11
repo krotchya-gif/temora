@@ -14,6 +14,7 @@ export function EventSubNav({ eventId }: EventSubNavProps) {
 
   const tabs = [
     { href: base, label: "Ringkasan", exact: true },
+    { href: `${base}/edit`, label: "Setup tampilan", exact: false },
     { href: `${base}/gallery`, label: "Galeri", exact: false },
     { href: `${base}/moments`, label: "Momen", exact: false },
     { href: `${base}/qr`, label: "QR", exact: false },

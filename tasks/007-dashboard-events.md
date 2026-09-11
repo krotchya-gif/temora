@@ -13,8 +13,13 @@ Vendor mengelola events: buat, edit, aktifkan/nonaktifkan, hapus — termasuk up
 ## 2. Scope
 
 - `/dashboard/events`: list semua event milik vendor (card per event: nama, tema, tanggal, jumlah foto, status).
-- `/dashboard/events/new`: form buat event (nama, tema, tanggal mulai/selesai, lokasi, upload frame PNG).
-- `/dashboard/events/[eventId]`: detail + tab ringkas (galeri, QR, frame, pengaturan).
+- `/dashboard/events/new`: form tahap pertama untuk membuat event (nama, tema/kategori,
+  tanggal mulai/selesai, lokasi, link kustom).
+- `/dashboard/events/[eventId]`: detail + workspace setup setelah event diklik.
+- `/dashboard/events/[eventId]/edit`: setup tampilan event (cover/frame, kamera,
+  filter, watermark) dan edit detail event.
+- `/dashboard/events/[eventId]/cover`: editor visual cover tamu (template, foto,
+  judul, subjudul, tombol).
 - Edit event + ganti frame.
 - Toggle aktif/nonaktif (menutup akses tamu via RLS policy yang sudah ada).
 - Delete event (soft confirm modal; cascade hapus foto storage via job).
@@ -35,7 +40,9 @@ Vendor mengelola events: buat, edit, aktifkan/nonaktifkan, hapus — termasuk up
 Sesuai design-system §3.5: tema sebagai small-caps dusty-blue, nama font-display, meta info secondary, actions row.
 
 ### 4.2 Form UX
-Satu kolom, mobile-friendly. Frame upload dengan preview instan (drag-drop atau tap). Simpan → toast sukses → redirect detail event.
+Alur dua tahap: simpan detail dasar dulu, lalu redirect ke detail event. Dari
+detail event vendor masuk ke workspace setup tampilan: frame/cover, preview
+kamera, filter warna, watermark, dan kartu QR. Semua tetap mobile-friendly.
 
 ## 5. File yang Terlibat
 

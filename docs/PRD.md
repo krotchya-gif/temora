@@ -61,7 +61,9 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 
 4. **Vendor Dashboard**
    - Auth via Supabase Auth (email/password).
-   - CRUD events (nama, tanggal, tema, frame upload).
+   - CRUD events (nama, kategori, jadwal, lokasi, link kustom).
+   - Setelah event dibuat, vendor masuk ke workspace event untuk mengatur
+     tampilan cover/frame, filter warna kamera, kartu QR, dan tampilan kamera.
    - Generate tabel + QR codes.
    - Galeri + download ZIP.
 
