@@ -224,6 +224,11 @@ CREATE TABLE platform_settings (
 
 **Validasi upload (API wajib):** `table_id` harus milik `event_id`; `client_upload_id` (UUID per capture) untuk dedup retry offline — jika duplikat, return row existing (200), bukan insert baru.
 
+**Batas foto atomik:** API memanggil RPC `insert_guest_photo_atomic` untuk insert
+akhir. RPC mengunci row event, memeriksa status/expiry/table/quota, lalu insert
+foto dalam transaksi yang sama; ini mencegah dua upload bersamaan melewati
+`photo_limit` setelah API memakai service role yang melewati RLS.
+
 ### 2.8 moments & sponsors (task 012–013, migrasi 0022)
 
 ```sql

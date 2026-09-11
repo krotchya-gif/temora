@@ -19,21 +19,6 @@ function jsonError(error: string, status: number) {
   return NextResponse.json({ ok: false, error }, { status });
 }
 
-async function findByClientUploadId(
-  admin: ReturnType<typeof createAdminClient>,
-  eventId: string,
-  clientUploadId: string,
-) {
-  const { data } = await admin
-    .from("photos")
-    .select("id, metadata")
-    .eq("event_id", eventId)
-    .is("deleted_at", null)
-    .filter("metadata->>client_upload_id", "eq", clientUploadId)
-    .maybeSingle();
-  return data;
-}
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
@@ -114,17 +99,6 @@ export async function POST(
     );
   }
 
-  // Dedup: retry offline dengan client_upload_id sama balik foto yang sama.
-  const existing = await findByClientUploadId(admin, event.id, clientUploadId);
-  if (existing) {
-    return NextResponse.json({
-      ok: true,
-      photoId: existing.id,
-      captureToken: existing.metadata?.capture_token ?? null,
-      duplicate: true,
-    });
-  }
-
   if (event.photo_limit !== null) {
     const { count } = await admin
       .from("photos")
@@ -172,42 +146,42 @@ export async function POST(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  const { data: inserted, error: insertError } = await admin
-    .from("photos")
-    .insert({
-      event_id: event.id,
-      table_id: tableId,
-      storage_path: photoPath,
-      thumb_path: storedThumbPath,
-      width: width ?? null,
-      height: height ?? null,
-      size_bytes: imageBuffer.byteLength,
-      metadata: {
-        capture_token: captureToken,
-        client_upload_id: clientUploadId,
-      },
-    })
-    .select("id")
-    .single();
+  const { data: atomicRows, error: insertError } = await admin.rpc("insert_guest_photo_atomic", {
+    p_event_id: event.id,
+    p_table_id: tableId,
+    p_storage_path: photoPath,
+    p_thumb_path: storedThumbPath,
+    p_width: width ?? null,
+    p_height: height ?? null,
+    p_size_bytes: imageBuffer.byteLength,
+    p_metadata: {
+      capture_token: captureToken,
+      client_upload_id: clientUploadId,
+    },
+  });
 
-  if (insertError) {
-    // Race dedup (unique idx_photos_client_upload): row sudah dibuat request lain — kembalikan existing.
-    if (insertError.code === "23505") {
-      const dup = await findByClientUploadId(admin, event.id, clientUploadId);
-      if (dup) {
-        return NextResponse.json({
-          ok: true,
-          photoId: dup.id,
-          captureToken: dup.metadata?.capture_token ?? null,
-          duplicate: true,
-        });
-      }
-    }
+  const inserted = Array.isArray(atomicRows) ? atomicRows[0] as { photo_id: string; capture_token: string; duplicate: boolean } | undefined : undefined;
 
-    console.error("[upload] insert photos:", insertError.message);
+  if (insertError || !inserted) {
+    console.error("[upload] atomic insert:", insertError?.message ?? "no row returned");
     await deleteStorageFile(photoPath);
     if (storedThumbPath) await deleteStorageFile(storedThumbPath);
+    const errorMessage = insertError?.message ?? "";
+    if (errorMessage.includes("quota_exceeded")) return jsonError("Kuota momen acara ini sudah penuh. Terima kasih sudah jadi bagian dari momennya!", 403);
+    if (errorMessage.includes("table_not_found")) return jsonError("Sepertinya tautan ini tidak tepat. Coba scan ulang QR di mejamu, ya.", 404);
+    if (errorMessage.includes("event_not_available")) return jsonError("Acara ini sudah selesai. Terima kasih sudah jadi bagian dari momennya.", 404);
     return jsonError("Momen gagal tersimpan. Coba sekali lagi ya.", 500);
+  }
+
+  if (inserted.duplicate) {
+    await deleteStorageFile(photoPath);
+    if (storedThumbPath) await deleteStorageFile(storedThumbPath);
+    return NextResponse.json({
+      ok: true,
+      photoId: inserted.photo_id,
+      captureToken: inserted.capture_token,
+      duplicate: true,
+    });
   }
 
   // Milestone 50/100 momen (task 009 — throttled by design).
@@ -226,7 +200,7 @@ export async function POST(
 
   return NextResponse.json({
     ok: true,
-    photoId: inserted.id,
-    captureToken,
+    photoId: inserted.photo_id,
+    captureToken: inserted.capture_token,
   });
 }

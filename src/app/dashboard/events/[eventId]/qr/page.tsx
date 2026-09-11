@@ -21,7 +21,7 @@ export default async function EventQrPage({ params }: EventQrPageProps) {
   const supabase = await createClient();
   const { data: event } = await supabase
     .from("events")
-    .select("id, name")
+    .select("id, name, qr_template, qr_title, qr_subtitle, qr_tagline")
     .eq("id", eventId)
     .maybeSingle();
 
@@ -67,7 +67,15 @@ export default async function EventQrPage({ params }: EventQrPageProps) {
         </Button>
       </div>
 
-      <QrManager eventId={eventId} tables={tables ?? []} />
+      <QrManager
+        eventId={eventId}
+        eventName={event.name}
+        qrTemplate={event.qr_template ?? "bloom"}
+        qrTitle={event.qr_title}
+        qrSubtitle={event.qr_subtitle}
+        qrTagline={event.qr_tagline ?? "Keep the moments close."}
+        tables={tables ?? []}
+      />
     </div>
   );
 }

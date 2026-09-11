@@ -25,11 +25,12 @@ export function CoverScreen({ event, onContinue }: CoverScreenProps) {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-bg-base px-5 py-8">
       <div className="w-full max-w-sm text-center">
-        <div className="mx-auto max-w-[290px] rounded-[2.5rem] border-[7px] border-text-primary bg-text-primary p-1.5 shadow-card">
-          <div className={`relative aspect-[3/4] overflow-hidden rounded-[2rem] ${templateClass}`}>
+        <div className="mx-auto w-[min(72vw,240px)] max-w-full rounded-[2.4rem] border-[8px] border-text-primary bg-text-primary p-1.5 shadow-card">
+          <div className={`relative aspect-[9/19] overflow-hidden rounded-[2rem] ${templateClass}`}>
             {event.coverImageUrl ? (
               <img src={event.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-80" />
             ) : null}
+            <div className="absolute left-1/2 top-2 z-10 h-5 w-20 -translate-x-1/2 rounded-full bg-text-primary/90" aria-hidden />
             <div className="absolute inset-0 bg-bg-base/15" aria-hidden />
             <div className="relative flex h-full flex-col items-center justify-end px-5 pb-9 text-center">
               <p className="max-w-full text-balance font-display text-2xl leading-none">{title}</p>

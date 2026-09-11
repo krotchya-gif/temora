@@ -612,3 +612,24 @@ yang gagal hanyalah render setelah refresh; kini aman.
 - Catatan desain: lockup penuh di tab 16px memang kurang terbaca dan transparan
   → hitam di iOS — itu konsekuensi paket yang dipilih; mark kompak = ring-O
   (design-system §8).
+
+## Ronde Review Project & Hardening Non-Billing/WA (2026-09-12)
+
+- Preview HP dipisah menjadi mode `cover` dan `camera`. Editor cover kembali
+  menampilkan judul, subjudul, dan teks tombol secara live; homepage/setup tetap
+  memakai miniatur guest camera dengan header, kanvas 3:4, zoom, shutter, dan
+  kontrol bawah.
+- Placeholder foto kamera dikonversi dari PNG 1.99 MB menjadi JPEG lokal
+  `public/images/guest-camera-placeholder.jpg` sekitar 191 KB. PNG duplikat
+  dihapus karena tidak lagi direferensikan.
+- Batas kuota upload diperkuat dengan migration
+  `20260912090000_atomic_guest_photo_insert.sql`: RPC mengunci row event,
+  memvalidasi event/table/expiry/quota, menangani dedup, lalu insert foto secara
+  atomik. API upload kini membersihkan media jika RPC gagal atau request menjadi
+  duplikat. Migration perlu diaplikasikan ke database production saat deploy.
+- Verifikasi lokal: lint ✓, typecheck ✓, unit test 64/64 ✓, coverage 93.26% ✓,
+  production build ✓. Warning Vitest tentang `configLoader: native` tidak
+  menggagalkan test, tetapi sebaiknya dibereskan sebelum upgrade Vite berikutnya.
+- Device lab nyata dan E2E penuh tidak dijalankan pada ronde ini karena dev
+  server sengaja tetap dimatikan; checklist iOS Safari, kamera fisik, Web Share,
+  QR cetak, dan offline queue masih harus diverifikasi sebelum launch.

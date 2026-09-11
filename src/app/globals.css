@@ -29,6 +29,7 @@
 
   body {
     @apply bg-bg-base font-body text-text-primary antialiased;
+    overflow-x: clip;
   }
 
   ::selection {
@@ -170,22 +171,42 @@
 .qr-print-grid {
   display: grid;
   grid-template-columns: repeat(2, 86mm);
-  grid-auto-rows: 62mm;
   gap: 6mm;
   justify-content: center;
 }
 
-.qr-card {
+.qr-print-item {
   display: flex;
+  min-width: 0;
   flex-direction: column;
+  gap: 2mm;
+}
+
+.qr-card {
+  display: grid;
+  grid-template-columns: 40mm minmax(0, 1fr);
+  height: 62mm;
   align-items: center;
-  justify-content: center;
-  gap: 2.5mm;
+  gap: 4mm;
+  overflow: hidden;
   border: 0.4mm dashed var(--color-border);
   border-radius: 4mm;
-  padding: 3mm;
+  padding: 5mm;
   break-inside: avoid;
   background: var(--color-bg-card);
+}
+
+.qr-card-code-column {
+  display: grid;
+  place-items: center;
+}
+
+.qr-card-copy {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .qr-card-overline {
@@ -196,11 +217,15 @@
 }
 
 .qr-card-subtitle {
-  max-width: 70mm;
-  font-size: 3.1mm;
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 1.5mm;
+  font-size: 2.7mm;
   line-height: 1.25;
-  text-align: center;
+  text-align: left;
   color: var(--color-text-secondary);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .qr-card-rose { border-color: color-mix(in srgb, var(--color-muted-mauve) 60%, var(--color-border)); }
@@ -214,21 +239,30 @@
 .qr-card-paper .qr-card-label { color: var(--color-accent); }
 
 .qr-card-image {
-  width: 38mm;
-  height: 38mm;
+  display: block;
+  width: 40mm;
+  height: 40mm;
+  border-radius: 2mm;
+  background: var(--color-bg-card);
 }
 
 .qr-card-event {
-  font-size: 5.2mm;
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 1.5mm;
+  font-size: 4.8mm;
   font-weight: 600;
-  line-height: 1.2;
-  text-align: center;
+  line-height: 1.05;
+  text-align: left;
   color: var(--color-text-primary);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .qr-card-label {
+  margin-top: auto;
   font-family: var(--font-jakarta), system-ui, sans-serif;
-  font-size: 4.6mm;
+  font-size: 4mm;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -236,8 +270,12 @@
 }
 
 .qr-card-tagline {
+  overflow: hidden;
+  margin-top: 0.5mm;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-style: italic;
-  font-size: 3.4mm;
+  font-size: 2.7mm;
   color: var(--color-text-secondary);
 }
 
@@ -245,21 +283,355 @@
 .qr-card-sponsors {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 2mm;
-  min-height: 7mm;
+  min-height: 5mm;
+  margin-top: 1mm;
 }
 
 .qr-card-sponsor-logo {
-  max-height: 6mm;
-  max-width: 16mm;
+  max-height: 5mm;
+  max-width: 13mm;
   object-fit: contain;
 }
 
 .qr-card-sponsor-name {
-  font-size: 3mm;
+  font-size: 2.5mm;
   font-weight: 600;
   color: var(--color-accent);
+}
+
+@media (max-width: 767px) {
+  .qr-print-grid {
+    grid-template-columns: minmax(0, 86mm);
+  }
+}
+
+/* Preview kartu QR di dashboard — visual yang sama dengan kartu cetak, bukan QR polos. */
+.qr-card-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 1fr auto;
+  gap: 1rem;
+  min-height: 210px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 1rem;
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.qr-card-preview-copy {
+  align-self: center;
+  min-width: 0;
+}
+
+.qr-card-preview-overline {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--color-accent);
+}
+
+.qr-card-preview-event {
+  margin-top: 0.5rem;
+  overflow-wrap: anywhere;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 1.65rem;
+  line-height: 1;
+  color: var(--color-text-primary);
+}
+
+.qr-card-preview-subtitle {
+  margin-top: 0.5rem;
+  max-width: 18rem;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.qr-card-preview-code {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 116px;
+  height: 116px;
+  border-radius: 12px;
+  background: var(--color-bg-card);
+  padding: 0.5rem;
+}
+
+.qr-card-preview-code img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qr-card-preview-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  padding-top: 0.75rem;
+  font-size: 0.72rem;
+}
+
+.qr-card-preview-footer figcaption {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.qr-card-preview-footer span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-style: italic;
+}
+
+.qr-card-preview-action {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.qr-card-preview-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.qr-card-preview-rose {
+  border-color: color-mix(in srgb, var(--color-muted-mauve) 60%, var(--color-border));
+  background: color-mix(in srgb, var(--color-muted-mauve) 28%, var(--color-bg-card));
+}
+
+.qr-card-preview-mono {
+  border-radius: 0;
+  border-color: var(--color-text-primary);
+}
+
+.qr-card-preview-mono .qr-card-preview-overline,
+.qr-card-preview-mono .qr-card-preview-footer {
+  color: var(--color-text-primary);
+}
+
+.qr-card-preview-night {
+  border-color: var(--color-text-primary);
+  background: var(--color-text-primary);
+  color: var(--color-bg-base);
+}
+
+.qr-card-preview-night .qr-card-preview-event,
+.qr-card-preview-night .qr-card-preview-subtitle,
+.qr-card-preview-night .qr-card-preview-footer,
+.qr-card-preview-night .qr-card-preview-overline {
+  color: var(--color-bg-base);
+}
+
+.qr-card-preview-paper {
+  border-color: var(--color-accent-secondary);
+  background: var(--color-bg-warm);
+}
+
+/* Carousel editor kartu QR, mengikuti pola editor cover visual. */
+.qr-template-editor {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-bg-warm);
+  padding: 1rem;
+}
+
+.qr-template-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.qr-template-stage {
+  position: relative;
+  display: flex;
+  height: 360px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.qr-template-card {
+  position: absolute;
+  display: flex;
+  width: 190px;
+  height: 300px;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 1rem;
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+  transition: transform 240ms ease, opacity 240ms ease;
+}
+
+.qr-template-card-active {
+  z-index: 3;
+  transform: translateX(0) rotate(0deg);
+}
+
+.qr-template-card-previous {
+  z-index: 1;
+  opacity: 0.58;
+  transform: translateX(-120px) rotate(-8deg) scale(0.9);
+}
+
+.qr-template-card-next {
+  z-index: 1;
+  opacity: 0.58;
+  transform: translateX(120px) rotate(8deg) scale(0.9);
+}
+
+.qr-template-card-bloom {
+  background: var(--color-bg-card);
+}
+
+.qr-template-card-rose {
+  border-color: color-mix(in srgb, var(--color-muted-mauve) 60%, var(--color-border));
+  background: color-mix(in srgb, var(--color-muted-mauve) 32%, var(--color-bg-card));
+}
+
+.qr-template-card-mono {
+  border-color: var(--color-text-primary);
+  background: var(--color-bg-card);
+}
+
+.qr-template-card-night {
+  border-color: var(--color-text-primary);
+  background: var(--color-text-primary);
+  color: var(--color-bg-base);
+}
+
+.qr-template-card-paper {
+  border-color: var(--color-accent-secondary);
+  background: var(--color-bg-warm);
+}
+
+.qr-template-card-overline {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--color-accent);
+}
+
+.qr-template-card-night .qr-template-card-overline {
+  color: var(--color-accent-secondary);
+}
+
+.qr-template-card-title {
+  margin-top: 0.75rem;
+  overflow-wrap: anywhere;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 1.65rem;
+  line-height: 0.95;
+}
+
+.qr-template-card-date {
+  margin-top: 0.55rem;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  opacity: 0.72;
+}
+
+.qr-template-card-subtitle {
+  margin-top: 0.7rem;
+  font-size: 0.62rem;
+  line-height: 1.35;
+}
+
+.qr-template-card-code {
+  display: grid;
+  width: 92px;
+  height: 92px;
+  place-items: center;
+  align-self: center;
+  margin: 1rem auto 0.75rem;
+  border-radius: 10px;
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  padding: 0.55rem;
+}
+
+.qr-template-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  padding-top: 0.5rem;
+  font-size: 0.55rem;
+}
+
+.qr-template-card-footer span:last-child {
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-style: italic;
+}
+
+.qr-template-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+@media (max-width: 639px) {
+  .qr-template-stage {
+    height: 330px;
+  }
+
+  .qr-template-card {
+    width: 170px;
+    height: 280px;
+  }
+
+  .qr-template-card-previous {
+    transform: translateX(-84px) rotate(-8deg) scale(0.86);
+  }
+
+  .qr-template-card-next {
+    transform: translateX(84px) rotate(8deg) scale(0.86);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-template-card {
+    transition: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .qr-card-preview {
+    min-height: 190px;
+  }
+
+  .qr-card-preview-code {
+    width: 96px;
+    height: 96px;
+  }
+
+  .qr-card-preview-event {
+    font-size: 1.45rem;
+  }
 }
 
 /* Laporan momen A4 (task 012 — print browser → PDF) */

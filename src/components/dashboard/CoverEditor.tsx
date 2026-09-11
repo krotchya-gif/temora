@@ -1,8 +1,8 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- editor preview accepts local blob URLs. */
 
 import { useMemo, useRef, useState } from "react";
 import { Captions, ChevronLeft, ChevronRight, Image as ImageIcon, Loader2, MousePointer2, Type } from "lucide-react";
+import { GuestPhoneMockup } from "@/components/photobooth/GuestPhoneMockup";
 import { Button } from "@/components/ui/Button";
 
 type CoverTemplate = "bloom" | "rose" | "mono" | "night" | "paper";
@@ -84,21 +84,17 @@ export function CoverEditor({ eventId, eventName, initial }: CoverEditorProps) {
     finally { setBusy(false); }
   }
 
-  return <div className="mx-auto max-w-3xl">
-    <div className="mb-5 text-center"><h1 className="font-display text-3xl text-text-primary">{currentTemplate.label}</h1><p className="text-sm text-text-secondary">Geser buat ganti template</p></div>
-    <div className="relative flex items-center justify-center gap-3">
+  return <div className="mx-auto max-w-4xl">
+    <div className="mb-6 text-center"><h1 className="font-display text-3xl text-text-primary">{currentTemplate.label}</h1><p className="mt-1 text-sm text-text-secondary">Geser buat ganti template</p><p className="mt-2 text-xs uppercase tracking-[0.16em] text-text-secondary/70">Template {templateIndex + 1} dari {templates.length}</p></div>
+    <div className="relative flex items-center justify-center gap-2 sm:gap-7">
       <button type="button" onClick={() => moveTemplate(-1)} aria-label="Template sebelumnya" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border bg-bg-base text-text-primary transition-colors hover:bg-bg-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"><ChevronLeft className="h-5 w-5" aria-hidden /></button>
-      <div className="w-full max-w-[270px] rounded-[2.5rem] border-[7px] border-text-primary bg-text-primary p-1.5 shadow-card"><div className={`relative aspect-[3/4] overflow-hidden rounded-[2rem] ${templateStyles[template]}`}>
-        {imageUrl ? <img src={imageUrl} alt="Preview foto cover" className="absolute inset-0 h-full w-full object-cover opacity-80" /> : <div className="absolute inset-x-10 top-20 aspect-square rounded-full border border-current/35" aria-hidden />}
-        <div className="absolute inset-0 bg-bg-base/10" aria-hidden />
-        <div className="relative flex h-full flex-col items-center justify-end px-5 pb-9 text-center"><p className="max-w-full text-balance font-display text-2xl leading-none">{title || eventName}</p><p className="mt-2 max-w-[15rem] text-[10px] leading-relaxed opacity-80">{subtitle}</p><div className="mt-5 flex min-h-10 w-full items-center justify-center rounded-full bg-text-primary px-3 text-[10px] font-semibold text-bg-base">{buttonText || "Mulai motret"}<ChevronRight className="ml-1 h-3 w-3" aria-hidden /></div><p className="mt-4 font-display text-sm opacity-60">TEMORA</p></div>
-      </div></div>
+      <GuestPhoneMockup variant="cover" title={title || eventName || "Nama event"} subtitle={subtitle || "Simpan momenmu"} imageUrl={imageUrl} imageAlt="Preview foto event" stageClassName={templateStyles[template]} actionLabel={buttonText || "Ambil momen"} caption="Tampilan tamu · preview" className="w-[min(58vw,232px)] sm:w-[232px]" />
       <button type="button" onClick={() => moveTemplate(1)} aria-label="Template berikutnya" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border bg-bg-base text-text-primary transition-colors hover:bg-bg-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"><ChevronRight className="h-5 w-5" aria-hidden /></button>
     </div>
-    <div className="mt-4 grid grid-cols-4 gap-2 sm:mx-auto sm:max-w-[480px] sm:gap-3">{fieldButtons}</div>
+    <div className="mx-auto mt-6 grid max-w-[520px] grid-cols-4 gap-2 sm:gap-3">{fieldButtons}</div>
     <input ref={fileRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => selectImage(e.target.files?.[0] ?? null)} />
-    <div className="mx-auto mt-3 max-w-[480px] rounded-xl border border-border bg-bg-card p-4"><div className="flex items-center gap-2"><ActiveIcon className="h-4 w-4 text-accent" aria-hidden /><p className="text-sm font-medium text-text-primary">Edit {activeMeta.label.toLowerCase()}</p></div>{activeField === "title" ? <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} className="mt-3 w-full rounded-lg border border-border bg-bg-base px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-dusty-blue/40" /> : null}{activeField === "subtitle" ? <input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} maxLength={120} className="mt-3 w-full rounded-lg border border-border bg-bg-base px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-dusty-blue/40" /> : null}{activeField === "button" ? <input value={buttonText} onChange={(e) => setButtonText(e.target.value)} maxLength={30} className="mt-3 w-full rounded-lg border border-border bg-bg-base px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-dusty-blue/40" /> : null}<p className="mt-2 text-xs text-text-secondary">{activeField === "image" ? (imageFile ? imageFile.name : imageUrl ? "Foto cover aktif." : activeMeta.hint) : activeMeta.hint}</p></div>
+    <div className="mx-auto mt-3 max-w-[520px] rounded-xl border border-border bg-bg-card p-4"><div className="flex items-center gap-2"><ActiveIcon className="h-4 w-4 text-accent" aria-hidden /><p className="text-sm font-medium text-text-primary">Edit {activeMeta.label.toLowerCase()}</p></div>{activeField === "title" ? <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} className="mt-3 w-full rounded-lg border border-border bg-bg-base px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-dusty-blue/40" /> : null}{activeField === "subtitle" ? <input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} maxLength={120} className="mt-3 w-full rounded-lg border border-border bg-bg-base px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-dusty-blue/40" /> : null}{activeField === "button" ? <input value={buttonText} onChange={(e) => setButtonText(e.target.value)} maxLength={30} className="mt-3 w-full rounded-lg border border-border bg-bg-base px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-dusty-blue/40" /> : null}<p className="mt-2 text-xs text-text-secondary">{activeField === "image" ? (imageFile ? imageFile.name : imageUrl ? "Foto cover aktif." : activeMeta.hint) : activeMeta.hint}</p></div>
     {message ? <p role="status" className="mx-auto mt-3 max-w-[480px] rounded-lg border border-border bg-bg-warm px-3 py-2 text-center text-xs text-text-primary">{message}</p> : null}
-    <Button type="button" onClick={() => void save()} disabled={busy} className="mx-auto mt-5 flex w-full max-w-[480px]">{busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />Menyimpan…</> : "Selesai"}</Button>
+    <div className="mx-auto mt-5 w-full max-w-[520px]"><Button type="button" onClick={() => void save()} disabled={busy} className="flex w-full">{busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />Menyimpan…</> : "Selesai"}</Button></div>
   </div>;
 }

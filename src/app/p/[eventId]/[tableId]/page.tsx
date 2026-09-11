@@ -65,7 +65,7 @@ const loadPhotoboothState = cache(
 
   const { data: row, error: eventError } = await admin
     .from("events")
-    .select("id, name, slug, theme, frame_url, cover_template, cover_image_url, cover_title, cover_subtitle, cover_button_text, watermark_text, watermark_position, camera_preset, filter_id, filter_strength, is_active, expires_at")
+    .select("id, name, slug, theme, starts_at, ends_at, frame_url, cover_template, cover_image_url, cover_title, cover_subtitle, cover_button_text, watermark_text, watermark_position, camera_preset, filter_id, filter_strength, is_active, expires_at")
     .eq(isUuid(eventIdParam) ? "id" : "slug", eventIdParam)
     .maybeSingle();
 
@@ -86,6 +86,8 @@ const loadPhotoboothState = cache(
     name: row.name,
     slug: row.slug,
     theme: row.theme,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
     frameUrl: row.frame_url,
     coverTemplate: row.cover_template ?? "bloom",
     coverImageUrl: row.cover_image_url,

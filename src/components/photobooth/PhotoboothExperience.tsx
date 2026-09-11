@@ -64,6 +64,8 @@ export function PhotoboothExperience({
         <CameraStage
           eventId={event.id}
           eventName={event.name}
+          eventStartsAt={event.startsAt}
+          eventEndsAt={event.endsAt}
           tableId={tableId}
           tableLabel={tableLabel}
           frameUrl={event.frameUrl}

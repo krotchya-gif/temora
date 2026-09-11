@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { PrintButton } from "@/components/dashboard/PrintButton";
+import { QrWhatsAppButton } from "@/components/dashboard/QrWhatsAppButton";
 import { SITE_TAGLINE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 
@@ -65,39 +66,42 @@ export default async function PrintQrPage({ params }: PrintQrPageProps) {
         {/* Grid 2×4 per halaman A4 (task 005 §2). */}
         <ul className="qr-print-grid">
           {tables?.map((table) => (
-            <li key={table.id} className={`qr-card qr-card-${event.qr_template ?? "bloom"}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- SVG dari API sendiri */}
-              <img
-                src={`/api/events/${eventId}/qr/${table.id}`}
-                alt={`QR untuk ${table.label}`}
-                className="qr-card-image"
-              />
-              <p className="qr-card-overline">SCAN &amp; JEPRET</p>
-              <p className="qr-card-event font-display">{event.qr_title || event.name}</p>
-              {event.qr_subtitle ? <p className="qr-card-subtitle">{event.qr_subtitle}</p> : null}
-              <p className="qr-card-label">{table.label}</p>
-              <p className="qr-card-tagline font-display">
-                {event.qr_tagline || SITE_TAGLINE}
-              </p>
-              {qrSponsors?.length ? (
-                <div className="qr-card-sponsors">
-                  {qrSponsors.map((s) =>
-                    s.logo_path ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- URL publik Storage
-                      <img
-                        key={s.logo_path}
-                        src={`${process.env.HOSTINGER_MEDIA_URL ?? ""}/public/${s.logo_path}`}
-                        alt={s.name}
-                        className="qr-card-sponsor-logo"
-                      />
-                    ) : (
-                      <span key={s.name} className="qr-card-sponsor-name">
-                        {s.name}
-                      </span>
-                    ),
-                  )}
+            <li key={table.id} className="qr-print-item">
+              <article className={`qr-card qr-card-${event.qr_template ?? "bloom"}`}>
+                <div className="qr-card-code-column">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- SVG dari API sendiri */}
+                  <img
+                    src={`/api/events/${eventId}/qr/${table.id}`}
+                    alt={`QR untuk ${table.label}`}
+                    className="qr-card-image"
+                  />
                 </div>
-              ) : null}
+                <div className="qr-card-copy">
+                  <p className="qr-card-overline">SCAN &amp; JEPRET</p>
+                  <p className="qr-card-event font-display">{event.qr_title || event.name}</p>
+                  {event.qr_subtitle ? <p className="qr-card-subtitle">{event.qr_subtitle}</p> : null}
+                  <p className="qr-card-label">{table.label}</p>
+                  <p className="qr-card-tagline font-display">{event.qr_tagline || SITE_TAGLINE}</p>
+                  {qrSponsors?.length ? (
+                    <div className="qr-card-sponsors">
+                      {qrSponsors.map((s) =>
+                        s.logo_path ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- URL publik Storage
+                          <img
+                            key={s.logo_path}
+                            src={`${process.env.HOSTINGER_MEDIA_URL ?? ""}/public/${s.logo_path}`}
+                            alt={s.name}
+                            className="qr-card-sponsor-logo"
+                          />
+                        ) : (
+                          <span key={s.name} className="qr-card-sponsor-name">{s.name}</span>
+                        ),
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+              <QrWhatsAppButton eventId={eventId} eventName={event.name} tableId={table.id} tableLabel={table.label} template={event.qr_template ?? "bloom"} title={event.qr_title || event.name} subtitle={event.qr_subtitle || "Scan QR-nya, jepret momenmu versi kamu."} tagline={event.qr_tagline || SITE_TAGLINE} className="no-print w-full" />
             </li>
           ))}
         </ul>

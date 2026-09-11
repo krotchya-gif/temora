@@ -1,10 +1,10 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- frame preview may be a local blob URL or Storage URL. */
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { CalendarDays, Camera, Check, ExternalLink, ImagePlus, Loader2, MapPin, QrCode, SlidersHorizontal, UploadCloud } from "lucide-react";
+import { CalendarDays, Camera, Check, ChevronLeft, ChevronRight, ExternalLink, ImagePlus, Loader2, MapPin, QrCode, SlidersHorizontal, UploadCloud } from "lucide-react";
+import { GUEST_PLACEHOLDER_PHOTO, GuestPhoneMockup } from "@/components/photobooth/GuestPhoneMockup";
 import { Button } from "@/components/ui/Button";
 import { DEFAULT_WATERMARK_TEXT } from "@/lib/constants";
 import { FALLBACK_LUTS } from "@/lib/ai/lut";
@@ -25,8 +25,9 @@ const POSITION_OPTIONS = [{ value: "bottom-right", label: "Kanan bawah" }, { val
 const CAMERA_PRESET_OPTIONS = [{ value: "darkroom", label: "Darkroom Film" }, { value: "rose-gold", label: "Rose Gold" }, { value: "berry-pop", label: "Berry Pop" }, { value: "mono-minimal", label: "Mono Minimal" }] as const;
 const FILTER_OPTIONS = [{ value: null, label: "Warna Asli" }, ...FALLBACK_LUTS.map((lut) => ({ value: lut.id, label: lut.label }))] as { value: string | null; label: string }[];
 const QR_TEMPLATE_OPTIONS = [{ value: "bloom", label: "Bloom" }, { value: "rose", label: "Rose" }, { value: "mono", label: "Mono" }, { value: "night", label: "Night" }, { value: "paper", label: "Paper" }] as const;
-const PRESET_PREVIEW = { darkroom: "border-text-primary", "rose-gold": "border-muted-mauve", "berry-pop": "border-accent-secondary", "mono-minimal": "border-border" } as const;
+const PRESET_STAGE = { darkroom: "ring-2 ring-inset ring-text-primary/60", "rose-gold": "ring-2 ring-inset ring-muted-mauve/70", "berry-pop": "ring-2 ring-inset ring-accent-secondary/70", "mono-minimal": "ring-1 ring-inset ring-border" } as const;
 const FILTER_PREVIEW = { "portra-400": "bg-accent-secondary/25", "cobi-3": "bg-accent/25", "remy-24": "bg-muted-mauve/25", "lenox-340": "bg-dusty-blue/25", "faded-47": "bg-accent/15", "ektar-100": "bg-warning/25", "trix-400": "bg-text-primary/35" } as const;
+const FILTER_EFFECTS = { "portra-400": "saturate(1.08) sepia(0.12) contrast(1.02)", "cobi-3": "saturate(1.2) sepia(0.18) contrast(1.04)", "remy-24": "saturate(1.12) hue-rotate(-8deg)", "lenox-340": "saturate(0.86) hue-rotate(8deg) contrast(1.03)", "faded-47": "saturate(0.72) contrast(0.94) brightness(1.04)", "ektar-100": "saturate(1.32) contrast(1.08)", "trix-400": "grayscale(1) contrast(1.16)" } as const;
 
 function toLocalInput(iso: string | undefined | null): string {
   if (!iso) return "";
@@ -41,6 +42,50 @@ function SectionHeader({ id, eyebrow, title, description }: { id: string; eyebro
 }
 function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor: string }) {
   return <label htmlFor={htmlFor} className="block text-sm font-medium text-text-primary">{children}</label>;
+}
+
+function QrTemplateCarousel({ template, onChange, eventName, title, subtitle, tagline }: { template: EventFormValues["qrTemplate"]; onChange: (template: EventFormValues["qrTemplate"]) => void; eventName: string; title: string; subtitle: string; tagline: string }) {
+  const index = QR_TEMPLATE_OPTIONS.findIndex((option) => option.value === template);
+  const currentIndex = index >= 0 ? index : 0;
+  const current = QR_TEMPLATE_OPTIONS[currentIndex];
+  const previous = QR_TEMPLATE_OPTIONS[(currentIndex - 1 + QR_TEMPLATE_OPTIONS.length) % QR_TEMPLATE_OPTIONS.length];
+  const next = QR_TEMPLATE_OPTIONS[(currentIndex + 1) % QR_TEMPLATE_OPTIONS.length];
+
+  function move(direction: -1 | 1) {
+    const nextIndex = (currentIndex + direction + QR_TEMPLATE_OPTIONS.length) % QR_TEMPLATE_OPTIONS.length;
+    onChange(QR_TEMPLATE_OPTIONS[nextIndex].value);
+  }
+
+  function card(value: typeof current.value, position: "previous" | "active" | "next") {
+    const option = QR_TEMPLATE_OPTIONS.find((item) => item.value === value) ?? current;
+    return <div className={`qr-template-card qr-template-card-${value} qr-template-card-${position}`} aria-hidden={position !== "active"}>
+      <p className="qr-template-card-overline">SCAN &amp; JEPRET</p>
+      <p className="qr-template-card-title">{title || eventName || "Nama event"}</p>
+      <p className="qr-template-card-date">SABTU · 12 SEPTEMBER 2026</p>
+      <p className="qr-template-card-subtitle">{subtitle || "Scan QR-nya, jepret momennya versi kamu."}</p>
+      <div className="qr-template-card-code"><QrCode className="h-full w-full" strokeWidth={1.35} aria-hidden /></div>
+      <div className="qr-template-card-footer"><span>{option.label}</span><span>{tagline || "Keep the moments close."}</span></div>
+    </div>;
+  }
+
+  return <div className="qr-template-editor">
+    <div className="qr-template-editor-heading">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">Preview kartu QR</p>
+        <p className="mt-1 font-display text-2xl text-text-primary">{current.label}</p>
+        <p className="text-sm text-text-secondary">Geser buat ganti gaya</p>
+      </div>
+      <span className="text-xs uppercase tracking-[0.14em] text-text-secondary">{currentIndex + 1} / {QR_TEMPLATE_OPTIONS.length}</span>
+    </div>
+    <div className="qr-template-stage">{card(previous.value, "previous")}{card(current.value, "active")}{card(next.value, "next")}</div>
+    <div className="qr-template-controls">
+      <button type="button" onClick={() => move(-1)} aria-label="Template QR sebelumnya" className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border text-text-primary transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"><ChevronLeft className="h-5 w-5" aria-hidden /></button>
+      <div className="flex items-center gap-1.5" aria-label={`Template ${currentIndex + 1} dari ${QR_TEMPLATE_OPTIONS.length}`}>
+        {QR_TEMPLATE_OPTIONS.map((option, optionIndex) => <button key={option.value} type="button" onClick={() => onChange(option.value)} aria-label={`Pilih template ${option.label}`} aria-current={optionIndex === currentIndex ? "true" : undefined} className={`h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue ${optionIndex === currentIndex ? "w-6 bg-accent" : "w-1.5 bg-border hover:bg-accent-secondary"}`} />)}
+      </div>
+      <button type="button" onClick={() => move(1)} aria-label="Template QR berikutnya" className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border text-text-primary transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"><ChevronRight className="h-5 w-5" aria-hidden /></button>
+    </div>
+  </div>;
 }
 
 export function EventForm({ mode, eventId, initial, tier, appearance = true }: EventFormProps) {
@@ -107,7 +152,7 @@ export function EventForm({ mode, eventId, initial, tier, appearance = true }: E
       <section className="space-y-5 border-t border-border pt-8" aria-labelledby="event-cover-heading">
         <SectionHeader id="event-cover-heading" eyebrow="02 · Cover & QR" title="Beri wajah untuk event" description="Upload frame transparan 3:4. Frame ini akan muncul di foto tamu dan kartu QR event." />
         <div className="rounded-xl border border-dashed border-border bg-bg-warm/60 p-4 sm:p-5"><button type="button" onClick={() => frameInputRef.current?.click()} className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-lg border border-border bg-bg-card px-4 py-5 text-center transition-colors hover:bg-bg-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"><span className="grid h-10 w-10 place-items-center rounded-full bg-accent/10 text-accent"><UploadCloud className="h-5 w-5" aria-hidden /></span><span className="text-sm font-medium text-text-primary">{frameFile ? frameFile.name : previewFrame ? "Ganti frame event" : "Upload frame PNG"}</span><span className="text-xs text-text-secondary">Transparan · portrait 3:4 · maksimal 2560px</span></button><input ref={frameInputRef} type="file" accept="image/png" className="hidden" onChange={(e) => handleFrameChange(e.target.files?.[0] ?? null)} /><p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-text-secondary"><ImagePlus className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden />Preview akan ikut berubah di kartu perangkat sebelah kanan.</p></div>
-        <div className="rounded-xl border border-border bg-bg-card p-4 sm:p-5"><div className="mb-3 flex items-center gap-2"><QrCode className="h-4 w-4 text-accent" aria-hidden /><p className="text-sm font-medium">Kartu QR meja</p></div><div className="grid gap-4 sm:grid-cols-2"><div><FieldLabel htmlFor="event-qr-template">Template kartu</FieldLabel><select id="event-qr-template" value={values.qrTemplate} onChange={(e) => set("qrTemplate", e.target.value as EventFormValues["qrTemplate"])} className={inputClass}>{QR_TEMPLATE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div><div><FieldLabel htmlFor="event-qr-title">Judul kartu <span className="font-normal text-text-secondary">(opsional)</span></FieldLabel><input id="event-qr-title" maxLength={80} value={values.qrTitle} onChange={(e) => set("qrTitle", e.target.value)} placeholder={values.name || "Nama event"} className={inputClass} /></div><div><FieldLabel htmlFor="event-qr-subtitle">Subjudul <span className="font-normal text-text-secondary">(opsional)</span></FieldLabel><input id="event-qr-subtitle" maxLength={120} value={values.qrSubtitle} onChange={(e) => set("qrSubtitle", e.target.value)} placeholder="Scan QR-nya, jepret momennya" className={inputClass} /></div><div><FieldLabel htmlFor="event-qr-tagline">Tagline</FieldLabel><input id="event-qr-tagline" maxLength={80} value={values.qrTagline} onChange={(e) => set("qrTagline", e.target.value)} className={inputClass} /></div></div><p className="mt-3 text-xs leading-relaxed text-text-secondary">Copy dan template ini ikut berubah di preview lalu dipakai saat cetak kartu QR.</p></div>
+        <div className="rounded-xl border border-border bg-bg-card p-4 sm:p-5"><div className="mb-3 flex items-center gap-2"><QrCode className="h-4 w-4 text-accent" aria-hidden /><p className="text-sm font-medium">Kartu QR meja</p></div><QrTemplateCarousel template={values.qrTemplate} onChange={(value) => set("qrTemplate", value)} eventName={values.name} title={values.qrTitle} subtitle={values.qrSubtitle} tagline={values.qrTagline} /><select id="event-qr-template" value={values.qrTemplate} onChange={(e) => set("qrTemplate", e.target.value as EventFormValues["qrTemplate"])} className="sr-only">{QR_TEMPLATE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><div className="mt-5 grid gap-4 sm:grid-cols-2"><div><FieldLabel htmlFor="event-qr-title">Judul kartu <span className="font-normal text-text-secondary">(opsional)</span></FieldLabel><input id="event-qr-title" maxLength={80} value={values.qrTitle} onChange={(e) => set("qrTitle", e.target.value)} placeholder={values.name || "Nama event"} className={inputClass} /></div><div><FieldLabel htmlFor="event-qr-subtitle">Subjudul <span className="font-normal text-text-secondary">(opsional)</span></FieldLabel><input id="event-qr-subtitle" maxLength={120} value={values.qrSubtitle} onChange={(e) => set("qrSubtitle", e.target.value)} placeholder="Scan QR-nya, jepret momennya" className={inputClass} /></div><div className="sm:col-span-2"><FieldLabel htmlFor="event-qr-tagline">Tagline</FieldLabel><input id="event-qr-tagline" maxLength={80} value={values.qrTagline} onChange={(e) => set("qrTagline", e.target.value)} className={inputClass} /></div></div><p className="mt-3 text-xs leading-relaxed text-text-secondary">Copy dan template ini ikut berubah di kartu QR dashboard dan saat cetak.</p></div>
       </section>
 
       <section className="space-y-5 border-t border-border pt-8" aria-labelledby="event-style-heading">
@@ -120,6 +165,34 @@ export function EventForm({ mode, eventId, initial, tier, appearance = true }: E
       <section className="space-y-4 border-t border-border pt-8"><div className="flex items-start gap-3 rounded-xl bg-bg-warm p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-success/15 text-success"><Check className="h-4 w-4" aria-hidden /></span><div><p className="text-sm font-medium">Event siap dibagikan?</p><p className="mt-1 text-xs leading-relaxed text-text-secondary">Aktifkan setelah QR sudah dicetak atau dibagikan ke tamu.</p></div><label className="ml-auto inline-flex cursor-pointer items-center gap-2"><input type="checkbox" checked={values.isActive} onChange={(e) => set("isActive", e.target.checked)} className="h-4 w-4 rounded border-border accent-[color:var(--color-accent)]" /><span className="sr-only">Aktifkan event</span></label></div>{error ? <p role="alert" className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs leading-relaxed text-text-primary">{error}</p> : null}<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-text-secondary">Perubahan baru terlihat oleh tamu setelah disimpan.</p><Button type="submit" disabled={busy}>{busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />Menyimpan…</> : mode === "create" ? "Simpan event" : "Simpan perubahan"}</Button></div></section>
     </div>
 
-    {appearance ? <aside className="order-first lg:order-none lg:sticky lg:top-20" aria-label="Preview event"><div className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-card"><div className="flex items-center justify-between border-b border-border px-4 py-3"><div><p className="text-xs font-medium tracking-[0.12em] text-text-secondary uppercase">Preview live</p><p className="mt-0.5 text-sm font-medium text-text-primary">Yang tamu akan lihat</p></div><span className={`h-2.5 w-2.5 rounded-full ${selectedTheme.accent}`} aria-label={`Aksen ${selectedTheme.label}`} /></div><div className="bg-bg-warm px-6 pb-6 pt-5"><div className={`mx-auto max-w-[190px] rounded-[2rem] border-[6px] ${PRESET_PREVIEW[values.cameraPreset]} bg-text-primary p-1.5 shadow-card`}><div className="relative aspect-[3/4] overflow-hidden rounded-[1.45rem] bg-bg-base"><div className="absolute inset-0 bg-bg-warm"><div className="absolute -left-8 top-8 h-28 w-28 rounded-full bg-accent-secondary/30" /><div className="absolute -right-8 bottom-10 h-36 w-36 rounded-full bg-dusty-blue/25" /><div className={`absolute inset-0 ${values.filterId ? FILTER_PREVIEW[values.filterId as keyof typeof FILTER_PREVIEW] : ""}`} style={{ opacity: values.filterId ? values.filterStrength : 0 }} aria-hidden /></div>{previewFrame ? <><span className="sr-only">Frame aktif:</span><img src={previewFrame} alt="Pratinjau frame event" className="absolute inset-0 h-full w-full object-contain" /></> : <div className="absolute inset-4 rounded-[1rem] border border-accent/30" />}<div className="absolute left-2 top-2 rounded-full bg-text-primary/75 px-2 py-1 text-[7px] uppercase tracking-[0.08em] text-white">{values.cameraPreset.replace("-", " ")} · {values.filterId ? `${Math.round(values.filterStrength * 100)}%` : "asli"}</div><div className="absolute inset-x-3 bottom-5 text-center"><p className="font-display text-lg leading-none text-text-primary">{values.name || "Nama event kamu"}</p><p className="mt-1 text-[8px] tracking-[0.16em] text-text-secondary uppercase">{selectedTheme.label === "Pilih tema" ? "Keep the moments close" : selectedTheme.label}</p></div>{previewWatermark ? <p className="absolute bottom-2 right-3 max-w-[75%] truncate text-[6px] text-text-secondary">{previewWatermark}</p> : null}</div></div><div className="mx-auto mt-4 max-w-[220px] rounded-lg bg-text-primary px-3 py-2 text-center text-[10px] font-medium text-white">Mulai motret →</div><p className="mt-3 text-center text-xs text-text-secondary">Preset dan filter berubah langsung di preview.</p></div>{mode === "edit" && eventId ? <Link href={`/dashboard/events/${eventId}/qr`} className="flex min-h-11 items-center justify-center gap-2 border-t border-border px-4 text-sm font-medium text-accent transition-colors hover:bg-bg-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dusty-blue">Kelola QR event <ExternalLink className="h-4 w-4" aria-hidden /></Link> : <p className="border-t border-border px-4 py-3 text-center text-xs text-text-secondary">Simpan event untuk mendapatkan link tamu.</p>}</div></aside> : null}
+    {appearance ? <aside className="order-first lg:order-none lg:sticky lg:top-20" aria-label="Preview event">
+      <div className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-card">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div><p className="text-xs font-medium tracking-[0.12em] text-text-secondary uppercase">Preview live</p><p className="mt-0.5 text-sm font-medium text-text-primary">Yang tamu akan lihat</p></div>
+          <span className={`h-2.5 w-2.5 rounded-full ${selectedTheme.accent}`} aria-label={`Aksen ${selectedTheme.label}`} />
+        </div>
+        <div className="space-y-5 bg-bg-warm px-4 pb-6 pt-5">
+          <GuestPhoneMockup
+            title={values.name || "Nama event kamu"}
+            subtitle={selectedTheme.label === "Pilih tema" ? "Keep the moments close" : selectedTheme.label}
+            imageUrl={GUEST_PLACEHOLDER_PHOTO}
+            imageAlt="Placeholder foto untuk preview filter"
+            imageStyle={{ filter: values.filterId ? FILTER_EFFECTS[values.filterId as keyof typeof FILTER_EFFECTS] : undefined }}
+            imageOverlayClassName={values.filterId ? FILTER_PREVIEW[values.filterId as keyof typeof FILTER_PREVIEW] : undefined}
+            imageOverlayOpacity={values.filterId ? values.filterStrength : 0}
+            frameUrl={previewFrame}
+            badge={`${CAMERA_PRESET_OPTIONS.find((option) => option.value === values.cameraPreset)?.label ?? "Kamera"} · ${values.filterId ? `${Math.round(values.filterStrength * 100)}%` : "Asli"}`}
+            watermark={previewWatermark}
+            watermarkPosition={values.watermarkPosition}
+            caption="Placeholder foto · filter diterapkan live"
+            stageClassName={`bg-bg-warm ${PRESET_STAGE[values.cameraPreset]}`}
+            className="w-[220px]"
+          />
+          <div className={`qr-card-preview qr-card-preview-${values.qrTemplate} min-h-0`}><div className="qr-card-preview-copy"><p className="qr-card-preview-overline">SCAN &amp; JEPRET</p><p className="qr-card-preview-event">{values.qrTitle || values.name || "Nama event"}</p><p className="qr-card-preview-subtitle">{values.qrSubtitle || "Scan QR-nya, jepret momennya"}</p></div><div className="qr-card-preview-code"><QrCode className="h-full w-full text-text-primary" strokeWidth={1.2} aria-label="Contoh QR kartu" /></div><div className="qr-card-preview-footer"><span>{values.qrTitle ? values.qrTitle : "Meja 1"}</span><span>{values.qrTagline}</span></div></div>
+          <p className="text-center text-xs text-text-secondary">Preset, filter, dan kartu QR berubah langsung di preview.</p>
+        </div>
+        {mode === "edit" && eventId ? <Link href={`/dashboard/events/${eventId}/qr`} className="flex min-h-11 items-center justify-center gap-2 border-t border-border px-4 text-sm font-medium text-accent transition-colors hover:bg-bg-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dusty-blue">Kelola QR event <ExternalLink className="h-4 w-4" aria-hidden /></Link> : <p className="border-t border-border px-4 py-3 text-center text-xs text-text-secondary">Simpan event untuk mendapatkan link tamu.</p>}
+      </div>
+    </aside> : null}
   </form>;
 }

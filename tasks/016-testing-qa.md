@@ -1,6 +1,6 @@
 # Task 016 — Testing & QA (Pre-Launch Gate)
 
-*Status: Sebagian besar terverifikasi (2026-08-28) — unit 46/46 + coverage 94.8%, E2E tamu/vendor/rope hijau 2×, Lighthouse ≥85 (bukti di docs/lighthouse/), cross-tenant manual 2 akun; sisa: billing E2E (tergantung task 008) · Prioritas: High · Phase: MVP (wajib sebelum launch)*
+*Status: Sebagian besar terverifikasi (2026-09-12) — unit 64/64 + coverage lokal 93.26%, E2E tamu/vendor/rope hijau 2×, Lighthouse ≥85 (bukti di docs/lighthouse/), cross-tenant manual 2 akun; sisa: device lab, billing E2E (tergantung task 008), dan WhatsApp production · Prioritas: High · Phase: MVP (wajib sebelum launch)*
 
 Depends on: 015 (CI pipeline aktif agar test jalan otomatis)
 

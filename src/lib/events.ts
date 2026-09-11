@@ -8,6 +8,8 @@ export type PhotoboothEvent = {
   name: string;
   slug: string;
   theme: string | null;
+  startsAt: string | null;
+  endsAt: string | null;
   frameUrl: string | null;
   coverTemplate: "bloom" | "rose" | "mono" | "night" | "paper";
   coverImageUrl: string | null;

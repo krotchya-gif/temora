@@ -4,15 +4,30 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { QrWhatsAppButton } from "@/components/dashboard/QrWhatsAppButton";
+import type { QrTemplate } from "@/lib/validation/event";
 
 type QrTable = { id: string; label: string };
 
 type QrManagerProps = {
   eventId: string;
+  eventName: string;
+  qrTemplate: QrTemplate;
+  qrTitle: string | null;
+  qrSubtitle: string | null;
+  qrTagline: string;
   tables: QrTable[];
 };
 
-export function QrManager({ eventId, tables }: QrManagerProps) {
+const templateLabels: Record<QrTemplate, string> = {
+  bloom: "Bloom",
+  rose: "Rose",
+  mono: "Mono",
+  night: "Night",
+  paper: "Paper",
+};
+
+export function QrManager({ eventId, eventName, qrTemplate, qrTitle, qrSubtitle, qrTagline, tables }: QrManagerProps) {
   const router = useRouter();
   const [count, setCount] = useState("8");
   const [message, setMessage] = useState<string | null>(null);
@@ -109,39 +124,52 @@ export function QrManager({ eventId, tables }: QrManagerProps) {
           Belum ada meja. Tentukan jumlahnya dulu, lalu cetak kartu QR-nya.
         </p>
       ) : (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-text-primary">Preview kartu QR</p>
+            <p className="text-xs text-text-secondary">Template {templateLabels[qrTemplate]} · sama seperti hasil cetak.</p>
+          </div>
+          <span className="rounded-full border border-border bg-bg-card px-3 py-1.5 text-xs text-text-secondary">{qrTemplate}</span>
+        </div>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tables.map((table) => (
             <li key={table.id}>
-              <figure className="flex flex-col items-center gap-2 rounded-xl border border-border bg-bg-card p-4 shadow-soft">
-                {/* eslint-disable-next-line @next/next/no-img-element -- SVG dari API sendiri */}
-                <img
-                  src={`/api/events/${eventId}/qr/${table.id}`}
-                  alt={`QR ${table.label}`}
-                  width={140}
-                  height={140}
-                  loading="lazy"
-                  className="h-[140px] w-[140px]"
-                />
-                <figcaption className="text-sm font-medium text-text-primary">
-                  {table.label}
-                </figcaption>
-                <button
-                  type="button"
-                  onClick={() => void handleRegenerate(table.id)}
-                  disabled={busy}
-                  aria-label={`Ganti QR untuk ${table.label}`}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-text-secondary transition-colors hover:bg-bg-warm hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:opacity-50"
-                >
-                  <RefreshCw
-                    className={`h-3.5 w-3.5 ${pendingId === table.id ? "animate-spin" : ""}`}
-                    aria-hidden
-                  />
-                  Ganti QR
-                </button>
+              <figure className={`qr-card-preview qr-card-preview-${qrTemplate}`}>
+                <div className="qr-card-preview-copy">
+                  <p className="qr-card-preview-overline">SCAN &amp; JEPRET</p>
+                  <p className="qr-card-preview-event">{qrTitle || eventName}</p>
+                  {qrSubtitle ? <p className="qr-card-preview-subtitle">{qrSubtitle}</p> : null}
+                </div>
+                <div className="qr-card-preview-code">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- SVG dari API sendiri */}
+                  <img src={`/api/events/${eventId}/qr/${table.id}`} alt={`QR ${table.label}`} width={140} height={140} loading="lazy" />
+                </div>
+                <div className="qr-card-preview-footer">
+                  <figcaption>{table.label}</figcaption>
+                  <span>{qrTagline}</span>
+                </div>
+                <div className="qr-card-preview-actions">
+                  <QrWhatsAppButton eventId={eventId} eventName={eventName} tableId={table.id} tableLabel={table.label} template={qrTemplate} title={qrTitle || eventName} subtitle={qrSubtitle || "Scan QR-nya, jepret momenmu versi kamu."} tagline={qrTagline} className="flex-1" />
+                  <button
+                    type="button"
+                    onClick={() => void handleRegenerate(table.id)}
+                    disabled={busy}
+                    aria-label={`Ganti QR untuk ${table.label}`}
+                    className="qr-card-preview-action inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-text-secondary transition-colors hover:bg-bg-warm hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:opacity-50"
+                  >
+                    <RefreshCw
+                      className={`h-3.5 w-3.5 ${pendingId === table.id ? "animate-spin" : ""}`}
+                      aria-hidden
+                    />
+                    Ganti QR
+                  </button>
+                </div>
               </figure>
             </li>
           ))}
         </ul>
+        </>
       )}
     </div>
   );

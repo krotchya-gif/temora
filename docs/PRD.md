@@ -54,6 +54,9 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 2. **QR Code Kartu Meja**
    - Generate QR unik per meja per event.
    - Halaman print-ready (A4 grid, siap cetak).
+   - Kartu tiap meja dapat dibagikan lewat WhatsApp sebagai gambar kartu QR
+     berdesain, disertai nama event, label meja, dan tautan langsung ke
+     photobooth tamu.
 
 3. **Galeri Cloud + ZIP Download**
    - Foto tersimpan di Supabase Storage.

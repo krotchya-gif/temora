@@ -201,8 +201,12 @@ preview perangkat yang memperlihatkan hasilnya secara langsung.
   hex baru atau warna pilihan yang hanya tersimpan di client.
 - Form setup menyediakan pilihan preset kamera dan filter default. Preview
   perangkat di sisi kanan memperbarui shell kamera, label preset, treatment
-  warna, frame, dan watermark secara live saat kontrol berubah; hasil final
-  tetap mengikuti konfigurasi yang disimpan.
+  warna, placeholder foto, frame, dan watermark secara live saat kontrol berubah;
+  placeholder foto memakai aset lokal candid party portrait 3:4 yang sama dengan
+  mockup homepage agar penerapan filter dapat dinilai sebelum upload. Aset hanya
+  berisi foto mentah tanpa UI, teks, frame, atau watermark; semua lapisan produk
+  tetap dirender secara live oleh komponen preview. Hasil final tetap mengikuti
+  konfigurasi yang disimpan.
 - Setup yang sama menyediakan pengaturan kartu QR: template visual, judul,
   subjudul, dan tagline. Preview kartu memakai copy sementara yang sama dengan
   halaman print A4; QR tetap valid, tidak diubah bentuknya, dan ukurannya tetap
@@ -218,11 +222,32 @@ preview perangkat yang memperlihatkan hasilnya secara langsung.
   filter/preset; vendor mengubahnya dari setup event.
 - CTA utama memakai microcopy "Simpan perubahan" atau "Simpan event". Link
   sekunder membuka photobooth/QR setelah event tersimpan.
-- Editor cover visual memakai preview perangkat portrait di tengah, navigasi
-  template kiri/kanan, indikator posisi, dan empat kontrol ringkas: Foto, Judul,
-  Subjudul, Tombol. Tombol "Selesai" menyimpan cover ke event.
+- Editor cover visual memakai preview perangkat portrait 9:19 di tengah, dengan
+  shell HP yang memiliki notch, navigasi template kiri/kanan, indikator posisi,
+  dan empat kontrol ringkas: Foto, Judul, Subjudul, Tombol. Tombol "Selesai"
+  menyimpan cover ke event. Rasio 3:4 tetap khusus untuk hasil foto kamera,
+  bukan shell perangkat atau layar pembuka cover. Preview editor memakai
+  bahasa visual guest camera TEMORA yang sama dengan mockup homepage, dan
+  perubahan field aktif harus tercermin langsung pada preview perangkat.
 - Semua preview lokal harus diberi alt yang jelas, fokus keyboard terlihat, dan
   motion dihentikan saat `prefers-reduced-motion` aktif.
+- Mockup pada editor cover, setup event, dan homepage memakai satu komponen shell
+  HP portrait 9:19 yang sama. Shell memiliki dua mode isi yang jelas: `cover`
+  untuk layar pembuka (cover image, judul, subjudul, dan CTA) serta `camera` untuk
+  guest camera (header event, kanvas 3:4, dan kontrol kamera). Bezel dan notch
+  konsisten, tetapi isi cover tidak boleh dipaksa menjadi UI kamera. Preview setup
+  event tetap memperlihatkan frame, filter, dan watermark secara live di dalam
+  kanvas kamera, bukan mengubah kanvas 3:4 menjadi bentuk HP.
+  Bezel luar selalu memakai warna perangkat netral `text-primary`; pilihan preset
+  kamera hanya mengubah treatment di area kamera dalam layar dan label preset,
+  tidak boleh mewarnai border luar HP.
+- Isi mockup wajib menjadi miniatur setia halaman guest camera, bukan ilustrasi
+  dekoratif: wordmark–nama event–tanggal memakai header tiga kolom, kanvas foto
+  menjadi fokus terbesar, selector zoom berada di dalam kanvas, dan kontrol flash,
+  kamera aktif, ganti kamera, sisa foto, shutter, serta galeri berada seluruhnya di
+  dalam layar. Shell menambahkan bezel tipis, dynamic-island/notch, tombol samping,
+  dan bayangan perangkat yang tertahan; screenshot UI statis tidak boleh dipakai
+  pada preview setup karena akan memutus perubahan live dari form vendor.
 
 ### 3.6 EmptyState
 Ilustrasi line-art sederhana + satu kalimat brand voice.
@@ -238,6 +263,9 @@ Muncul sebelum kamera aktif:
 ### 3.8 QR Table Card (print)
 - Grid A4 2×4 dengan kartu efektif ±86×62mm (bukan satu lembar A6 penuh).
 - QR min 4×4 cm, error correction level M.
+- Isi kartu cetak memakai komposisi dua kolom: QR 4×4 cm di kiri dan copy event
+  di kanan. Komposisi ini wajib menjaga seluruh isi tetap di dalam batas kartu
+  86×62mm pada layar maupun hasil cetak.
 - Nama event font-display, nomor meja jelas, tagline kecil: *"Keep the moments close."*
 - Background default warm ivory; template `Night` memakai surface text-primary
   dan template lain memakai variasi token TEMORA.
@@ -245,6 +273,18 @@ Muncul sebelum kamera aktif:
   lalu mengubah judul, subjudul, dan tagline dari workspace setup event.
 - Copy default memakai nama event dan tagline TEMORA bila field custom kosong;
   QR payload tetap berasal dari event + meja dan tidak boleh diubah editor.
+- Halaman pengelolaan QR menampilkan kartu visual yang sama dengan hasil cetak,
+  bukan QR polos. Template aktif, judul, subjudul, label meja, tagline, dan
+  sponsor harus terlihat di preview sebelum vendor membagikan atau mencetaknya.
+- Setiap meja memiliki aksi "Bagikan via WhatsApp" pada dashboard dan preview
+  cetak. Di perangkat yang mendukung Web Share, aksi membuat PNG kartu dengan
+  template aktif lalu membagikan file tersebut bersama nama event, label meja,
+  dan URL tamu `/p/[eventId]/[tableId]`. Fallback desktop mengunduh PNG kartu
+  dan membuka WhatsApp dengan pesan yang sama; kontrol berbagi tidak ikut tercetak.
+- Pemilih template QR memakai pola editor visual seperti cover: satu kartu aktif
+  di tengah, kartu template lain sebagai konteks di belakang, navigasi kiri/kanan,
+  dan indikator posisi. Template yang tersimpan tetap lima nilai kanonik
+  `Bloom`, `Rose`, `Mono`, `Night`, dan `Paper`.
 - Sponsor QR aktif (task 013): logo kecil (≤ 28px tinggi) di pojok kartu, tidak
   mengecilkan QR (QR tetap ≥ 4×4 cm).
 
@@ -293,11 +333,18 @@ Muncul sebelum kamera aktif:
 Homepage memakai hero minimal berpusat pada wordmark TEMORA, tetapi tetap
 menunjukkan product proof melalui mockup HP portrait di samping/bawah brand
 stage. Mockup menampilkan guest camera TEMORA (nama event, frame, filter, sisa
-foto, shutter, dan galeri) dengan animasi masuk yang lembut. Interaksi hover
+foto, shutter, dan galeri) dengan animasi masuk yang lembut. Kanvas kamera pada
+mockup homepage memakai aset lokal candid party portrait 3:4 yang sama dengan
+preview setup event agar frame dan treatment warna dapat dinilai; aset foto tidak
+boleh memuat UI, teks, frame, atau watermark bawaan dan tidak boleh tampil sebagai
+bidang dekoratif kosong. Interaksi hover
 pointer atau focus keyboard pada wordmark memunculkan ikon kamera dan lingkaran
 aksen halus. Pada layar sentuh mockup tetap terlihat tanpa bergantung pada
-hover. Homepage masih memiliki section pendukung cara kerja, showcase momen,
-dan CTA akhir di bawah hero; visual hero bukan lagi stock photo.
+hover. Pada layar kecil hero memakai susunan satu kolom dengan wordmark yang
+dibatasi lebar viewport, copy yang boleh membungkus, dan mockup yang tidak
+memaksa lebar minimum. Petunjuk hover hanya tampil untuk pointer yang memang
+mendukung hover. Homepage masih memiliki section pendukung cara kerja,
+showcase momen, dan CTA akhir di bawah hero; visual hero bukan lagi stock photo.
 
 ### Moments archive (`/moments`)
 
@@ -310,21 +357,27 @@ besar. Empty state tetap menjelaskan bahwa kurasi sedang disiapkan.
 ### Photobooth Page (mobile-first, `min-h-dvh`)
 ```
 ┌──────────────────────┐
-│  Event name (display)│
-│  Meja 5 · tagline    │
+│TEMORA  Event   Date  │
+│        Ends           │
 ├──────────────────────┤
-│                      │
-│   Camera preview     │
-│   + frame overlay    │
+│   Camera preview 3:4 │
+│   + vendor frame     │
 │   + watermark        │
-│                      │
+│      1× 2× 3× 5×     │
 ├──────────────────────┤
-│   ( O ) Ambil Momen  │
-├──────────────────────┤
-│  strip thumbnail     │
+│ Flash  Kamera  Switch│
+│ Sisa    Shutter  Gal.│
 └──────────────────────┘
 ```
-Frame selector (jika >1 frame): horizontal scroll di atas preview.
+- Halaman kamera memakai surface gelap `text-primary`, header tiga kolom
+  (wordmark, nama event + jam selesai, tanggal), dan kanvas 3:4 sebagai fokus.
+- Frame yang terlihat di atas kamera selalu PNG transparan milik event dari
+  Setup Tampilan vendor. Preset kamera tidak membuat atau mengganti frame.
+- Zoom digital 1×/2×/3×/5× berada di dalam bagian bawah kanvas dan hasil capture
+  harus identik dengan crop preview. Di bawah kanvas terdapat flash layar,
+  label kamera aktif, ganti kamera, lalu kuota, shutter, dan galeri sesi.
+- Kontrol preset/filter tidak ditampilkan kepada tamu karena nilainya dikunci
+  vendor; tamu hanya melihat hasil penerapannya.
 
 ### Dashboard (desktop-first, mobile drawer/bottom nav)
 ```

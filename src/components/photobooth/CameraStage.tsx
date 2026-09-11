@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, ImageOff, SwitchCamera, X } from "lucide-react";
+import { CameraOff, ImageOff, Images, SwitchCamera, X, Zap, ZapOff } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { GreenScreenCanvas } from "@/components/photobooth/GreenScreenCanvas";
 import { GradeCanvas } from "@/components/photobooth/GradeCanvas";
 import { MomentComposer } from "@/components/photobooth/MomentComposer";
 import { BACKGROUNDS, type BgId } from "@/lib/ai/segmentation";
-import { FALLBACK_LUTS, getLuts, type LutDef, type LutId } from "@/lib/ai/lut";
+import type { LutId } from "@/lib/ai/lut";
 import { ENABLE_BACKGROUNDS } from "@/lib/ai/feature-flags";
 import type { CameraPreset, WatermarkPosition } from "@/lib/validation/event";
 import {
@@ -24,6 +24,8 @@ import { coverCrop } from "@/lib/capture";
 export type CameraStageProps = {
   eventId: string;
   eventName: string;
+  eventStartsAt: string | null;
+  eventEndsAt: string | null;
   tableId: string;
   tableLabel: string;
   frameUrl: string | null;
@@ -63,6 +65,23 @@ const CAMERA_PRESET_LABELS: Record<CameraPreset, string> = {
   "berry-pop": "Berry Pop",
   "mono-minimal": "Mono Minimal",
 };
+const ZOOM_LEVELS = [1, 2, 3, 5] as const;
+
+function formatEventDate(value: string | null) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) return "--  --  '--";
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2);
+  return `${day}  ${month}  '${year}`;
+}
+
+function formatEventTime(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date).replace(".", ":");
+}
 
 // Rasio capture kanonik 3:4 portrait (design-system §3.3) — semua device
 // menghasilkan foto 3:4 agar frame template selalu menutupi penuh.
@@ -134,6 +153,8 @@ async function compressPhotoCanvas(
 export function CameraStage({
   eventId,
   eventName,
+  eventStartsAt,
+  eventEndsAt,
   tableId,
   tableLabel,
   frameUrl,
@@ -153,6 +174,8 @@ export function CameraStage({
   const [facing, setFacing] = useState<Facing>("user");
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [zoom, setZoom] = useState<(typeof ZOOM_LEVELS)[number]>(1);
   const [banner, setBanner] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [strip, setStrip] = useState<StripItem[]>([]);
@@ -161,13 +184,6 @@ export function CameraStage({
   const [lutStrength] = useState(filterStrength);
   const [readyGrade, setReadyGrade] = useState<string | null>(null);
   const gradeKey = `${activeLut}:${lutStrength}`;
-  // Daftar filter dari manifest.json (sync: scripts/sync-luts.mjs); fallback
-  // ke kurasi bawaan bila manifest gagal.
-  const [luts, setLuts] = useState<LutDef[]>(FALLBACK_LUTS);
-
-  useEffect(() => {
-    void getLuts().then(setLuts);
-  }, []);
   const gsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const gradeCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -185,6 +201,7 @@ export function CameraStage({
   const dropMessageRef = useRef<string | null>(null);
   const failureKindRef = useRef<"network" | "http">("network");
   const objectUrlsRef = useRef<string[]>([]);
+  const stripRef = useRef<HTMLDivElement>(null);
 
   const trackObjectUrl = (url: string) => objectUrlsRef.current.push(url);
 
@@ -348,13 +365,18 @@ export function CameraStage({
     const vh = video.videoHeight;
 
     setBusy(true);
-    setFlash(true);
-    setTimeout(() => setFlash(false), 180);
+    if (flashEnabled) {
+      setFlash(true);
+      setTimeout(() => setFlash(false), 180);
+    }
 
     // Crop video ke rasio kanonik 3:4 — object-cover centered (sama dengan
     // preview CSS): kontrak preview == hasil (design-system §3.3).
     const crop = coverCrop(vw, vh);
-    const { sx, sy, sw, sh } = crop;
+    const sw = crop.sw / zoom;
+    const sh = crop.sh / zoom;
+    const sx = crop.sx + (crop.sw - sw) / 2;
+    const sy = crop.sy + (crop.sh - sh) / 2;
 
     const scale = Math.min(1, MAX_LONG_SIDE / Math.max(sw, sh));
     const cw = Math.round(sw * scale);
@@ -491,7 +513,7 @@ export function CameraStage({
       setPhase("preview");
       setBusy(false);
     })();
-  }, [phase, busy, facing, watermarkText, watermarkPosition, eventId, tableId, activeBg, activeLut, frameSponsors]);
+  }, [phase, busy, facing, flashEnabled, zoom, watermarkText, watermarkPosition, eventId, tableId, activeBg, activeLut, frameSponsors]);
 
   const retake = useCallback(() => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -599,8 +621,8 @@ export function CameraStage({
 
   if (!cameraEnabled) {
     return (
-      <main className="flex min-h-dvh flex-col bg-bg-base">
-        <Header eventName={eventName} tableLabel={tableLabel} />
+      <main className="flex min-h-dvh flex-col bg-text-primary text-bg-base">
+        <Header eventName={eventName} tableLabel={tableLabel} eventDate={formatEventDate(eventStartsAt ?? eventEndsAt)} endTime={formatEventTime(eventEndsAt)} />
         <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-10">
           <button
             type="button"
@@ -621,18 +643,13 @@ export function CameraStage({
   // ---------- Layout utama (design-system §4) ----------------------------
 
   return (
-    <main className="flex min-h-dvh flex-col bg-bg-base">
-      <Header eventName={eventName} tableLabel={tableLabel} />
+    <main className="flex min-h-dvh flex-col overflow-x-hidden bg-text-primary text-bg-base">
+      <Header eventName={eventName} tableLabel={tableLabel} eventDate={formatEventDate(eventStartsAt ?? eventEndsAt)} endTime={formatEventTime(eventEndsAt)} />
 
-      <div className="flex flex-1 flex-col justify-between gap-5 px-4 pb-6 pt-4">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-4 pb-5 pt-2">
         {/* Stage */}
-        <div className={cn(
-          "relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-xl bg-text-primary shadow-card",
-          cameraPreset === "rose-gold" && "ring-2 ring-muted-mauve/70",
-          cameraPreset === "berry-pop" && "ring-2 ring-accent-secondary/80",
-          cameraPreset === "darkroom" && "ring-2 ring-text-primary",
-          cameraPreset === "mono-minimal" && "ring-1 ring-border",
-        )}>
+        <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden rounded-[1.75rem] border border-white/15 bg-text-primary shadow-card" aria-label={`Kamera dengan preset ${CAMERA_PRESET_LABELS[cameraPreset]}`}>
+          <div className="absolute inset-0 origin-center transition-transform duration-200 motion-reduce:transition-none" style={{ transform: `scale(${phase === "live" || phase === "starting" ? zoom : 1})` }}>
           <video
             ref={videoRef}
             autoPlay
@@ -685,6 +702,7 @@ export function CameraStage({
               }}
             />
           ) : null}
+          </div>
 
           {(phase === "live" || phase === "starting") && (
             <>
@@ -752,17 +770,12 @@ export function CameraStage({
             }`}
           />
 
-          {phase === "live" ? (
-            <button
-              type="button"
-              onClick={() =>
-                void openCameraRef.current(facing === "user" ? "environment" : "user")
-              }
-              aria-label="Ganti kamera"
-              className="absolute top-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-colors hover:bg-black/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
-            >
-              <SwitchCamera className="h-5 w-5" aria-hidden />
-            </button>
+          {phase === "live" || phase === "starting" ? (
+            <div className="absolute inset-x-0 bottom-4 z-30 flex justify-center">
+              <div role="group" aria-label="Zoom kamera" className="flex items-center rounded-full bg-text-primary/85 p-1 text-bg-base shadow-card">
+                {ZOOM_LEVELS.map((level) => <button key={level} type="button" onClick={() => setZoom(level)} aria-pressed={zoom === level} aria-label={`Zoom ${level} kali`} className={cn("grid min-h-11 min-w-11 place-items-center rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue", zoom === level ? "bg-bg-base text-text-primary" : "text-bg-base/70 hover:text-bg-base")}>{level}×</button>)}
+              </div>
+            </div>
           ) : null}
         </div>
 
@@ -779,15 +792,23 @@ export function CameraStage({
 
           {phase === "live" || phase === "starting" ? (
             <>
-              <button
-                type="button"
-                onClick={capture}
-                disabled={phase !== "live" || busy || !videoReady || (!!activeLut && readyGrade !== gradeKey)}
-                aria-label="Ambil Momen"
-                className="h-20 w-20 rounded-full shadow-card ring-4 ring-bg-card transition-transform duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
-                style={{ backgroundColor: "var(--event-accent)" }}
-              />
-              <p className="text-xs text-text-secondary">Tap untuk ambil momen</p>
+              <div className="grid w-full grid-cols-[3rem_1fr_3rem] items-center gap-3">
+                <button type="button" onClick={() => setFlashEnabled((value) => !value)} aria-pressed={flashEnabled} aria-label={flashEnabled ? "Matikan flash layar" : "Aktifkan flash layar"} className={cn("grid h-12 w-12 place-items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue", flashEnabled ? "border-accent-secondary bg-accent-secondary text-text-primary" : "border-white/25 text-bg-base/70 hover:border-white/50 hover:text-bg-base")}>
+                  {flashEnabled ? <Zap className="h-5 w-5" strokeWidth={1.5} aria-hidden /> : <ZapOff className="h-5 w-5" strokeWidth={1.5} aria-hidden />}
+                </button>
+                <p className="text-center text-[11px] font-medium uppercase tracking-[0.24em] text-bg-base/65">Kamera {facing === "user" ? "depan" : "belakang"}</p>
+                <button type="button" onClick={() => void openCameraRef.current(facing === "user" ? "environment" : "user")} disabled={phase !== "live" || busy} aria-label="Ganti kamera" className="grid h-12 w-12 place-items-center rounded-full border border-white/25 text-bg-base/70 transition-colors hover:border-white/50 hover:text-bg-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:opacity-40"><SwitchCamera className="h-5 w-5" strokeWidth={1.5} aria-hidden /></button>
+              </div>
+              <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4">
+                <div className="justify-self-start rounded-xl border border-white/15 bg-bg-base/5 px-4 py-2.5 text-center">
+                  <p className="font-mono text-2xl font-semibold leading-none text-accent-secondary">{remaining ?? "∞"}</p>
+                  <p className="mt-1 text-[9px] uppercase tracking-[0.2em] text-bg-base/55">Sisa</p>
+                </div>
+                <button type="button" onClick={capture} disabled={phase !== "live" || busy || !videoReady || (!!activeLut && readyGrade !== gradeKey)} aria-label="Ambil Momen" className="grid h-20 w-20 place-items-center rounded-full border-[5px] border-text-primary shadow-card ring-4 ring-bg-base/30 transition-transform duration-150 ease-out active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue" style={{ backgroundColor: "var(--event-accent)" }}><span className="h-14 w-14 rounded-full border border-bg-base/40" aria-hidden /></button>
+                <button type="button" onClick={() => stripRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })} disabled={strip.length === 0} aria-label="Lihat galeri sesi" className="relative grid h-16 w-16 justify-self-end place-items-center overflow-hidden rounded-xl border border-white/15 bg-bg-base/5 text-bg-base/70 transition-colors hover:border-white/40 hover:text-bg-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue disabled:opacity-45">
+                  {strip.length ? <><Images className="h-5 w-5" strokeWidth={1.5} aria-hidden /><span className="absolute right-1.5 top-1.5 rounded-full bg-muted-mauve px-1.5 py-0.5 text-[9px] text-white">{strip.length}</span></> : <Images className="h-5 w-5" strokeWidth={1.5} aria-hidden />}
+                </button>
+              </div>
             </>
           ) : null}
 
@@ -853,18 +874,6 @@ export function CameraStage({
             </div>
           ) : null}
 
-          {/* Filter dan tampilan kamera dikunci oleh setup vendor. */}
-          {phase === "live" ? (
-            <div className="flex w-full max-w-sm flex-wrap items-center justify-center gap-2 text-xs text-text-secondary">
-              <span className="rounded-full border border-border bg-bg-card px-3 py-2">
-                Kamera · {CAMERA_PRESET_LABELS[cameraPreset]}
-              </span>
-              <span className="rounded-full border border-border bg-bg-card px-3 py-2">
-                Filter · {activeLut ? (luts.find((lut) => lut.id === activeLut)?.label ?? "Siap") : "Warna Asli"}
-              </span>
-            </div>
-          ) : null}
-
           {phase === "preview" ? (
             <>
               <div className="flex items-center justify-center gap-3">
@@ -901,7 +910,7 @@ export function CameraStage({
         </div>
 
         {/* Strip momen sesi ini */}
-        <div className="mx-auto flex min-h-16 w-full max-w-sm items-center gap-2 overflow-x-auto py-1">
+        {strip.length ? <div ref={stripRef} className="flex min-h-16 w-full items-center gap-2 overflow-x-auto py-1">
           {strip.map((item) => (
             <figure key={item.id} className="relative shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element -- blob lokal */}
@@ -921,21 +930,24 @@ export function CameraStage({
               ) : null}
             </figure>
           ))}
-        </div>
+        </div> : null}
       </div>
-
-      <Footer />
     </main>
   );
 }
 
-function Header({ eventName, tableLabel }: { eventName: string; tableLabel: string }) {
+function Header({ eventName, tableLabel, eventDate, endTime }: { eventName: string; tableLabel: string; eventDate: string; endTime: string | null }) {
   return (
-    <header className="px-4 pt-6 pb-2 text-center">
-      <h1 className="font-display text-3xl leading-tight text-text-primary">
-        {eventName}
-      </h1>
-      <p className="mt-0.5 text-sm text-text-secondary">{tableLabel}</p>
+    <header className="mx-auto grid w-full max-w-md grid-cols-[1fr_minmax(0,1.5fr)_1fr] items-start gap-2 px-4 pb-3 pt-5 text-bg-base">
+      <div className="min-w-0 pt-1">
+        <p className="font-display text-base font-semibold tracking-[0.22em]">TEMORA</p>
+        <p className="mt-1 truncate font-mono text-[8px] uppercase tracking-[0.16em] text-bg-base/45">{tableLabel}</p>
+      </div>
+      <div className="min-w-0 text-center">
+        <h1 className="truncate font-display text-xl font-semibold leading-tight">{eventName}</h1>
+        <p className="mt-0.5 text-xs text-bg-base/55">{endTime ? `Berakhir ${endTime}` : "Keep the moments close."}</p>
+      </div>
+      <p className="pt-1 text-right font-mono text-xs font-semibold tracking-[0.14em] text-accent-secondary">{eventDate}</p>
     </header>
   );
 }
@@ -943,7 +955,7 @@ function Header({ eventName, tableLabel }: { eventName: string; tableLabel: stri
 function Footer() {
   return (
     <footer className="px-4 pb-7 text-center">
-      <p className="font-display text-sm italic tracking-wide text-text-secondary">
+      <p className="font-display text-sm italic tracking-wide text-bg-base/60">
         Keep it close. Keep it TEMORA.
       </p>
     </footer>
