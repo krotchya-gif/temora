@@ -69,7 +69,7 @@ Temora Photos/
 4. Desain berubah? Update docs dulu, baru kode.
 5. Catatan (2026-08-26): shell UI statis beberapa halaman dashboard (ringkasan event, galeri event) dibuat **mendahului** eksekusi task-nya sebagai keputusan visual — seluruh acceptance criteria task aslinya tetap wajib diverifikasi penuh saat wiring.
 
-> Docs inti saat ini **v1.2–1.3** (database/design-system/PRD v1.2; architecture v1.3 — Hostinger prototipe + SEO admin). Patch logika tier/limit/upload: README §Keputusan Terkunci #13–17.
+> Docs inti saat ini **v1.4** (database/design-system/PRD/architecture diperbarui 2026-09-11 — setup studio live preview, custom QR card, dan status migration production). Patch logika tier/limit/upload: README §Keputusan Terkunci #13–17.
 >
 > **Status fitur AI photobooth:** filter warna 3D LUT **aktif** (7 look kurasi — lihat design-system §3.9; manifest `public/luts/manifest.json`, `node scripts/sync-luts.mjs`). AR props dihapus dari produk. Green screen tetap ada di kode namun OFF sementara melalui `src/lib/ai/feature-flags.ts`.
 
@@ -99,6 +99,10 @@ Temora Photos/
 19. Supabase clients: `client` (browser) · `server` (vendor session) · `admin` (service role)
 20. File upload baru disimpan di `media.temora.site`, bukan Supabase Storage. File lama
     di Supabase Storage tidak dimigrasikan karena project masih development/testing.
+21. Preset kamera dan filter yang dipilih vendor adalah sumber tampilan tamu; preview
+    setup harus memperbarui shell kamera dan treatment warna secara live sebelum save.
+22. Kartu QR meja dapat dikustomisasi per event pada template, judul, subjudul, dan
+    tagline. Payload QR dan ukuran minimum 4×4 cm tetap locked.
 
 ## Referensi
 

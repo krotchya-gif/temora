@@ -1,6 +1,6 @@
 # Design System — TEMORA
 
-*Versi: 1.2 · Tanggal: 2026-08-25 · Status: Approved*
+*Versi: 1.4 · Tanggal: 2026-09-11 · Status: Approved*
 *Konsolidasi: token & microcopy v1.0 (kanonik) + motion, imagery & brand assets dari draft lanjutan.*
 *Brand foundation: [BRAND.md](BRAND.md)*
 
@@ -236,10 +236,15 @@ Muncul sebelum kamera aktif:
 - CTA: "Oke, Mengerti" (primary).
 
 ### 3.8 QR Table Card (print)
-- A6 size (105×148mm), grid A4 2×4.
+- Grid A4 2×4 dengan kartu efektif ±86×62mm (bukan satu lembar A6 penuh).
 - QR min 4×4 cm, error correction level M.
 - Nama event font-display, nomor meja jelas, tagline kecil: *"Keep the moments close."*
-- Background warm ivory.
+- Background default warm ivory; template `Night` memakai surface text-primary
+  dan template lain memakai variasi token TEMORA.
+- Vendor dapat memilih template `Bloom`, `Rose`, `Mono`, `Night`, atau `Paper`,
+  lalu mengubah judul, subjudul, dan tagline dari workspace setup event.
+- Copy default memakai nama event dan tagline TEMORA bila field custom kosong;
+  QR payload tetap berasal dari event + meja dan tidak boleh diubah editor.
 - Sponsor QR aktif (task 013): logo kecil (≤ 28px tinggi) di pojok kartu, tidak
   mengecilkan QR (QR tetap ≥ 4×4 cm).
 

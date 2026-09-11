@@ -64,6 +64,9 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
    - CRUD events (nama, kategori, jadwal, lokasi, link kustom).
    - Setelah event dibuat, vendor masuk ke workspace event untuk mengatur
      tampilan cover/frame, filter warna kamera, kartu QR, dan tampilan kamera.
+     Preview setup kamera mengikuti preset/filter secara live. Kartu QR dapat
+     dikustomisasi pada level event (template, judul, subjudul, tagline) tanpa
+     mengubah payload QR atau mengurangi ukuran minimum QR saat dicetak.
    - Generate tabel + QR codes.
    - Galeri + download ZIP.
 

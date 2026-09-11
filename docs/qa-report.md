@@ -539,6 +539,19 @@ yang gagal hanyalah render setelah refresh; kini aman.
 - Typecheck ✓; lint ✓; 64 unit tests ✓; production build ✓; Playwright mengenali
   9 skenario termasuk keberadaan editor showcase pada viewport 360px.
 
+## Ronde Setup Studio & Migration Production (2026-09-11)
+
+- Preview setup vendor kini memperbarui preset kamera, label preset, filter, dan
+  intensitas secara live; nilai final tetap dikirim saat vendor menyimpan event.
+- Kartu QR print kini memakai konfigurasi event untuk template Bloom/Rose/Mono/
+  Night/Paper, judul, subjudul, dan tagline. QR payload tidak berubah dan ukuran
+  QR tetap memenuhi minimum 4×4 cm.
+- Production Supabase diverifikasi via daftar migration dan introspeksi tabel:
+  `event_cover`, `event_camera_setup`, `qr_card_setup`, dan
+  `pro_watermark_and_pwa_dismiss_delay` tercatat; kolom cover, kamera/filter,
+  dan QR tersedia pada `public.events`.
+- `npm run lint` ✓; `npm run typecheck` ✓; `npm run build` ✓.
+
 ## Ronde Status QR Event (2026-09-10)
 
 - Record live event terbaru `rumah` terverifikasi aktif, belum kedaluwarsa, dan

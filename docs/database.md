@@ -464,6 +464,14 @@ diekspos sebagai URL langsung.
 - RLS policies ditaruh di migration yang sama dengan tabelnya.
 - Simpan snapshot baseline via `supabase db dump` setelah skema stabil.
 
+### Production verification (2026-09-11)
+
+Production project `Temora Photos` diverifikasi setelah deploy fitur setup
+studio. Migration yang relevan dan kolomnya sudah tersedia: `event_cover`,
+`event_camera_setup`, `qr_card_setup`, dan
+`pro_watermark_and_pwa_dismiss_delay`. Kolom custom QR berada di
+`public.events`: `qr_template`, `qr_title`, `qr_subtitle`, dan `qr_tagline`.
+
 ## 11. Performance Considerations
 
 1. Pagination galeri (20 foto/load) — index `(event_id, taken_at DESC)` sudah mendukung.

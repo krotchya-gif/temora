@@ -54,7 +54,10 @@
 - [ ] `/privacy` & `/terms` live dan terisi
 - [ ] Custom SMTP email verifikasi Supabase terpasang & teruji
 - [ ] Monitoring storage aktif (alert ≥ 80%)
-- [ ] Migrasi production pushed (`supabase db push`) & diverifikasi
+- [x] Migration production relevan untuk fitur saat ini diverifikasi 2026-09-11:
+  `event_cover`, `event_camera_setup`, `qr_card_setup`, dan
+  `pro_watermark_and_pwa_dismiss_delay`; kolom cover/kamera/filter/QR ada di
+  `public.events`. Migration berikutnya tetap wajib diverifikasi setelah deploy.
 - [ ] Webhook Xendit produksi → `https://temora.site/api/billing/webhook`
 - [ ] Template WA produksi terdaftar di Meta (task 009 §7)
 - [ ] Cron TTL & expiry dipicu pinger eksternal (verifikasi hit manual dengan `CRON_SECRET` / log cron-job.org)
