@@ -23,6 +23,8 @@ export type MomentRow = {
   content: string;
   is_hidden: boolean;
   created_at: string;
+  /** Thumb publik foto terkait (design-system §3.10) — null bila tanpa/terhapus. */
+  thumbUrl?: string | null;
 };
 
 /** Sanitasi dasar teks bebas (database.md §9.1). */

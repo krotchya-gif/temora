@@ -1,6 +1,6 @@
 # Design System — TEMORA
 
-*Versi: 1.8 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.9 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: token & microcopy v1.0 (kanonik) + motion, imagery & brand assets dari draft lanjutan.*
 *Brand foundation: [BRAND.md](BRAND.md)*
 
@@ -8,6 +8,7 @@
 *Patch 1.6 (2026-09-12): microcopy hint cover screen tamu "Ketuk untuk masuk ke photobooth" (§6) dan durasi dismiss install prompt PWA menjadi 3 hari (§6). Fallback gambar momen/placeholder tidak menambah token warna baru — memakai token kanonik yang ada.*
 *Patch 1.7 (2026-09-12): penamaan frame vs cover dipertegas — section setup "02 · Frame & Kartu QR" dan kartu dashboard "Cover tamu"; §3.5a + microcopy §6 diperbarui agar vendor tidak mengira ada dua upload untuk hal yang sama.*
 *Patch 1.8 (2026-09-12): visual langkah "Kelola & unduh" di `/how-it-works` tidak lagi mengulang foto placeholder yang sama tiga kali; kini grid tiga momen berbeda (aset lokal `guest-camera-placeholder-2/4/5`) + baris ZIP + CTA unduh (Anti-Slop §11 — tanpa pengulangan mockup). Terverifikasi render 360×800 & 1440×900.*
+*Patch 1.9 (2026-09-12): kartu momen §3.10 disejajarkan dengan spesifikasi awal — feed vendor menampilkan foto asli (thumb) + caption italic, hidden → blur + badge; kartu echo tamu §3.4 diimplementasikan — setelah caption terkirim, foto hasil capture + caption tampil sebagai kartu polaroid mini (pola Tali Momen). Terverifikasi E2E tamu 360×800 via kamera palsu; verifikasi visual feed vendor pending sesi login owner.*
 
 ---
 

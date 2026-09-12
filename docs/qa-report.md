@@ -839,3 +839,37 @@ setelah disimpan, dan mempertanyakan apakah cover dan frame fitur yang sama.
 - Verifikasi visual owner (2026-09-12): ✅ guest camera menampilkan frame, label
   "Cover tamu" / "Frame & Kartu QR" tampil benar, upload cover dari UI berhasil
   (fix blob end-to-end tervalidasi).
+
+## Ronde Kartu Momen — Feed Vendor & Kartu Echo Tamu (2026-09-12)
+
+Konteks: owner menemukan caption momen tidak terlihat menyatu dengan fotonya —
+feed dashboard menampilkan ikon gambar generik meski `photo_id` ada, dan layar
+tamu hanya menampilkan teks sukses setelah caption dikirim. Desain yang
+tertulis sudah benar sejak awal (design-system §3.4 & §3.10); implementasi yang
+menyimpang.
+
+### Perubahan
+- `GET /api/events/[eventId]/moments`: embed `photo:photos(thumb_path,
+  deleted_at)`; mapping mengembalikan `thumbUrl` via `publicStorageUrl`, foto
+  soft-deleted → `null` (architecture patch 1.15). Tanpa migration.
+- `MomentRow.thumbUrl` (`src/lib/validation/moments.ts`).
+- `MomentsFeed`: foto asli `aspect-[4/5]` + `animate-develop`; momen
+  tanpa/terhapus foto tetap tile ikon atau kutipan; caption `font-display
+  italic`; state hidden dari `opacity-60` menjadi **blur foto + badge**
+  (design-system §3.10).
+- `MomentComposer`: prop `photoUrl` + state teks terkirim; fase `sent`
+  menampilkan kartu polaroid mini (foto 3:4 + caption italic) pola Tali Momen
+  (design-system §3.4); `CameraStage` meneruskan `previewUrl` (blob valid
+  selama fase saved). Tanpa endpoint baru.
+
+### Verifikasi
+- lint ✅ · typecheck ✅ · vitest 55/55 ✅ · build ✅.
+- Smoke production via REST service role: embed menghasilkan `thumb_path` untuk
+  4 momen ber-foto; 3 URL thumb dicek `200 image/jpeg` di media service.
+- E2E tamu (Playwright + kamera palsu, viewport 360×800, event uji sementara):
+  cover → consent → capture → Simpan → tulis caption → kartu polaroid + caption
+  tampil (`echo-07-card.png`, `echo-08-card-closeup.png`). Data uji
+  (event/tables/photos/moments) + storage prefix dibersihkan → 0 baris tersisa.
+- **Pending**: verifikasi visual feed dashboard vendor (butuh sesi login owner)
+  — jalur uji `/dashboard/events/9bae80ee-c2ae-41f6-ae6a-636f365f9ca7/moments`
+  (4 momen ber-foto). Jangan klaim tuntas sebelum lolos.

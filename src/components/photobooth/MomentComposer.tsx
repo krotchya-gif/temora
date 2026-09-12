@@ -9,6 +9,8 @@ type MomentComposerProps = {
   tableId: string;
   /** Foto hasil capture terakhir (opsional — moment bisa tanpa foto). */
   getPhotoId: () => string | null;
+  /** Blob URL foto terakhir — untuk kartu polaroid setelah momen terkirim. */
+  photoUrl: string | null;
   onToast: (message: string) => void;
 };
 
@@ -18,11 +20,13 @@ export function MomentComposer({
   eventId,
   tableId,
   getPhotoId,
+  photoUrl,
   onToast,
 }: MomentComposerProps) {
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [submitted, setSubmitted] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function submit() {
@@ -42,6 +46,7 @@ export function MomentComposer({
       });
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(data?.error ?? "Momen belum tersimpan.");
+      setSubmitted(content);
       setSent(true);
       onToast("Momenmu tersimpan ✨");
     } catch (err) {
@@ -52,10 +57,26 @@ export function MomentComposer({
   }
 
   if (sent) {
+    // Kartu polaroid (design-system §3.4): foto + caption menyatu, ala Tali Momen.
     return (
-      <p className="max-w-sm text-center text-xs text-success">
-        Momenmu sudah jadi bagian dari cerita acara ini ✨
-      </p>
+      <div className="flex w-full max-w-sm flex-col items-center gap-3">
+        {photoUrl ? (
+          <figure className="w-full max-w-[15rem] rounded-md bg-bg-card p-2 pb-3 shadow-card">
+            {/* eslint-disable-next-line @next/next/no-img-element -- blob lokal */}
+            <img
+              src={photoUrl}
+              alt="Momen yang baru kamu ambil"
+              className="animate-develop aspect-[3/4] w-full rounded-[3px] object-cover"
+            />
+            <figcaption className="mt-3 break-words px-1 font-display text-sm italic leading-relaxed text-text-primary">
+              “{submitted}”
+            </figcaption>
+          </figure>
+        ) : null}
+        <p className="max-w-sm text-center text-xs text-success">
+          Momenmu sudah jadi bagian dari cerita acara ini ✨
+        </p>
+      </div>
     );
   }
 

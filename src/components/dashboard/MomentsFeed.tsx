@@ -153,29 +153,39 @@ export function MomentsFeed({ eventId }: MomentsFeedProps) {
         {moments.map((m) => (
           <article
             key={m.id}
-            className={cn(
-              "relative flex flex-col gap-2 rounded-xl border border-border bg-bg-card p-4 shadow-xs transition-opacity",
-              m.is_hidden && "opacity-60",
-            )}
+            className="relative flex flex-col gap-2 rounded-xl border border-border bg-bg-card p-4 shadow-xs"
           >
             {m.is_hidden ? (
-              <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-medium text-warning">
+              <span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-medium text-warning">
                 <EyeOff className="h-3 w-3" aria-hidden />
                 Disembunyikan
               </span>
             ) : null}
 
-            {m.photo_id ? (
-              <span className="inline-flex h-24 w-full items-center justify-center rounded-lg bg-bg-warm">
-                <ImageIcon className="h-6 w-6 text-text-secondary/50" aria-hidden />
-              </span>
+            {m.thumbUrl ? (
+              // Foto menyatu dengan caption (design-system §3.10) — thumb publik.
+              // eslint-disable-next-line @next/next/no-img-element -- URL publik media service
+              <img
+                src={m.thumbUrl}
+                alt="Foto momen tamu"
+                loading="lazy"
+                decoding="async"
+                className={cn(
+                  "animate-develop aspect-[4/5] w-full rounded-lg object-cover",
+                  m.is_hidden && "blur-[3px]",
+                )}
+              />
             ) : (
-              <span className="inline-flex h-24 w-full items-center justify-center rounded-lg bg-bg-warm">
-                <span className="font-display text-2xl text-accent-secondary">“</span>
+              <span className="inline-flex aspect-[4/5] w-full items-center justify-center rounded-lg bg-bg-warm">
+                {m.photo_id ? (
+                  <ImageIcon className="h-6 w-6 text-text-secondary/50" aria-hidden />
+                ) : (
+                  <span className="font-display text-2xl text-accent-secondary">“</span>
+                )}
               </span>
             )}
 
-            <blockquote className="line-clamp-4 text-sm leading-relaxed text-text-primary">
+            <blockquote className="font-display line-clamp-4 text-base italic leading-relaxed text-text-primary">
               {m.content}
             </blockquote>
 

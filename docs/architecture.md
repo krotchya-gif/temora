@@ -1,6 +1,6 @@
 # Architecture — TEMORA
 
-*Versi: 1.14 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.15 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
@@ -13,6 +13,7 @@
 *Patch 1.12 (2026-09-12): cooldown dismiss install prompt PWA dinaikkan dari 24 jam menjadi 3 hari (keputusan owner); fallback gambar momen memakai placeholder SVG lokal (`/images/moment-placeholder.svg`); viewport RopeMoments memakai `overflow-x-clip` agar tidak memunculkan scrollbar desktop. Detail §13, design-system §6, qa-report Ronde Perbaikan Audit.*
 *Patch 1.13 (2026-09-12): media service menerima area publik `covers` — whitelist `config.php`/`delete.php` diselaraskan dengan `storage.ts` (cover upload sebelumnya selalu ditolak `400 Invalid key`). Detail §11.1, database.md §6, qa-report.*
 *Patch 1.14 (2026-09-12): deploy `config.php`/`delete.php`/`.htaccess` media service selesai & diverifikasi (upload cover 200, delete key/prefix OK, file baru langsung ter-serve, recurse chmod legacy → semua 6 thumb + frame 200, header `Access-Control-Allow-Origin: *` aktif). CORS wajib: frame PNG dimuat `crossOrigin="anonymous"` untuk canvas compositing — tanpa itu foto tamu tersimpan tanpa frame. Bug client cover `blob:` URL yang tersimpan ke DB diperbaiki (`CoverEditor` + validasi `coverImageUrl` hanya `http(s)`; data lama di-reset). Detail §11.1, design-system patch 1.7, qa-report.*
+*Patch 1.15 (2026-09-12): `GET /api/events/[eventId]/moments` menyertakan `thumbUrl` foto (embed `photos(thumb_path, deleted_at)`, soft-deleted → null) sehingga kartu feed vendor menampilkan foto + caption menyatu; kartu echo tamu memakai `previewUrl` yang sudah ada di `CameraStage` (tanpa endpoint baru). Detail design-system patch 1.9, qa-report.*
 
 ---
 
@@ -215,7 +216,7 @@ supabase/
 | `/api/events/[eventId]/photos/zip` | POST | Generate ZIP download | Yes |
 | `/api/events/[eventId]/photos/[photoId]` | DELETE | Hapus foto | Yes |
 | `/api/events/[eventId]/frame` | POST | Upload frame kustom (multipart PNG) | Yes |
-| `/api/events/[eventId]/moments` | GET | List moments (vendor, hidden filter) | Yes |
+| `/api/events/[eventId]/moments` | GET | List moments + `thumbUrl` foto (vendor, hidden filter) | Yes |
 | `/api/events/[eventId]/moments` | POST | Kirim moment (caption ± foto; rate-limit 60 dtk) | No (event+table validated) |
 | `/api/events/[eventId]/moments/[momentId]` | PATCH | Hide/show moment (moderasi vendor) | Yes |
 | `/api/events/[eventId]/sponsors` | GET | List sponsor aktif (consent/QR card) | No |

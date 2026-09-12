@@ -3,6 +3,7 @@ import { isSameOrigin } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { allowRequest, getClientIp } from "@/lib/rate-limit";
+import { publicStorageUrl } from "@/lib/storage";
 import { momentCreateSchema, sanitizeMomentContent } from "@/lib/validation/moments";
 
 export const runtime = "nodejs";
@@ -44,7 +45,9 @@ export async function GET(
 
   const query = supabase
     .from("moments")
-    .select("id, event_id, table_id, photo_id, content, is_hidden, created_at")
+    .select(
+      "id, event_id, table_id, photo_id, content, is_hidden, created_at, photo:photos(thumb_path, deleted_at)",
+    )
     .eq("event_id", eventId)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -59,7 +62,22 @@ export async function GET(
     return jsonError("Gagal memuat momen.", 500);
   }
 
-  return NextResponse.json({ moments: data ?? [] });
+  // Feed kartu (design-system §3.10): sertakan thumb foto milik momen agar
+  // vendor melihat foto + caption menyatu. Foto terhapus (soft delete) → null.
+  const moments = (data ?? []).map((row) => {
+    const { photo, ...moment } = row as typeof row & {
+      photo: { thumb_path: string | null; deleted_at: string | null } | null;
+    };
+    return {
+      ...moment,
+      thumbUrl:
+        photo && !photo.deleted_at && photo.thumb_path
+          ? publicStorageUrl(photo.thumb_path)
+          : null,
+    };
+  });
+
+  return NextResponse.json({ moments });
 }
 
 // POST — tamu kirim moment (anon; jalur utama service role + rate limit).

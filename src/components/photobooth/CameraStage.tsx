@@ -930,6 +930,7 @@ export function CameraStage({
                 eventId={eventId}
                 tableId={tableId}
                 getPhotoId={() => activeMetaRef.current?.photoId ?? null}
+                photoUrl={previewUrl}
                 onToast={onToast}
               />
             </>
