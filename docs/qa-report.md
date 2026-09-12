@@ -873,3 +873,36 @@ menyimpang.
 - **Pending**: verifikasi visual feed dashboard vendor (butuh sesi login owner)
   — jalur uji `/dashboard/events/9bae80ee-c2ae-41f6-ae6a-636f365f9ca7/moments`
   (4 momen ber-foto). Jangan klaim tuntas sebelum lolos.
+
+## Ronde Workspace Momen Terpadu & Sponsor di Setup (2026-09-12)
+
+### Perubahan
+- Navigasi event dipangkas menjadi lima tab: Ringkasan, Setup tampilan, Momen,
+  QR, dan Analitik. `/gallery` redirect ke `/moments`; `/sponsors` redirect ke
+  `/edit#sponsor`.
+- Sponsor dirender sebagai section tersimpan-mandiri di bawah form Setup
+  Tampilan dengan gate paket Pro tetap aktif.
+- `/moments` menjadi feed kronologis terpadu untuk foto, caption, pesan tanpa
+  foto, hidden moderation, lightbox, dan unduhan individual/ZIP.
+- Endpoint feed berkursor dan renderer Sharp ditambahkan. ZIP menerima format
+  `polaroid | original`; batas sinkron 20 kartu Polaroid atau 100 foto original,
+  selebihnya memakai job resumable (chunk 8/30).
+- Tidak ada migration, tabel, policy, atau perubahan RLS.
+
+### Verifikasi
+- Supabase MCP (project `Temora Photos`): FK `moments → photos` tersedia;
+  `photos` dan `moments` sama-sama berada di publication `supabase_realtime`;
+  RLS aktif pada kedua tabel. Dokumentasi Supabase nested joins dan Postgres
+  Changes diperiksa sebelum implementasi query/subscription.
+- Unit: merge/cursor feed, multiple caption, pesan tanpa foto, hidden handling,
+  escaping/wrapping, portrait/landscape, dan renderer no-crop tercakup.
+- Visual render komponen aktual dengan state representatif: **360×800** dan
+  **1440×900** untuk Momen, Setup Sponsor, long caption, hidden badge/blur,
+  lightbox, dua opsi ZIP, fokus keyboard, dan reduced motion. Playwright 2/2
+  lulus; `scrollWidth <= innerWidth` pada kedua viewport. Harness/screenshot
+  sementara dibersihkan setelah inspeksi.
+- Gate final: lint ✅ · typecheck ✅ · vitest **66/66** ✅ · production build ✅.
+  Suite E2E permanen terdeteksi **9 test** dan skip sesuai gate repo karena
+  `E2E_ENABLED`/kredensial seed tidak tersedia; skenario vendor sudah diperbarui
+  agar saat gate aktif mencakup feed API, format ZIP invalid, ownership 404,
+  redirect legacy, lima tab mobile, dan section Sponsor.

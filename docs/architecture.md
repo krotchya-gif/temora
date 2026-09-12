@@ -1,6 +1,6 @@
 # Architecture — TEMORA
 
-*Versi: 1.15 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.16 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
@@ -13,6 +13,7 @@
 *Patch 1.12 (2026-09-12): cooldown dismiss install prompt PWA dinaikkan dari 24 jam menjadi 3 hari (keputusan owner); fallback gambar momen memakai placeholder SVG lokal (`/images/moment-placeholder.svg`); viewport RopeMoments memakai `overflow-x-clip` agar tidak memunculkan scrollbar desktop. Detail §13, design-system §6, qa-report Ronde Perbaikan Audit.*
 *Patch 1.13 (2026-09-12): media service menerima area publik `covers` — whitelist `config.php`/`delete.php` diselaraskan dengan `storage.ts` (cover upload sebelumnya selalu ditolak `400 Invalid key`). Detail §11.1, database.md §6, qa-report.*
 *Patch 1.14 (2026-09-12): deploy `config.php`/`delete.php`/`.htaccess` media service selesai & diverifikasi (upload cover 200, delete key/prefix OK, file baru langsung ter-serve, recurse chmod legacy → semua 6 thumb + frame 200, header `Access-Control-Allow-Origin: *` aktif). CORS wajib: frame PNG dimuat `crossOrigin="anonymous"` untuk canvas compositing — tanpa itu foto tamu tersimpan tanpa frame. Bug client cover `blob:` URL yang tersimpan ke DB diperbaiki (`CoverEditor` + validasi `coverImageUrl` hanya `http(s)`; data lama di-reset). Detail §11.1, design-system patch 1.7, qa-report.*
+*Patch 1.16 (2026-09-12): workspace vendor Galeri + Momen digabung pada route kanonik `/moments`; Sponsor dipindahkan ke section langsung di Setup Tampilan; unduhan mendukung format Polaroid dan original. Tidak ada perubahan skema/RLS. Detail design-system patch 1.10 dan tasks 006/012/013.*
 *Patch 1.15 (2026-09-12): `GET /api/events/[eventId]/moments` menyertakan `thumbUrl` foto (embed `photos(thumb_path, deleted_at)`, soft-deleted → null) sehingga kartu feed vendor menampilkan foto + caption menyatu; kartu echo tamu memakai `previewUrl` yang sudah ada di `CameraStage` (tanpa endpoint baru). Detail design-system patch 1.9, qa-report.*
 
 ---
@@ -130,8 +131,8 @@ src/
 │   └── layout.tsx          # root layout + fonts
 ├── components/
 │   ├── photobooth/         # CameraStage, ConsentScreen, GradeCanvas, dst
-│   ├── gallery/            # PhotoGrid, Lightbox
-│   ├── dashboard/          # komponen halaman internal
+│   ├── gallery/            # Lightbox media Momen
+│   ├── dashboard/          # MomentWorkspace + komponen vendor internal
 │   └── ui/                 # Button, Input, Card dasar (Radix + tokens)
 ├── lib/
 │   ├── supabase/           # client.ts · server.ts · admin.ts (§2)
@@ -171,11 +172,11 @@ supabase/
 | `/dashboard/events` | List semua event | Yes |
 | `/dashboard/events/new` | Buat event baru | Yes |
 | `/dashboard/events/[eventId]` | Detail event | Yes |
-| `/dashboard/events/[eventId]/edit` | Workspace setup event: frame PNG + kartu QR, tampilan kamera/filter live preview, watermark | Yes |
+| `/dashboard/events/[eventId]/edit` | Workspace setup event: frame PNG + kartu QR, kamera/filter, watermark, serta Sponsor (Pro) | Yes |
 | `/dashboard/events/[eventId]/cover` | Editor cover visual: template, foto, judul, subjudul, tombol | Yes |
-| `/dashboard/events/[eventId]/gallery` | Galeri foto + download ZIP | Yes |
-| `/dashboard/events/[eventId]/moments` | Feed moments real-time + moderasi (task 012) | Yes |
-| `/dashboard/events/[eventId]/sponsors` | Kelola logo sponsor (task 013, Pro) | Yes |
+| `/dashboard/events/[eventId]/gallery` | Redirect kompatibilitas ke `/moments` | Yes |
+| `/dashboard/events/[eventId]/moments` | Workspace terpadu foto + guestbook, moderasi, lightbox, ZIP Polaroid/original | Yes |
+| `/dashboard/events/[eventId]/sponsors` | Redirect kompatibilitas ke `/edit#sponsor` | Yes |
 | `/dashboard/events/[eventId]/analytics` | Analytics agregat + heatmap (task 014) | Yes |
 | `/dashboard/events/[eventId]/qr` | Generate + cetak QR meja; styling/copy QR diatur dari workspace event | Yes |
 | `/dashboard/settings` | Profil, WA opt-in, subscription | Yes |
@@ -210,10 +211,11 @@ supabase/
 | `/api/events/[eventId]` | GET/PUT/DELETE | Detail/update/hapus event | Yes |
 | `/api/events/[eventId]/tables` | POST | Generate tabel + QR | Yes |
 | `/api/events/[eventId]/photos` | GET | List foto (paginated) | Yes |
+| `/api/events/[eventId]/feed` | GET | Feed terpadu foto + moments, cursor-paginated | Yes |
 | `/api/events/[eventId]/photos/upload` | POST | Upload foto tamu (service role, rate-limited, dedup `client_upload_id`) | No (event+table validated) |
 | `/api/events/[eventId]/photos/[photoId]/saved` | POST | Set `guest_saved_at` (validasi `capture_token`) | No |
 | `/api/events/[eventId]/tables/[tableId]/scan` | POST | Increment `scan_count` (max 1× per sesi via sessionStorage guard client) | No |
-| `/api/events/[eventId]/photos/zip` | POST | Generate ZIP download | Yes |
+| `/api/events/[eventId]/photos/zip` | POST | Generate ZIP `polaroid` atau `original` | Yes |
 | `/api/events/[eventId]/photos/[photoId]` | DELETE | Hapus foto | Yes |
 | `/api/events/[eventId]/frame` | POST | Upload frame kustom (multipart PNG) | Yes |
 | `/api/events/[eventId]/moments` | GET | List moments + `thumbUrl` foto (vendor, hidden filter) | Yes |
@@ -224,6 +226,8 @@ supabase/
 | `/api/events/[eventId]/sponsors/[sponsorId]` | PATCH/DELETE | Edit/hapus/deactivate sponsor | Yes (tier check) |
 | `/api/health` | GET | Health check (probe CI/manual) | No |
 | `/api/events/[eventId]/photos/[photoId]` | GET | Signed URL resolusi penuh (lightbox) | Yes |
+| `/api/events/[eventId]/photos/[photoId]/polaroid` | GET | Unduh kartu Polaroid individual | Yes |
+| `/api/events/[eventId]/moments/[momentId]/polaroid` | GET | Unduh kartu Polaroid moment individual | Yes |
 | `/api/events/[eventId]/photos/zip` | GET | Polling progres job ZIP (`?job=`) | Yes |
 | `/api/events/[eventId]/qr/[tableId]` | GET | Get QR code SVG/PNG | No |
 | `/api/billing/checkout` | POST | Create Xendit invoice | Yes |
@@ -282,14 +286,16 @@ supabase/
 
 ### 4.2 Vendor Download ZIP
 ```
-1. Vendor klik "Simpan Semua Momen" di gallery
-2. POST /api/events/[eventId]/photos/zip
-3. Server: query semua foto → download dari Storage → JSZip stream
+1. Vendor memilih "Polaroid" (utama) atau "Foto asli" di workspace Momen
+2. POST /api/events/[eventId]/photos/zip { format }
+3. Server: query foto/moment terlihat → render Polaroid bila dipilih → JSZip
 4. Upload ZIP ke bucket 'zips'
 5. Return signed URL (15 menit expiry)
 6. Client: trigger download
 ```
-> 100 foto → sinkron; >100 foto → background job + polling status (lihat task 006).
+> Original ≤100 foto dan Polaroid ≤20 kartu diproses sinkron; selebihnya memakai
+> background job resumable + polling. Polaroid mempertahankan orientasi foto tanpa
+> crop; hidden moment tidak masuk teks/quote hasil ekspor.
 
 ### 4.3 Pembayaran Xendit
 ```

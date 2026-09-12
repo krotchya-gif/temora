@@ -2,6 +2,9 @@
 
 *Status: Selesai (2026-08-28) — kode + verifikasi live + export CSV & PDF (print browser, hidden terkecuali) · Prioritas: High · Phase: 2 ⭐*
 
+*Enhancement approved 2026-09-12: feed Moments menjadi workspace terpadu foto +
+guestbook dengan kartu Polaroid, lightbox, moderasi, dan download ZIP.*
+
 Depends on: 004, 006
 
 ---

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { EventForm } from "@/components/dashboard/EventForm";
+import { EventSubNav } from "@/components/dashboard/EventSubNav";
+import { SponsorManager } from "@/components/dashboard/SponsorManager";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -39,6 +41,12 @@ export default async function EditEventPage({ params }: EditEventProps) {
   // RLS: event milik vendor lain tidak terlihat.
   if (!event) notFound();
 
+  const { data: sponsors } = await supabase
+    .from("sponsors")
+    .select("id, event_id, name, logo_path, position, is_active, created_at")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: true });
+
   return (
     <div className="space-y-6">
       <Link
@@ -64,6 +72,8 @@ export default async function EditEventPage({ params }: EditEventProps) {
           .
         </p>
       </div>
+
+      <EventSubNav eventId={eventId} />
 
       {event.frame_url ? (
         <Card className="flex items-center gap-4 bg-bg-warm p-4">
@@ -103,6 +113,24 @@ export default async function EditEventPage({ params }: EditEventProps) {
             qrSubtitle: event.qr_subtitle ?? "",
             qrTagline: event.qr_tagline ?? "Keep the moments close.",
           }}
+        />
+      </Card>
+
+      <Card id="sponsor" className="scroll-mt-24 p-4 sm:p-6">
+        <div className="mb-5 space-y-1">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
+            04 · Sponsor
+          </p>
+          <h2 className="font-display text-2xl text-text-primary">Logo partner event</h2>
+          <p className="max-w-2xl text-sm leading-relaxed text-text-secondary">
+            Sponsor tersimpan langsung saat ditambahkan dan akan muncul sesuai slot
+            frame foto atau kartu QR. Fitur ini tersedia untuk paket Pro.
+          </p>
+        </div>
+        <SponsorManager
+          eventId={event.id}
+          isPro={tier === "pro"}
+          sponsors={sponsors ?? []}
         />
       </Card>
     </div>

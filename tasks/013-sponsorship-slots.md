@@ -2,6 +2,9 @@
 
 *Status: Kode + verifikasi live selesai (2026-08-28) — migrasi 0022 (tabel + bucket + RLS), API CRUD + tier gate (free 403 / pro 201 teruji), logo upload publik 200, consent menyebut sponsor, logo di hasil capture & kartu QR print · Prioritas: Low · Phase: 3 (ditarik ke roadmap aktif)*
 
+*UX relocation approved 2026-09-12: Sponsor dikelola sebagai section langsung
+di Setup Tampilan (`/edit#sponsor`); route lama menjadi redirect kompatibilitas.*
+
 Depends on: 006, 007, 008
 
 ---

@@ -1,6 +1,6 @@
 # PRD: TEMORA — Virtual Photobooth for the Moments That Matter
 
-*Versi: 1.3 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.4 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi v1.0 + riset kompetitor. Patch logika v1.2: [database.md](database.md) §2.7 · Patch v1.3 (2026-09-12): notifikasi WhatsApp Cloud API dihapus (keputusan owner) — aktivasi vendor tetap via deep-link `wa.me`. · Keputusan terkunci: [README.md](../README.md) §Keputusan Terkunci*
 
 ---
@@ -60,7 +60,9 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 
 3. **Galeri Cloud + ZIP Download**
    - Foto tersimpan di Supabase Storage.
-   - Vendor lihat galeri real-time, unduh semua sebagai ZIP resolusi tinggi.
+   - Vendor melihat foto dan cerita tamu dalam satu workspace **Momen** real-time.
+   - Unduhan menyediakan ZIP kartu Polaroid sebagai pilihan utama dan ZIP foto
+     asli sebagai pilihan sekunder.
 
 4. **Vendor Dashboard**
    - Auth via Supabase Auth (email/password).
@@ -71,7 +73,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
      dikustomisasi pada level event (template, judul, subjudul, tagline) tanpa
      mengubah payload QR atau mengurangi ukuran minimum QR saat dicetak.
    - Generate tabel + QR codes.
-   - Galeri + download ZIP.
+   - Momen terpadu (foto + guestbook) + download ZIP Polaroid/asli.
 
 5. **Monetisasi — Xendit**
    - Subscription tier (detail enforcement: [database.md](database.md) §2.7):

@@ -8,7 +8,7 @@
 
 | Role | Siapa | Akses | Cara Masuk |
 |---|---|---|---|
-| **Vendor** | WO, fotografer, EO — pelanggan SaaS | Dashboard penuh: event, QR, galeri, ZIP, billing, pengaturan | Daftar/masuk di `/signup` · `/login` |
+| **Vendor** | WO, fotografer, EO — pelanggan SaaS | Dashboard penuh: event, QR, Momen terpadu, ZIP, billing, pengaturan | Daftar/masuk di `/signup` · `/login` |
 | **Tamu** | Undangan acara | Halaman photobooth saja (`/p/[eventId]/[tableId]`) | Scan kartu QR di meja — **tanpa akun, anonim** |
 | **Superadmin** | Pemilik platform TEMORA | `/admin`: pantau semua vendor/event, kelola tier, moderasi event & foto, **SEO/analytics/UTM (`/admin/seo`)** | Akun biasa yang dipromosikan via SQL (lihat bawah) |
 | **Admin Platform (kontak)** | Nomor WA tujuan aktivasi vendor | Bukan role aplikasi — hanya kontak manusia | `NEXT_PUBLIC_WA_ADMIN_NUMBER` |
@@ -75,7 +75,7 @@ URL photobooth seed: `http://localhost:3000/p/00000000-0000-4000-8000-0000000000
 ## 3. Flow Vendor (pemilik acara)
 
 ```
-Daftar → Buat Event → Upload Frame → Generate QR → Cetak → Hari-H → Galeri & ZIP
+Daftar → Buat Event → Upload Frame → Generate QR → Cetak → Hari-H → Momen & ZIP
 ```
 
 1. **Daftar/Masuk** — `/signup` (nama, email, kata sandi ≥8). Konfirmasi email bila aktif. Tier awal **Free**: 1 event aktif, 100 foto/event.
@@ -84,10 +84,10 @@ Daftar → Buat Event → Upload Frame → Generate QR → Cetak → Hari-H → 
 4. **Generate QR Meja** — tab QR → pilih jumlah meja (maks 50) → tiap meja dapat QR unik yang mengarah ke `/p/[eventId]/[tableId]`.
 5. **Cetak Kartu** — `/print/[eventId]/qr` → lembar A4 grid 2×4 siap potong → taruh di meja tamu.
 6. **Aktifkan Event** — toggle status. Tamu hanya bisa akses event **aktif & belum expired** (TTL default 30 hari).
-7. **Hari-H** — pantau galeri real-time `/dashboard/events/[eventId]/gallery` (foto masuk tanpa refresh, ada lightbox & hapus). Feed **Momen** (`…/moments`) menampilkan caption tamu real-time + moderasi hide/show + export CSV.
-8. **Sponsor (Pro)** — `…/sponsors`: logo partner muncul di hasil foto tamu & kartu QR meja.
+7. **Hari-H** — pantau workspace **Momen** `/dashboard/events/[eventId]/moments`: foto dan caption masuk real-time dalam satu feed, tersedia lightbox, moderasi hide/show, hapus foto, serta ZIP Polaroid/original.
+8. **Sponsor (Pro)** — section **Sponsor** di `…/edit#sponsor`: logo partner muncul di hasil foto tamu & kartu QR meja.
 9. **Analitik** — `…/analytics`: total foto/disimpan/scan/momen, foto per meja, heatmap jam (cache 60 detik); tombol **Cetak / Simpan PDF**.
-10. **Unduh Hasil** — tombol ZIP di galeri: ≤100 foto langsung; >100 foto berjalan background dengan progress bar.
+10. **Unduh Hasil** — menu di workspace Momen memilih ZIP Polaroid (utama) atau Foto Asli; event besar berjalan background dengan progress bar.
 11. **Laporan Momen (PDF)** — `/print/[eventId]/moments`: cetak A4, hanya momen tidak tersembunyi.
 12. **Selesai Acara** — nonaktifkan event (membebaskan slot event aktif Free tier).
 

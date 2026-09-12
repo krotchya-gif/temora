@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageCircleHeart } from "lucide-react";
 import { EventSubNav } from "@/components/dashboard/EventSubNav";
-import { MomentsFeed } from "@/components/dashboard/MomentsFeed";
+import { MomentWorkspace } from "@/components/dashboard/MomentWorkspace";
+import { loadMomentFeed, type MomentFeedPage } from "@/lib/moment-feed";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -25,6 +25,15 @@ export default async function MomentsPage({ params }: MomentsPageProps) {
     .maybeSingle();
   if (!event) notFound();
 
+  let initialPage: MomentFeedPage = { items: [], nextCursor: null, total: 0 };
+  let initialError: string | null = null;
+  try {
+    initialPage = await loadMomentFeed(supabase, eventId);
+  } catch (error) {
+    console.error("[moments.page.feed]", error);
+    initialError = "Momen belum bisa dimuat. Coba muat ulang halaman ini ya.";
+  }
+
   return (
     <div className="space-y-6">
       <Link
@@ -38,15 +47,19 @@ export default async function MomentsPage({ params }: MomentsPageProps) {
         <h1 className="font-display text-3xl leading-tight text-text-primary">
           Momen
         </h1>
-        <p className="flex items-center gap-2 text-sm text-text-secondary">
-          <MessageCircleHeart className="h-4 w-4" aria-hidden />
-          Caption & guestbook digital dari tamu — muncul real-time.
+        <p className="text-sm text-text-secondary">
+          Foto, cerita, moderasi, dan unduhan event dalam satu tempat.
         </p>
       </div>
 
       <EventSubNav eventId={eventId} />
 
-      <MomentsFeed eventId={eventId} />
+      <MomentWorkspace
+        eventId={eventId}
+        eventName={event.name}
+        initialPage={initialPage}
+        initialError={initialError}
+      />
     </div>
   );
 }

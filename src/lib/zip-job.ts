@@ -12,17 +12,31 @@ import JSZip from "jszip";
 import { ulid } from "@/lib/ulid";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { deleteStorageFile, downloadStorageFile, uploadStorageFile } from "@/lib/storage";
+import { renderPolaroid } from "@/lib/polaroid";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
 export const CHUNK_SIZE = 30;
+export const POLAROID_CHUNK_SIZE = 8;
 const LEASE_MS = 90_000;
 const SIGNED_URL_SECONDS = 900; // 15 menit (task 006 §2)
+
+export type ZipFormat = "original" | "polaroid";
+
+export type ZipManifestItem = {
+  id: string;
+  storagePath: string | null;
+  caption: string | null;
+};
 
 export type ZipJobStatus = {
   status: "running" | "done" | "error";
   total: number;
   processed: number;
+  format: ZipFormat;
+  eventName: string;
+  /** Snapshot privat agar foto baru tidak menggeser urutan job yang sedang jalan. */
+  manifest: ZipManifestItem[];
   /** Jumlah foto yang gagal diunduh dari media service — dicek saat finalisasi. */
   missing?: number;
   /** Epoch ms — klaim eksklusif sederhana antar invokasi bersamaan. */
@@ -71,13 +85,20 @@ export async function getStatus(
 export async function createJob(
   admin: Admin,
   eventId: string,
-  total: number,
+  options: {
+    format: ZipFormat;
+    eventName: string;
+    manifest: ZipManifestItem[];
+  },
 ): Promise<{ jobId: string; status: ZipJobStatus }> {
   const jobId = ulid();
   const status: ZipJobStatus = {
     status: "running",
-    total,
+    total: options.manifest.length,
     processed: 0,
+    format: options.format,
+    eventName: options.eventName,
+    manifest: options.manifest,
     leaseUntil: 0,
   };
   await writeStatus(admin, eventId, jobId, status);
@@ -107,21 +128,28 @@ export async function advanceJob(
       return await finalizeJob(admin, { ...opts, status });
     }
 
-    // Ambil chunk berikutnya — urutan taken_at desc konsisten antar chunk.
     const from = status.processed;
-    const { data: rows, error } = await admin
-      .from("photos")
-      .select("id, storage_path")
-      .eq("event_id", eventId)
-      .is("deleted_at", null)
-      .order("taken_at", { ascending: false })
-      .range(from, from + CHUNK_SIZE - 1);
-    if (error) throw new Error(`zip query: ${error.message}`);
+    const chunkSize = status.format === "polaroid" ? POLAROID_CHUNK_SIZE : CHUNK_SIZE;
+    const rows = status.manifest.slice(from, from + chunkSize);
 
     let processed = status.processed;
-    for (const [i, row] of (rows ?? []).entries()) {
-      let blob: ArrayBuffer;
-      try { blob = (await downloadStorageFile(row.storage_path)).bytes; } catch {
+    for (const [i, row] of rows.entries()) {
+      let blob: ArrayBuffer | Buffer;
+      try {
+        if (status.format === "polaroid") {
+          const source = row.storagePath
+            ? (await downloadStorageFile(row.storagePath)).bytes
+            : null;
+          blob = await renderPolaroid({
+            image: source,
+            eventName: status.eventName,
+            caption: row.caption,
+          });
+        } else {
+          if (!row.storagePath) throw new Error("Foto asli tidak tersedia.");
+          blob = (await downloadStorageFile(row.storagePath)).bytes;
+        }
+      } catch {
         // Foto tak terunduh — dicatat, bukan ditelan diam-diam. Finalisasi
         // menolak menandai "done" bila ada yang hilang.
         status.missing = (status.missing ?? 0) + 1;
@@ -183,20 +211,23 @@ async function finalizeJob(
       await writeStatus(admin, eventId, jobId, status);
       return status;
     }
-    zip.file(`momen-${String(i + 1).padStart(4, "0")}.jpg`, data);
+    zip.file(
+      `${status.format === "polaroid" ? "polaroid" : "momen"}-${String(i + 1).padStart(4, "0")}.jpg`,
+      data,
+    );
   }
 
   // JPEG sudah terkompres — STORE cepat & tanpa untung-untungan CPU.
   const buffer = await zip.generateAsync({ type: "nodebuffer", compression: "STORE" });
 
-  const finalPath = `zips/${eventId}/temora-${slug}-${jobId}.zip`;
+  const finalPath = `zips/${eventId}/temora-${slug}-${status.format}-${jobId}.zip`;
   await uploadStorageFile(finalPath, buffer, "application/zip");
 
   // Bersihkan staging setelah ZIP final aman tersimpan.
   const staging = Array.from({ length: status.total }, (_, i) =>
     stagingPath(eventId, jobId, i),
   );
-  await Promise.all(staging.map((path) => deleteStorageFile(stagingPath(eventId, jobId, Number(path.split("/").pop()?.split(".")[0] ?? 0)))));
+  await Promise.all(staging.map((stagedPath) => deleteStorageFile(stagedPath)));
 
   const done: ZipJobStatus = {
     ...status,
@@ -206,4 +237,18 @@ async function finalizeJob(
   };
   await writeStatus(admin, eventId, jobId, done);
   return done;
+}
+
+/** Jangan pernah kirim manifest/storage path privat ke browser. */
+export function publicZipStatus(status: ZipJobStatus) {
+  return {
+    status: status.status,
+    total: status.total,
+    processed: status.processed,
+    format: status.format,
+    missing: status.missing,
+    downloadUrl: status.downloadUrl,
+    expiresAt: status.expiresAt,
+    error: status.error,
+  };
 }

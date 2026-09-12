@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export type LightboxPhoto = {
   id: string;
   alt: string;
+  title?: string;
+  caption?: string | null;
+  polaroidUrl?: string;
   /** Loader signed URL on-demand (bucket photos privat) — cache di dalam. */
   loadFullUrl: (photoId: string) => Promise<string>;
 };
@@ -22,7 +25,9 @@ type LightboxProps = {
 export function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const urlCache = useRef(new Map<string, string>());
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   const photo = index !== null ? photos[index] : null;
 
@@ -35,6 +40,7 @@ export function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) 
       return;
     }
     setLoading(true);
+    setLoadError(false);
     setUrl(null);
     photo
       .loadFullUrl(photo.id)
@@ -43,7 +49,9 @@ export function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) 
         urlCache.current.set(photo.id, signed);
         setUrl(signed);
       })
-      .catch(() => undefined)
+      .catch(() => {
+        if (alive) setLoadError(true);
+      })
       .finally(() => {
         if (alive) setLoading(false);
       });
@@ -51,6 +59,18 @@ export function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) 
       alive = false;
     };
   }, [photo]);
+
+  useEffect(() => {
+    if (index === null) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [index]);
 
   useEffect(() => {
     if (index === null) return;
@@ -73,7 +93,10 @@ export function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) 
       className="fixed inset-0 z-50 flex items-center justify-center bg-text-primary/90 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div className="relative max-h-full max-w-3xl">
+      <div
+        className="relative max-h-[92dvh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-bg-card p-3 shadow-card sm:p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
         {loading ? (
           <div className="flex h-64 w-64 items-center justify-center rounded-xl bg-bg-warm animate-pulse">
             <span className="text-sm text-text-secondary">Menyiapkan…</span>
@@ -83,13 +106,46 @@ export function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) 
           <img
             src={url}
             alt={photo.alt}
-            onClick={(e) => e.stopPropagation()}
-            className="animate-develop max-h-[85dvh] w-auto rounded-lg shadow-card"
+            className="animate-develop mx-auto max-h-[68dvh] w-auto rounded-lg bg-bg-warm shadow-soft"
           />
+        ) : loadError ? (
+          <div role="alert" className="flex min-h-64 items-center justify-center rounded-xl bg-bg-warm px-8 text-center text-sm text-text-secondary">
+            Foto asli belum bisa dibuka. Coba tutup lalu buka lagi.
+          </div>
         ) : null}
+        <div className="space-y-2 px-1 pb-1 pt-4">
+          {photo.title ? (
+            <p className="font-display text-2xl text-text-primary">{photo.title}</p>
+          ) : null}
+          {photo.caption ? (
+            <blockquote className="text-sm italic leading-relaxed text-text-secondary">
+              “{photo.caption}”
+            </blockquote>
+          ) : null}
+          <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+            {photo.polaroidUrl ? (
+              <Button href={photo.polaroidUrl} size="sm" prefetch={false}>
+                <Download className="mr-2 h-4 w-4" aria-hidden />
+                Unduh Polaroid
+              </Button>
+            ) : null}
+            {url ? (
+              <Button href={url} variant="secondary" size="sm" target="_blank" rel="noopener noreferrer" prefetch={false}>
+                <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
+                Buka Foto Asli
+              </Button>
+            ) : (
+              <Button type="button" variant="secondary" size="sm" disabled>
+                <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
+                Buka Foto Asli
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       <button
+        ref={closeRef}
         type="button"
         aria-label="Tutup pratinjau"
         onClick={onClose}
@@ -125,11 +181,6 @@ export function Lightbox({ photos, index, onClose, onNavigate }: LightboxProps) 
         </button>
       ) : null}
 
-      <div onClick={(e) => e.stopPropagation()} className="absolute bottom-5">
-        <Button href={url ?? "#"} variant="secondary" size="sm" disabled={!url}>
-          Buka Ukuran Penuh
-        </Button>
-      </div>
     </div>
   );
 }

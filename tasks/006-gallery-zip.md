@@ -2,6 +2,9 @@
 
 *Status: Selesai (2026-08-28) — seluruh AC terverifikasi manual (owner) · Prioritas: High · Phase: MVP*
 
+*Enhancement approved 2026-09-12: galeri digabung ke workspace Momen; ZIP kini
+memiliki format Polaroid (utama) dan original (sekunder), dengan jalur resumable.*
+
 Depends on: 002, 004
 
 ---
@@ -12,7 +15,7 @@ Vendor melihat semua foto tamu real-time dan mengunduh semuanya sebagai satu ZIP
 
 ## 2. Scope
 
-- Halaman `/dashboard/events/[eventId]/gallery`.
+- Halaman kanonik `/dashboard/events/[eventId]/moments`; `/gallery` redirect kompatibilitas.
 - Grid foto (thumbnail dari bucket `thumbs`), infinite scroll / load-more.
 - Realtime refresh: subscribe Supabase Realtime pada insert `photos` (foto baru muncul tanpa reload).
 - Lightbox preview full-size (signed URL).
