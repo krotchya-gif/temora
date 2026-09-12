@@ -650,6 +650,12 @@ yang gagal hanyalah render setelah refresh; kini aman.
   mengalami overflow horizontal. Gambar kamera yang lazy-loaded juga diverifikasi
   setelah masuk viewport. Indikator `N` hitam pada screenshot mobile berasal dari
   Next.js dev tools dan tidak tampil pada production build.
+- Susulan (2026-09-12): audit ulang menemukan visual langkah "Kelola & unduh"
+  masih mengulang foto placeholder yang sama tiga kali (satu besar + dua crop)
+  — melanggar Anti-Slop Gate §11 soal pengulangan mockup. Diganti panel galeri
+  vendor: satu momen dengan chip "Baru masuk", baris berkas `semua-momen.zip`,
+  dan CTA unduh. Terverifikasi ulang render 360×800 & 1440×900 (tanpa
+  overflow, crop foto fokus ke wajah).
 
 ## Verifikasi upload atomik dan flash kamera (2026-09-12)
 

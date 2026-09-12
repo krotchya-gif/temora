@@ -7,6 +7,7 @@ import {
   Camera,
   Check,
   Download,
+  FileArchive,
   QrCode,
   Sparkles,
 } from "lucide-react";
@@ -89,19 +90,20 @@ function StepVisual({ stepIndex, qrDataUrl }: { stepIndex: number; qrDataUrl: st
       <div className="flex items-center justify-between border-b border-bg-base/15 pb-5 text-[10px] uppercase tracking-[0.22em] text-bg-base/60">
         <span>Galeri event</span><span>Live</span>
       </div>
-      <div className="mt-6 grid grid-cols-[1.2fr_0.8fr] gap-3">
-        <div className="relative row-span-2 aspect-[3/4] overflow-hidden rounded-xl">
-          <Image src={GUEST_PLACEHOLDER_PHOTO} alt="Foto utama pada contoh galeri TEMORA" fill sizes="240px" className="object-cover" />
-        </div>
-        {["object-left", "object-right"].map((position, index) => (
-          <div key={position} className="relative overflow-hidden rounded-xl">
-            <Image src={GUEST_PLACEHOLDER_PHOTO} alt={`Foto ${index + 2} pada contoh galeri TEMORA`} fill sizes="150px" className={`object-cover ${position}`} />
-            <span className="absolute bottom-2 left-2 font-mono text-[9px] text-bg-base/80">0{index + 2}</span>
-          </div>
-        ))}
+      <div className="relative mt-6 overflow-hidden rounded-xl">
+        <Image src={GUEST_PLACEHOLDER_PHOTO} alt="Contoh momen yang masuk ke galeri event" width={640} height={288} sizes="288px" className="h-32 w-full object-cover object-[50%_28%] sm:h-36" />
+        <span className="absolute bottom-2 left-2 rounded-full bg-text-primary/70 px-2.5 py-1 text-[10px] font-medium tracking-[0.12em] text-bg-base uppercase">Baru masuk</span>
       </div>
-      <div className="mt-7 flex items-center justify-between rounded-xl bg-bg-base/10 px-4 py-3 text-sm">
-        <span>Semua momen terkumpul</span><Download className="h-4 w-4" aria-hidden />
+      <p className="mt-3 text-xs leading-relaxed text-bg-base/70">Momen dari setiap meja masuk otomatis ke galeri ini.</p>
+      <div className="mt-5 flex items-center gap-3 rounded-xl bg-bg-base/10 px-4 py-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-bg-base/10"><FileArchive className="h-4 w-4" aria-hidden /></span>
+        <span className="min-w-0">
+          <span className="block truncate text-sm">semua-momen.zip</span>
+          <span className="block text-[11px] text-bg-base/60">Resolusi tinggi · siap dibagikan</span>
+        </span>
+      </div>
+      <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-bg-base px-4 py-3 text-sm font-medium text-text-primary">
+        <Download className="h-4 w-4" aria-hidden /> Unduh semua momen
       </div>
     </div>
   );
