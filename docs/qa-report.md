@@ -829,6 +829,6 @@ setelah disimpan, dan mempertanyakan apakah cover dan frame fitur yang sama.
   pada file publik (thumb + frame).
 - `cover_image_url` `blob:` event `Mabar ff` di-reset ke `NULL` (data
   correction; UI kini juga defensif menolak `blob:`).
-- **Pending**: verifikasi visual owner — guest camera menampilkan frame,
-  label baru "Cover tamu" / "Frame & Kartu QR", dan upload cover dari UI
-  (memvalidasi fix blob end-to-end).
+- Verifikasi visual owner (2026-09-12): ✅ guest camera menampilkan frame, label
+  "Cover tamu" / "Frame & Kartu QR" tampil benar, upload cover dari UI berhasil
+  (fix blob end-to-end tervalidasi).
