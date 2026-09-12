@@ -334,13 +334,18 @@ Muncul sebelum kamera aktif:
 ### Homepage hero (brand-led)
 
 Homepage memakai hero minimal berpusat pada wordmark TEMORA, tetapi tetap
-menunjukkan product proof melalui mockup HP portrait di samping/bawah brand
-stage. Mockup menampilkan guest camera TEMORA (nama event, frame, filter, sisa
-foto, shutter, dan galeri) dengan animasi masuk yang lembut. Kanvas kamera pada
-mockup homepage memakai aset lokal candid party portrait 3:4 yang sama dengan
-preview setup event agar frame dan treatment warna dapat dinilai; aset foto tidak
-boleh memuat UI, teks, frame, atau watermark bawaan dan tidak boleh tampil sebagai
-bidang dekoratif kosong. Interaksi hover
+menunjukkan product proof di samping/bawah brand stage. Pada desktop, product
+proof memakai komposit transparan `public/images/temora-product-mockup-v2.png`:
+dua HP, kamera instan, cetakan foto, dan strip film yang membentuk satu siluet
+rapi, dengan guest camera TEMORA sebagai fokus terbesar. Komposit ditampilkan
+tanpa panel atau kartu tambahan agar transparansinya menyatu dengan `bg-base`.
+Pada layar kecil, gunakan mockup HP portrait tunggal supaya kontrol kamera tetap
+terbaca dan kepadatan visual terjaga. Kedua varian harus menunjukkan guest camera
+TEMORA (nama event, frame, filter, sisa foto, shutter, dan galeri) dengan animasi
+masuk yang lembut. Kanvas kamera pada mockup HP tunggal memakai aset lokal candid
+party portrait 3:4 yang sama dengan preview setup event agar frame dan treatment
+warna dapat dinilai; aset sumber foto tidak boleh memuat UI, teks, frame, atau
+watermark bawaan dan tidak boleh tampil sebagai bidang dekoratif kosong. Interaksi hover
 pointer atau focus keyboard pada wordmark memunculkan ikon kamera dan lingkaran
 aksen halus. Pada layar sentuh mockup tetap terlihat tanpa bergantung pada
 hover. Pada layar kecil hero memakai susunan satu kolom dengan wordmark yang
@@ -431,6 +436,7 @@ Max width konten `max-w-6xl`; padding `px-4 sm:px-6 lg:px-8`.
 | Card hover | Gentle lift | 200ms |
 | Gallery load | Staggered fade-in | 50ms/item |
 | Shutter press | Scale pulse | 150ms |
+| **Homepage product proof** | Komposit transparan fade-up sekali, lalu floating vertikal ±8px dengan rotasi mikro ±0.35°; berhenti saat reduced motion | 450ms masuk · 6.5s loop |
 | **Tali Momen** (landing) | Kartu polaroid tergantung di tali; drag horizontal + inersia (friksi 0.94/frame, rAF) + infinite loop (set ×2, offset wrap); rotasi kartu golden-ratio ±2.5°; hover kartu → rotate(0) lift | inersia ~1–2s decay |
 | Tali Momen — klik kartu | Overlay detail: fade backdrop + scale 0.96→1 + foto mainkan **polaroid develop** | 350ms · develop 800ms |
 | Tali Momen — sway kontinu | Semua kartu bergoyang ±1.4° sekitar engsel gantung (3.8s alternate), delay fase negatif per kartu → gelombang alami; hover = pause sway | infinite |

@@ -254,11 +254,13 @@ Location pages dapat dikembangkan berdasarkan area operasional, misalnya:
 
 **Keep The Moments Close.**
 
-Homepage visual direction (2026-09-11): hero tetap minimal dan brand-led,
-tetapi product proof ditampilkan lewat mockup HP portrait guest camera di dekat
-wordmark. Interaksi hover/focus memunculkan motif kamera; mockup tetap terlihat
-di layar sentuh. CTA vendor tetap tersedia dan stock photo bukan visual hero
-utama.
+Homepage visual direction (2026-09-12): hero tetap minimal dan brand-led.
+Pada desktop, product proof ditampilkan lewat komposit transparan TEMORA yang
+memadukan dua HP, kamera instan, cetakan foto, dan strip film dengan guest camera
+sebagai fokus visual. Pada layar kecil, mockup HP portrait tunggal tetap dipakai
+agar UI kamera terbaca dan hero tidak terlalu padat. Interaksi hover/focus pada
+wordmark tetap memunculkan motif kamera, CTA vendor tetap tersedia, dan stock
+photo bukan visual hero utama.
 
 ### Homepage Supporting Copy
 

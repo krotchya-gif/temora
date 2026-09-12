@@ -85,6 +85,11 @@
     animation: phone-float 5.5s ease-in-out infinite;
   }
 
+  /* Homepage product proof: floating cukup terasa, tanpa membuat cluster bergeser. */
+  .animate-product-float {
+    animation: product-float 6.5s ease-in-out infinite;
+  }
+
   .animate-phone-shutter {
     animation: phone-shutter 2.8s ease-in-out infinite;
   }
@@ -127,6 +132,16 @@
   }
   50% {
     transform: translateY(-9px) rotate(-1.2deg);
+  }
+}
+
+@keyframes product-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-0.35deg);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0) rotate(0.35deg);
   }
 }
 

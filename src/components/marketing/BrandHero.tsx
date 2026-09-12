@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Camera, ChevronDown, Sparkles } from "lucide-react";
 import { GUEST_PLACEHOLDER_PHOTO, GuestPhoneMockup } from "@/components/photobooth/GuestPhoneMockup";
@@ -9,7 +10,7 @@ export function BrandHero() {
   return (
     <section className="relative flex min-h-[calc(100dvh-73px)] items-center justify-center overflow-hidden bg-bg-base px-4 py-12 sm:px-8 sm:py-16">
       <div className="pointer-events-none absolute inset-0 bg-glow-accent" aria-hidden />
-      <div className="relative z-10 grid w-full max-w-5xl min-w-0 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-20">
+      <div className="relative z-10 grid w-full max-w-6xl min-w-0 items-center gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-16">
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
           <h1 className="sr-only">Keep The Moments Close.</h1>
           <button
@@ -60,7 +61,7 @@ export function BrandHero() {
           </p>
         </div>
 
-        <div className="relative mx-auto w-[min(72vw,18rem)] max-w-full lg:mx-0 lg:justify-self-end" aria-label="Preview guest camera TEMORA">
+        <div className="relative mx-auto w-[min(72vw,18rem)] max-w-full lg:hidden" aria-label="Preview guest camera TEMORA">
           <div className="absolute -inset-8 rounded-full border border-accent-secondary/20" aria-hidden />
           <GuestPhoneMockup
             title="party dirumah"
@@ -72,6 +73,19 @@ export function BrandHero() {
             caption="Tampilan tamu · preview"
             animate
             className="w-full"
+          />
+        </div>
+
+        <div className="relative hidden w-full max-w-lg items-center justify-center justify-self-end animate-fade-up motion-reduce:animate-none lg:flex" aria-label="Preview pengalaman virtual photobooth TEMORA">
+          <div className="absolute inset-[12%] rounded-full bg-accent-secondary/10 blur-3xl" aria-hidden />
+          <Image
+            src="/images/temora-product-mockup-v2.png"
+            alt="Dua ponsel dengan guest camera TEMORA, kamera instan, cetakan foto, dan strip momen dari sebuah pesta"
+            width={1254}
+            height={1254}
+            priority
+            sizes="(min-width: 1280px) 512px, (min-width: 1024px) 48vw, 0px"
+            className="relative h-auto w-full animate-product-float object-contain motion-reduce:animate-none"
           />
         </div>
       </div>
