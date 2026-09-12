@@ -619,9 +619,11 @@ yang gagal hanyalah render setelah refresh; kini aman.
   menampilkan judul, subjudul, dan teks tombol secara live; homepage/setup tetap
   memakai miniatur guest camera dengan header, kanvas 3:4, zoom, shutter, dan
   kontrol bawah.
-- Placeholder foto kamera dikonversi dari PNG 1.99 MB menjadi JPEG lokal
-  `public/images/guest-camera-placeholder.jpg` sekitar 191 KB. PNG duplikat
-  dihapus karena tidak lagi direferensikan.
+- Placeholder foto kamera memakai JPEG lokal
+  `public/images/guest-camera-placeholder.jpg` sekitar 191 KB. File PNG lama
+  `guest-camera-placeholder-2.png` (2,23 MB, tidak pernah masuk git dan tidak
+  direferensikan kode) dihapus permanen 2026-09-12 setelah verifikasi: isinya
+  foto berbeda dari JPEG aktif — bukan duplikat identik seperti catatan awal.
 - Batas kuota upload diperkuat dengan migration
   `20260912090000_atomic_guest_photo_insert.sql`: RPC mengunci row event,
   memvalidasi event/table/expiry/quota, menangani dedup, lalu insert foto secara
