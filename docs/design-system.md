@@ -1,10 +1,11 @@
 # Design System — TEMORA
 
-*Versi: 1.5 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.6 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: token & microcopy v1.0 (kanonik) + motion, imagery & brand assets dari draft lanjutan.*
 *Brand foundation: [BRAND.md](BRAND.md)*
 
 *Patch 1.5 (2026-09-12): halaman Cara Kerja memakai alur editorial tiga langkah—hero foto bergaya cetak, timeline bernomor, QR valid, visual kamera/galeri berbasis aset lokal, dan CTA penutup. Langkah kamera memakai screenshot UI tamu nyata di dalam frame HP (`guest-camera-ui-mockup.png`); komponen live tetap digunakan untuk dashboard/editor. Halaman tidak memakai tiga kartu fitur simetris atau blok warna palsu.*
+*Patch 1.6 (2026-09-12): microcopy hint cover screen tamu "Ketuk untuk masuk ke photobooth" (§6) dan durasi dismiss install prompt PWA menjadi 3 hari (§6). Fallback gambar momen/placeholder tidak menambah token warna baru — memakai token kanonik yang ada.*
 
 ---
 
@@ -439,7 +440,8 @@ Max width konten `max-w-6xl`; padding `px-4 sm:px-6 lg:px-8`.
 **Tali Momen** (task showcase): interaksi drag memakai pointer events native
 (bukan delegasi React) agar mulus; `touchAction: pan-y` supaya scroll halaman
 tetap hidup; threshold tap-vs-drag 6px; `prefers-reduced-motion` → **inersia
-dimatikan total** (vel = 0 saat lepas), entrance animation dilewati. Semua
+diredam** (friksi 0.75/frame, `vel × 0.2` saat lepas — bukan dimatikan total;
+lihat qa-report §6g), entrance animation dilewati. Semua
 warna via token (`accent`→`accent-secondary` untuk tali, `bg-card` polaroid).
 
 Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung tampil).

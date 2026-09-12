@@ -1,16 +1,16 @@
 # Architecture — TEMORA
 
-*Versi: 1.11 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.12 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
-*Patch 1.12 (2026-09-12): cooldown dismiss install prompt PWA dinaikkan dari 24 jam menjadi 3 hari (keputusan owner).*
 *Patch 1.6 (2026-09-10): halaman photobooth membaca event+table via service role dengan 4 status eksplisit (aktif/selesai/tautan-salah/gangguan, §5); base URL QR dinormalisasi tanpa trailing slash (§5); PATCH showcase multipart ganti gambar+judul+kutipan satu aksi (§3.3).*
 *Patch 1.7 (2026-09-10): file media ditulis `0644`, folder `0755` — default `0600` tak ter-serve sebagai statis (thumbnail 404 padahal file ada). Detail §11.1, runbook §3, qa-report.*
 *Patch 1.8 (2026-09-11): setup studio memperbarui preview kamera secara live; konfigurasi kartu QR event (template, judul, subjudul, tagline) disimpan di `events` dan dipakai halaman print A4. Migration cover, camera setup, QR card, dan watermark diverifikasi di production.*
 *Patch 1.9 (2026-09-12): upload foto tamu memakai RPC `insert_guest_photo_atomic` untuk lock row event, validasi kuota, deduplikasi, dan insert atomik (`20260912090000_atomic_guest_photo_insert.sql`). Migration diterapkan dan diverifikasi di production melalui MCP Supabase pada 2026-09-12; advisory yang sudah ada tetap dicatat di qa-report dan bukan akibat migration ini.*
 *Patch 1.10 (2026-09-12): uptime monitor eksternal (UptimeRobot) di-descope oleh owner — monitoring uptime via probe manual `/api/health` + log hPanel; cron tetap dipicu pinger cron-job.org. Device lab & uji rollback dinyatakan terverifikasi owner (qa-report Ronde Launch Gate).*
 *Patch 1.11 (2026-09-12): integrasi notifikasi WhatsApp (Cloud API) dihapus atas keputusan owner — `enqueueWa`, cron `wa-queue`/`wa-reminders`, webhook Meta, settings WA, tabel `whatsapp_logs`, dan kolom `vendors.wa_opt_in` dihapus. Aktivasi vendor tetap via deep-link `wa.me` (`NEXT_PUBLIC_WA_ADMIN_NUMBER`).*
+*Patch 1.12 (2026-09-12): cooldown dismiss install prompt PWA dinaikkan dari 24 jam menjadi 3 hari (keputusan owner); fallback gambar momen memakai placeholder SVG lokal (`/images/moment-placeholder.svg`); viewport RopeMoments memakai `overflow-x-clip` agar tidak memunculkan scrollbar desktop. Detail §13, design-system §6, qa-report Ronde Perbaikan Audit.*
 
 ---
 

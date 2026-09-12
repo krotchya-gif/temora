@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title">
   <title id="title">TEMORA — momen pilihan</title>
   <rect width="640" height="480" fill="#F9F6F1"/>
-  <g fill="none" stroke="#E7DFD2" stroke-width="1">
+  <g fill="none" stroke="#E8E1D6" stroke-width="1">
     <circle cx="320" cy="240" r="150"/>
     <circle cx="320" cy="240" r="120"/>
     <circle cx="320" cy="240" r="90"/>
