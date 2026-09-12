@@ -54,6 +54,17 @@ export async function POST(request: Request) {
     );
   }
 
+  // Akun auth tanpa baris vendors = akun rusak (zombie, lihat qa-report).
+  // Superadmin tidak punya baris vendors — diizinkan karena ditandai
+  // app_metadata.role, bukan relasi ke tabel vendors.
+  if (!vendor && !isSuperAdmin(data.user)) {
+    await supabase.auth.signOut();
+    return NextResponse.json(
+      { error: "Akun tidak ditemukan. Hubungi admin TEMORA." },
+      { status: 403 },
+    );
+  }
+
   // Superadmin diarahkan ke panel admin oleh client berdasar flag ini.
   return NextResponse.json({ ok: true, isAdmin: isSuperAdmin(data.user) });
 }

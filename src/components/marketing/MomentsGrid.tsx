@@ -39,7 +39,7 @@ export function MomentsGrid({ items }: MomentsGridProps) {
                 const img = e.currentTarget;
                 if (!img.dataset.fb) {
                   img.dataset.fb = "1";
-                  img.src = picsumFallback(item.id);
+                  img.src = picsumFallback();
                 }
               }}
               className="w-full bg-bg-warm object-cover transition-transform duration-500 group-hover:scale-[1.025] motion-reduce:transition-none"
@@ -91,7 +91,7 @@ export function MomentsGrid({ items }: MomentsGridProps) {
                 const img = e.currentTarget;
                 if (!img.dataset.fb) {
                   img.dataset.fb = "1";
-                  img.src = picsumFallback(active.id);
+                  img.src = picsumFallback();
                 }
               }}
               className="animate-develop max-h-[60vh] w-full rounded-xl bg-bg-warm object-contain"

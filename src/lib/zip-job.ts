@@ -23,6 +23,8 @@ export type ZipJobStatus = {
   status: "running" | "done" | "error";
   total: number;
   processed: number;
+  /** Jumlah foto yang gagal diunduh dari media service — dicek saat finalisasi. */
+  missing?: number;
   /** Epoch ms — klaim eksklusif sederhana antar invokasi bersamaan. */
   leaseUntil: number;
   downloadUrl?: string;
@@ -119,7 +121,13 @@ export async function advanceJob(
     let processed = status.processed;
     for (const [i, row] of (rows ?? []).entries()) {
       let blob: ArrayBuffer;
-      try { blob = (await downloadStorageFile(row.storage_path)).bytes; } catch { continue; }
+      try { blob = (await downloadStorageFile(row.storage_path)).bytes; } catch {
+        // Foto tak terunduh — dicatat, bukan ditelan diam-diam. Finalisasi
+        // menolak menandai "done" bila ada yang hilang.
+        status.missing = (status.missing ?? 0) + 1;
+        processed += 1;
+        continue;
+      }
       await uploadStorageFile(stagingPath(eventId, jobId, from + i), blob, "image/jpeg");
       processed += 1;
     }
@@ -153,10 +161,28 @@ async function finalizeJob(
 ): Promise<ZipJobStatus> {
   const { eventId, jobId, slug, status } = opts;
 
+  // Ada foto yang gagal diunduh → jangan laporkan ZIP "done" setengah isi.
+  if ((status.missing ?? 0) > 0) {
+    status.status = "error";
+    status.error =
+      "Beberapa foto gagal diunduh dari media service. Coba buat ZIP lagi.";
+    status.leaseUntil = 0;
+    await writeStatus(admin, eventId, jobId, status);
+    return status;
+  }
+
   const zip = new JSZip();
   for (let i = 0; i < status.total; i++) {
     let data: ArrayBuffer;
-    try { data = (await downloadStorageFile(stagingPath(eventId, jobId, i))).bytes; } catch { continue; }
+    try { data = (await downloadStorageFile(stagingPath(eventId, jobId, i))).bytes; } catch {
+      // Staging tak lengkap walau missing=0 → anomali; gagalkan bukan "done".
+      status.status = "error";
+      status.error =
+        "Beberapa file foto tidak ditemukan. Coba buat ZIP lagi.";
+      status.leaseUntil = 0;
+      await writeStatus(admin, eventId, jobId, status);
+      return status;
+    }
     zip.file(`momen-${String(i + 1).padStart(4, "0")}.jpg`, data);
   }
 

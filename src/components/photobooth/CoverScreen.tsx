@@ -43,7 +43,7 @@ export function CoverScreen({ event, onContinue }: CoverScreenProps) {
             </div>
           </div>
         </div>
-        <p className="mt-5 text-xs text-text-secondary">Geser untuk masuk ke photobooth</p>
+        <p className="mt-5 text-xs text-text-secondary">Ketuk untuk masuk ke photobooth</p>
       </div>
     </main>
   );

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title">
+  <title id="title">TEMORA — momen pilihan</title>
+  <rect width="640" height="480" fill="#F9F6F1"/>
+  <g fill="none" stroke="#E7DFD2" stroke-width="1">
+    <circle cx="320" cy="240" r="150"/>
+    <circle cx="320" cy="240" r="120"/>
+    <circle cx="320" cy="240" r="90"/>
+  </g>
+  <text x="320" y="226" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="44" letter-spacing="6" fill="#8B7355">TEMORA</text>
+  <text x="320" y="258" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="15" letter-spacing="3" fill="#8B7355">KEEP THE MOMENTS CLOSE</text>
+</svg>

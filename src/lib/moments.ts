@@ -21,7 +21,7 @@ export function momentImageUrl(row: ShowcaseRow, _publicBase: string): string {
   return publicStorageUrl(row.storage_path ?? "");
 }
 
-/** Fallback gambar stabil per id agar UI tak pernah kosong. */
-export function picsumFallback(id: string): string {
-  return `https://picsum.photos/seed/temora-moment-${id}/640/480`;
+/** Fallback gambar stabil bermerek TEMORA (lokal) agar UI tak pernah kosong. */
+export function picsumFallback(): string {
+  return "/images/moment-placeholder.svg";
 }

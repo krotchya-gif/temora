@@ -731,3 +731,45 @@ yang gagal hanyalah render setelah refresh; kini aman.
   (`(photos|thumbs|frames|sponsors|showcase|zips)`) padahal `storage.ts`
   mendukung area `covers` → purge prefix cover selalu 400. Perlu diselaraskan
   saat menyentuh media service (deploy manual — media-service/README.md).
+
+## Ronde Perbaikan Audit (2026-09-12)
+
+Perbaikan dari audit menyeluruh (sekuritas + UX + dead code), terverifikasi
+lokal lint ✓ typecheck ✓ unit 55/55 ✓ build ✓:
+
+1. **Cover upload** (`events/[eventId]/cover`): tambah validasi magic-byte
+   (`isImageBuffer` — JPEG/PNG asli, bukan deklarasi MIME client) + hapus file
+   yatim bila update DB gagal setelah upload sukses (pola sama showcase).
+2. **Dead code** di `events/[eventId]` PUT: blok duplikat `tier !== "pro"`
+   unreachable (sisa refactor) dihapus.
+3. **Zombie account**: login kini menolak user auth tanpa baris `vendors`
+   (selain superadmin — yang ditandai `app_metadata.role`, bukan relasi
+   vendors) → mencegah login ke dashboard rusak. Urutan DELETE vendor dibalik:
+   auth user dihapus duluan, baris vendors menyusul — kegagalan hapus auth
+   menghentikan proses (bukan meninggalkan zombie yang bisa login).
+4. ~~**RopeMoments** (marketing): `wheel` hanya diambil alih bila sumbu
+   horizontal dominan (`deltaX > deltaY`) — gulir vertikal halaman tidak lagi
+   di-hijack.~~ **DIBATALKAN** (2026-09-12): `RopeMoments.tsx` dikembalikan ke
+   versi sebelumnya atas keputusan owner.
+5. **LUT manifest**: `getLuts()` kini benar-benar memakai hasil
+   `/luts/manifest.json` (validasi bentuk + default) alih-alih membuang
+   respons lalu selalu fallback ke katalog bundel.
+6. **Fallback gambar momen**: `picsumFallback` mengganti foto stock acak
+   picsum.photos dengan placeholder SVG bermerek TEMORA lokal
+   (`/images/moment-placeholder.svg`).
+7. **Microcopy cover**: "Geser untuk masuk ke photobooth" → "Ketuk untuk
+   masuk ke photobooth" (aksi sebenarnya tombol, bukan swipe) + row di
+   design-system §6.
+8. **ZIP job**: foto yang gagal diunduh dicatat (`missing`), finalisasi
+   menolak menandai `done` bila ada yang hilang → status `error` dengan pesan
+   jelas (bukan ZIP setengah isi).
+9. **`admin/events` GET**: error query kini dibalas 500, bukan `{events:[]}`
+   senyap.
+10. **Install prompt PWA**: cooldown dismiss dinaikkan 24 jam → **3 hari**
+    (`DISMISS_COOLDOWN_MS`). Prompt tetap global via root layout (homepage,
+    dashboard, dst), kecuali halaman photobooth `/p/`.
+11. **Scrollbar RopeMoments** (desktop): viewport diganti `overflow-x-hidden`
+    → `overflow-x-clip`. `overflow-x: hidden` membuat sumbu Y terhitung `auto`
+    (scroll container) sehingga track yang meluber ke atas memunculkan
+    scrollbar vertikal; `clip` menjaga sumbu Y tetap `visible` tanpa scroll
+    container. Verifikasi visual di browser owner (pending).

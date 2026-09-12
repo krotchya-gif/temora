@@ -141,26 +141,28 @@ export async function DELETE(
     }
   }
 
-  // 2. Hapus baris vendors → cascade events/photos/subscriptions.
+  // 2. Hapus akun auth DULU. Bila gagal, hentikan tanpa menyentuh baris
+  //    vendors — mencegah zombie (auth user tanpa vendors row yang bisa
+  //    login ke dashboard rusak). Baris vendors dihapus setelahnya.
+  const { error: authError } = await admin.auth.admin.deleteUser(vendorId);
+  if (authError) {
+    console.error("[admin] delete_vendor auth:", authError.message);
+    return NextResponse.json(
+      { error: "Gagal menghapus akun vendor. Coba lagi." },
+      { status: 500 },
+    );
+  }
+
+  // 3. Hapus baris vendors → cascade events/photos/subscriptions.
   const { error: dbError } = await admin
     .from("vendors")
     .delete()
     .eq("id", vendorId);
   if (dbError) {
     console.error("[admin] delete_vendor db:", dbError.message);
-    return NextResponse.json(
-      { error: "Gagal menghapus data vendor." },
-      { status: 500 },
-    );
-  }
-
-  // 3. Hapus akun auth.
-  const { error: authError } = await admin.auth.admin.deleteUser(vendorId);
-  if (authError) {
-    console.error("[admin] delete_vendor auth:", authError.message);
     return NextResponse.json({
       ok: true,
-      warning: "Data terhapus tapi akun auth masih ada — cek manual.",
+      warning: "Akun auth terhapus tapi data vendor masih ada — cek manual.",
     });
   }
 

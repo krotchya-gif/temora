@@ -85,10 +85,6 @@ export async function PUT(
         { status: 403 },
       );
     }
-
-    if (tier !== "pro") {
-      return NextResponse.json({ error: "Watermark default wajib aktif." }, { status: 403 });
-    }
   }
 
   // Aktivasi ulang → cek kuota event aktif per tier (kecuali event ini sendiri sudah aktif).

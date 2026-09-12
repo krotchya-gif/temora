@@ -10,12 +10,24 @@ let lutsPromise: Promise<LutDef[]> | null = null;
 /** Daftar filter runtime dari manifest.json; fallback FALLBACK_LUTS. */
 export function getLuts(): Promise<LutDef[]> {
   if (!lutsPromise) {
-    lutsPromise = fetch("/luts/manifest.json")
+    lutsPromise = fetch("/luts/manifest.json", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error("manifest tidak tersedia");
         return res.json() as Promise<LutDef[]>;
       })
-      .then(() => FALLBACK_LUTS)
+      .then((manifest) => {
+        if (!Array.isArray(manifest) || manifest.length === 0) {
+          throw new Error("manifest kosong");
+        }
+        // Jamin bentuk yang dipakai konsumen (id/file wajib, label/strength
+        // boleh default) — manifest curatorial, bukan milik user.
+        return manifest.map((entry, index) => ({
+          id: String(entry.id ?? `lut-${index}`),
+          label: String(entry.label ?? "Filter"),
+          file: String(entry.file ?? ""),
+          strength: typeof entry.strength === "number" ? entry.strength : 0.5,
+        }));
+      })
       .catch(() => FALLBACK_LUTS);
   }
   return lutsPromise;

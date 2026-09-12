@@ -107,7 +107,7 @@ function RopeCard({
                 const img = e.currentTarget;
                 if (!img.dataset.fb) {
                   img.dataset.fb = "1";
-                  img.src = picsumFallback(item.id);
+                  img.src = picsumFallback();
                 }
               }}
               style={{ animationDelay: `${(i % 12) * 0.05 + 0.15}s` }}
@@ -198,7 +198,7 @@ function MomentOverlay({
               const img = e.currentTarget;
               if (!img.dataset.fb) {
                 img.dataset.fb = "1";
-                img.src = picsumFallback(item.id);
+                img.src = picsumFallback();
               }
             }}
             className="animate-develop aspect-[4/3] w-full rounded-md object-cover"
@@ -370,7 +370,7 @@ export function RopeMoments({ items }: RopeMomentsProps) {
         <div
           ref={viewportRef}
           data-testid="rope-viewport"
-          className="relative cursor-grab select-none overflow-x-hidden active:cursor-grabbing"
+          className="relative cursor-grab select-none overflow-x-clip active:cursor-grabbing"
           style={{ touchAction: "pan-y" }}
         >
           <motion.div

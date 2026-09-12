@@ -461,6 +461,7 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Setelah simpan/share sukses (tamu) | "Momen sekarang ada di HP-mu ✨" |
 | Field link kustom (form event) | Label "Link kustom (opsional)" · helper "Kosongkan untuk otomatis dari nama event." |
 | Event berakhir | "Acara ini sudah selesai. Terima kasih sudah jadi bagian dari momennya." |
+| Hint cover screen (tamu) | "Ketuk untuk masuk ke photobooth" — tombol CTA, bukan swipe |
 | Photobooth gagal dimuat | "Momennya belum bisa dibuka. Coba muat ulang sebentar lagi, ya." + CTA "Coba lagi" |
 | Consent body (photobooth) | "Foto yang kamu ambil tersimpan ke galeri acara dan hanya bisa dilihat oleh penyelenggara. Foto otomatis terhapus paling lambat 30 hari setelah acara berakhir." |
 | Kamera ditolak | "Izin kamera belum aktif. Izinkan akses kamera lewat pengaturan browser-mu, lalu coba lagi ya." |
@@ -485,7 +486,7 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Install prompt PWA — judul | "Simpan TEMORA di layar utama" |
 | Install prompt PWA — deskripsi | "Buka cepat, momen tetap dekat. Tanpa perlu unduh aplikasi." |
 | Install prompt PWA — CTA | "Install" |
-| Install prompt PWA — dismiss | "Nanti Saja" — sembunyikan selama 24 jam sejak dismiss |
+| Install prompt PWA — dismiss | "Nanti Saja" — sembunyikan selama 3 hari sejak dismiss |
 | Install prompt PWA — iOS | "Ketuk ikon bagikan lalu pilih 'Tambahkan ke Layar Utama'." |
 
 ---

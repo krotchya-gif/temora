@@ -4,6 +4,7 @@
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
+*Patch 1.12 (2026-09-12): cooldown dismiss install prompt PWA dinaikkan dari 24 jam menjadi 3 hari (keputusan owner).*
 *Patch 1.6 (2026-09-10): halaman photobooth membaca event+table via service role dengan 4 status eksplisit (aktif/selesai/tautan-salah/gangguan, §5); base URL QR dinormalisasi tanpa trailing slash (§5); PATCH showcase multipart ganti gambar+judul+kutipan satu aksi (§3.3).*
 *Patch 1.7 (2026-09-10): file media ditulis `0644`, folder `0755` — default `0600` tak ter-serve sebagai statis (thumbnail 404 padahal file ada). Detail §11.1, runbook §3, qa-report.*
 *Patch 1.8 (2026-09-11): setup studio memperbarui preview kamera secara live; konfigurasi kartu QR event (template, judul, subjudul, tagline) disimpan di `events` dan dipakai halaman print A4. Migration cover, camera setup, QR card, dan watermark diverifikasi di production.*
@@ -560,7 +561,7 @@ Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
 | Web App Manifest | `src/app/manifest.ts` | Route handler Next → `/manifest.webmanifest`. Name, icons 192/512, `display: standalone`, `theme_color` = token `--color-bg-base` (#F9F6F1) |
 | Icon set | `public/favicon.ico`, `public/icons/favicon-96x96.png`, `apple-touch-icon.png`, `web-app-manifest-192x192.png`, `web-app-manifest-512x512.png`, `maskable-512.png` (lockup wordmark + ring-O; maskable & `public/og.png` 1200×630 di-generate `node scripts/build-brand-images.mjs` dari `public/logos/logo.png` — encoder/decode PNG murni Node/zlib, tanpa dependency) — sesuai design-system §8 |
 | Service Worker | `public/sw.js` | Statis di `public/` → ikut Git deploy; **tanpa** integrasi Next build. Versi cache via konstanta `CACHE_VERSION`; update = bump versi |
-| Install Prompt | `src/components/PwaInstallPrompt.tsx` | Client component di root layout. Kalau user dismiss, waktu disimpan di localStorage (`temora_pwa_dismissed`) dan prompt boleh muncul lagi setelah 24 jam. Sembunyi di halaman photobooth (`/p/`) |
+| Install Prompt | `src/components/PwaInstallPrompt.tsx` | Client component di root layout — berlaku di seluruh halaman (homepage, dashboard, dst), kecuali photobooth `/p/`. Kalau user dismiss, waktu disimpan di localStorage (`temora_pwa_dismissed`) dan prompt boleh muncul lagi setelah 3 hari |
 
 ### 13.2 Strategi Caching (`public/sw.js`)
 
@@ -573,7 +574,7 @@ Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
 ### 13.3 Install Prompt Behavior
 
 - Listen `beforeinstallprompt` (Chromium) — prompt browser asli, bukan UI tiruan.
-- **Dismiss** ("Nanti Saja") → simpan timestamp di `localStorage` → prompt disembunyikan selama 24 jam sejak dismiss, lalu boleh muncul lagi pada kunjungan berikutnya. Reset manual: hapus key localStorage.
+- **Dismiss** ("Nanti Saja") → simpan timestamp di `localStorage` → prompt disembunyikan selama **3 hari** sejak dismiss, lalu boleh muncul lagi pada kunjungan berikutnya. Berlaku di semua halaman (root layout) kecuali `/p/`. Reset manual: hapus key localStorage.
 - `appinstalled` → sembunyikan prompt.
 - iOS (Safari, tanpa `beforeinstallprompt`): tampil instruksi "Tambahkan ke Layar Utama" (mobile-first — tamu banyak di iOS).
 - Tidak muncul di halaman photobooth `/p/*` (immersive full-screen) dan bila sudah `display-mode: standalone`.

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isSameOrigin } from "@/lib/security";
-import { publicStorageUrl, uploadStorageFile } from "@/lib/storage";
+import { isImageBuffer, isSameOrigin } from "@/lib/security";
+import { deleteStorageFile, publicStorageUrl, uploadStorageFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -32,16 +32,26 @@ export async function POST(
     return NextResponse.json({ error: "Foto cover harus JPG atau PNG, maksimal 4 MB." }, { status: 415 });
   }
 
+  const bytes = Buffer.from(await file.arrayBuffer());
+  if (!isImageBuffer(bytes)) {
+    return NextResponse.json(
+      { error: "File cover tampak bukan gambar yang valid. Coba file lain ya." },
+      { status: 415 },
+    );
+  }
+
   const extension = file.type === "image/png" ? "png" : "jpg";
   const key = `covers/${event.vendor_id}/${event.id}/cover.${extension}`;
   try {
-    await uploadStorageFile(key, Buffer.from(await file.arrayBuffer()), file.type);
+    await uploadStorageFile(key, bytes, file.type);
     const admin = createAdminClient();
     const { error } = await admin.from("events").update({ cover_image_url: publicStorageUrl(key) }).eq("id", event.id);
     if (error) throw error;
     return NextResponse.json({ ok: true, coverImageUrl: publicStorageUrl(key) });
   } catch (error) {
     console.error("[cover.upload]", error);
+    // Jangan tinggalkan file yatim bila update DB gagal setelah upload sukses.
+    await deleteStorageFile(key).catch(() => {});
     return NextResponse.json({ error: "Gagal menyimpan foto cover. Coba lagi ya." }, { status: 500 });
   }
 }

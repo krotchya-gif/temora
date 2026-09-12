@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-// Install prompt PWA: dismiss disimpan sebagai timestamp dan berlaku 24 jam.
+// Install prompt PWA: dismiss disimpan sebagai timestamp dan berlaku 3 hari.
 // Microcopy dari design-system §6.
 const DISMISSED_KEY = "temora_pwa_dismissed";
 const INSTALLED_KEY = "temora_pwa_installed";
-const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const DISMISS_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
 
 function dismissedRecently(): boolean {
   const raw = localStorage.getItem(DISMISSED_KEY);
