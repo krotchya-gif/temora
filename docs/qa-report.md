@@ -652,10 +652,11 @@ yang gagal hanyalah render setelah refresh; kini aman.
   Next.js dev tools dan tidak tampil pada production build.
 - Susulan (2026-09-12): audit ulang menemukan visual langkah "Kelola & unduh"
   masih mengulang foto placeholder yang sama tiga kali (satu besar + dua crop)
-  — melanggar Anti-Slop Gate §11 soal pengulangan mockup. Diganti panel galeri
-  vendor: satu momen dengan chip "Baru masuk", baris berkas `semua-momen.zip`,
-  dan CTA unduh. Terverifikasi ulang render 360×800 & 1440×900 (tanpa
-  overflow, crop foto fokus ke wajah).
+  — melanggar Anti-Slop Gate §11 soal pengulangan mockup. Diganti grid tiga
+  momen berbeda dari aset lokal baru (`guest-camera-placeholder-2.jpg`,
+  `-4.png`, `-5.png`) dengan chip "Baru masuk", plus baris berkas
+  `semua-momen.zip` dan CTA unduh. Terverifikasi ulang render 360×800 &
+  1440×900 (tanpa overflow, semua foto tampil utuh, bukan crop terpotong).
 
 ## Verifikasi upload atomik dan flash kamera (2026-09-12)
 

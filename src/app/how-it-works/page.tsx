@@ -46,6 +46,13 @@ const stepNotes = [
   ],
 ] as const;
 
+// Tiga momen berbeda untuk mock galeri langkah 03 — bukan satu foto diulang.
+const GALLERY_PHOTOS = [
+  { src: "/images/guest-camera-placeholder-5.png", alt: "Tamu mengangkat gelas bersama di momen yang tersimpan" },
+  { src: "/images/guest-camera-placeholder-2.jpg", alt: "Tiga tamu tertawa di galeri event" },
+  { src: "/images/guest-camera-placeholder-4.png", alt: "Momen tiup lilin di galeri event" },
+] as const;
+
 function StepVisual({ stepIndex, qrDataUrl }: { stepIndex: number; qrDataUrl: string }) {
   if (stepIndex === 0) {
     return (
@@ -90,11 +97,18 @@ function StepVisual({ stepIndex, qrDataUrl }: { stepIndex: number; qrDataUrl: st
       <div className="flex items-center justify-between border-b border-bg-base/15 pb-5 text-[10px] uppercase tracking-[0.22em] text-bg-base/60">
         <span>Galeri event</span><span>Live</span>
       </div>
-      <div className="relative mt-6 overflow-hidden rounded-xl">
-        <Image src={GUEST_PLACEHOLDER_PHOTO} alt="Contoh momen yang masuk ke galeri event" width={640} height={288} sizes="288px" className="h-32 w-full object-cover object-[50%_28%] sm:h-36" />
-        <span className="absolute bottom-2 left-2 rounded-full bg-text-primary/70 px-2.5 py-1 text-[10px] font-medium tracking-[0.12em] text-bg-base uppercase">Baru masuk</span>
+      <div className="mt-6 grid grid-cols-[1.2fr_0.8fr] gap-3">
+        <div className="relative row-span-2 aspect-[3/4] overflow-hidden rounded-xl">
+          <Image src={GALLERY_PHOTOS[0].src} alt={GALLERY_PHOTOS[0].alt} fill sizes="240px" className="object-cover" />
+          <span className="absolute bottom-2 left-2 rounded-full bg-text-primary/70 px-2 py-0.5 text-[9px] font-medium tracking-[0.12em] text-bg-base uppercase">Baru masuk</span>
+        </div>
+        {GALLERY_PHOTOS.slice(1).map((photo, index) => (
+          <div key={photo.src} className="relative overflow-hidden rounded-xl">
+            <Image src={photo.src} alt={photo.alt} fill sizes="150px" className="object-cover" />
+            <span className="absolute bottom-2 left-2 font-mono text-[9px] text-bg-base/80">0{index + 2}</span>
+          </div>
+        ))}
       </div>
-      <p className="mt-3 text-xs leading-relaxed text-bg-base/70">Momen dari setiap meja masuk otomatis ke galeri ini.</p>
       <div className="mt-5 flex items-center gap-3 rounded-xl bg-bg-base/10 px-4 py-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-bg-base/10"><FileArchive className="h-4 w-4" aria-hidden /></span>
         <span className="min-w-0">

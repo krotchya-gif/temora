@@ -7,7 +7,7 @@
 *Patch 1.5 (2026-09-12): halaman Cara Kerja memakai alur editorial tiga langkah—hero foto bergaya cetak, timeline bernomor, QR valid, visual kamera/galeri berbasis aset lokal, dan CTA penutup. Langkah kamera memakai screenshot UI tamu nyata di dalam frame HP (`guest-camera-ui-mockup.png`); komponen live tetap digunakan untuk dashboard/editor. Halaman tidak memakai tiga kartu fitur simetris atau blok warna palsu.*
 *Patch 1.6 (2026-09-12): microcopy hint cover screen tamu "Ketuk untuk masuk ke photobooth" (§6) dan durasi dismiss install prompt PWA menjadi 3 hari (§6). Fallback gambar momen/placeholder tidak menambah token warna baru — memakai token kanonik yang ada.*
 *Patch 1.7 (2026-09-12): penamaan frame vs cover dipertegas — section setup "02 · Frame & Kartu QR" dan kartu dashboard "Cover tamu"; §3.5a + microcopy §6 diperbarui agar vendor tidak mengira ada dua upload untuk hal yang sama.*
-*Patch 1.8 (2026-09-12): visual langkah "Kelola & unduh" di `/how-it-works` tidak lagi mengulang foto placeholder yang sama tiga kali; diganti panel galeri vendor dengan satu momen, baris ZIP, dan CTA unduh (Anti-Slop §11 — tanpa pengulangan mockup). Terverifikasi render 360×800 & 1440×900.*
+*Patch 1.8 (2026-09-12): visual langkah "Kelola & unduh" di `/how-it-works` tidak lagi mengulang foto placeholder yang sama tiga kali; kini grid tiga momen berbeda (aset lokal `guest-camera-placeholder-2/4/5`) + baris ZIP + CTA unduh (Anti-Slop §11 — tanpa pengulangan mockup). Terverifikasi render 360×800 & 1440×900.*
 
 ---
 
