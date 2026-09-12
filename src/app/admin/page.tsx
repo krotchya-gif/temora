@@ -14,11 +14,6 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
-// Dipisah agar lolos aturan purity react-hooks (bukan pemanggilan global langsung).
-function weekAgoIso(): string {
-  return new Date(Date.now() - 7 * 86_400_000).toISOString();
-}
-
 // Overview superadmin (task 019): statistik inti + kesehatan operasional.
 export default async function AdminOverviewPage() {
   const admin = createAdminClient();
@@ -30,7 +25,6 @@ export default async function AdminOverviewPage() {
     { count: totalPhotos },
     { data: tiers },
     { data: subs },
-    { count: waFailed },
     { data: auditRows },
     { data: sizes },
   ] = await Promise.all([
@@ -46,11 +40,6 @@ export default async function AdminOverviewPage() {
       .is("deleted_at", null),
     admin.from("vendors").select("subscription_tier, banned_at"),
     admin.from("subscriptions").select("status"),
-    admin
-      .from("whatsapp_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "failed")
-      .gte("created_at", weekAgoIso()),
     admin
       .from("admin_audit_logs")
       .select("actor_email, action, created_at")
@@ -137,11 +126,7 @@ export default async function AdminOverviewPage() {
             Subs paid {subCount.paid} / pending {subCount.pending}
           </p>
           <p className="text-xs text-text-secondary">
-            WA gagal 7 hari:{" "}
-            <span className={waFailed ? "font-medium text-danger" : ""}>
-              {waFailed ?? 0}
-            </span>{" "}
-            · expired {subCount.expired}
+            expired {subCount.expired}
           </p>
         </Card>
       </div>

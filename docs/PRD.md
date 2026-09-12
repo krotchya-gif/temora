@@ -1,7 +1,7 @@
 # PRD: TEMORA — Virtual Photobooth for the Moments That Matter
 
-*Versi: 1.2 · Tanggal: 2026-08-25 · Status: Approved*
-*Konsolidasi v1.0 + riset kompetitor. Patch logika v1.2: [database.md](database.md) §2.7 · Keputusan terkunci: [README.md](../README.md) §Keputusan Terkunci*
+*Versi: 1.3 · Tanggal: 2026-09-12 · Status: Approved*
+*Konsolidasi v1.0 + riset kompetitor. Patch logika v1.2: [database.md](database.md) §2.7 · Patch v1.3 (2026-09-12): notifikasi WhatsApp Cloud API dihapus (keputusan owner) — aktivasi vendor tetap via deep-link `wa.me`. · Keputusan terkunci: [README.md](../README.md) §Keputusan Terkunci*
 
 ---
 
@@ -19,7 +19,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 |---|-----------|---------|
 | 1 | Nama project | `temora` |
 | 2 | Payment gateway (MVP) | **Xendit** |
-| 3 | WhatsApp API (MVP) | **Ya** — aktivasi vendor + notifikasi |
+| 3 | WhatsApp (MVP) | Aktivasi vendor via deep-link `wa.me` — **tanpa Cloud API / notifikasi otomatis** (revisi 2026-09-12) |
 | 4 | Fitur Moments | **Phase 2** |
 | 5 | Logo | Placeholder dulu |
 | 6 | Tipografi (konsolidasi) | Cormorant Garamond + Plus Jakarta Sans |
@@ -81,9 +81,9 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
    - `photo_limit` diset saat create event; tidak di-sync ulang saat upgrade tier.
    - Invoice + payment link via Xendit; webhook untuk konfirmasi.
 
-6. **WhatsApp Integration**
+6. **WhatsApp Integration (aktivasi manual)**
    - Aktivasi akun vendor dibantu admin via WhatsApp (deep-link `wa.me`).
-   - Notifikasi WA ke vendor: event baru dibuat, milestone foto (misal 50/100 foto), invoice.
+   - ~~Notifikasi WA otomatis (queue/reminder/webhook)~~ — **dihapus 2026-09-12** (keputusan owner; keputusan terkunci #3).
 
 7. **Deployment & QA** *(tambahan konsolidasi)*
    - CI/CD pipeline + monitoring + test suite — lihat tasks 015–016.
@@ -154,7 +154,7 @@ TEMORA bukan sekadar layanan photobooth. TEMORA berfokus pada **momen dan hubung
 - [ ] Vendor setup event lengkap (frame + QR) < 15 menit.
 - [ ] ZIP download berfungsi untuk 500+ foto.
 - [ ] Pembayaran Xendit end-to-end (invoice → paid → tier naik otomatis).
-- [ ] Notifikasi WA terkirim untuk 6 kind (welcome, event_created, photo_milestone, invoice, payment_ok, expiry_reminder).
+- [x] ~~Notifikasi WA terkirim untuk 6 kind (welcome, event_created, photo_milestone, invoice, payment_ok, expiry_reminder)~~ — dibatalkan 2026-09-12 (integrasi WA dihapus; aktivasi via deep-link `wa.me` tetap).
 - [ ] Tamu bisa simpan/bagikan fotonya sendiri dari layar preview (Android + iOS).
 - [ ] Lighthouse mobile ≥ 85 performance di halaman photobooth.
 

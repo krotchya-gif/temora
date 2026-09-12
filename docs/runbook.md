@@ -11,6 +11,8 @@
 4. Verifikasi: buka `https://temora.site` + `/api/health` → 200.
 5. Catat di channel insiden: waktu rollback, hash commit yang aktif.
 
+> **Terverifikasi owner 2026-09-12:** uji rollback ke deploy sebelumnya berhasil via hPanel.
+>
 > Rollback kode tidak mengembalikan database. Jika deploy bermasalah karena
 > migrasi, lanjut ke §2 dulu sebelum memicu deploy ulang.
 > Catatan: Hostinger shared menjalankan build lebih lambat (webpack+WASM).
@@ -34,7 +36,7 @@
 4. Permission: file `0644`, folder `0755` (`upload.php` menulis begitu sejak patch 2026-09-10). Gejala klasik salah permission: thumbnail 404 padahal file ada di disk, folder terdeteksi ada (403), cache-buster tetap 404 — perbaiki dengan recurse File Manager/SSH (`find public private -type d -exec chmod 755 {} +` + `-type f -exec chmod 644 {} +`), detail `media-service/README.md`.
 5. Pantau disk usage Hostinger. Bersihkan file expired/soft-deleted melalui cron aplikasi sebelum storage penuh.
 6. Jangan menaruh `HOSTINGER_STORAGE_SECRET` di repo atau environment browser.
-7. Data lama era Supabase tidak dimigrasikan (keputusan terkunci #20–21): 8 foto lama yatim — thumb 404 + `storage_path` tanpa prefix area ditolak `safeKey` (lightbox/ZIP gagal). Hidupkan via backfill (unzip Supabase → upload key baru → update kolom), bukan via fallback kode.
+7. Data lama era Supabase tidak dimigrasikan (keputusan terkunci #20–21): 8 foto lama tanpa prefix area sudah ditandai soft-delete (`deleted_at` terisi) dan akan dihapus permanen oleh cron TTL. Backfill hanya bila foto sengaja ingin dipulihkan (unzip Supabase → upload key baru → update kolom), bukan via fallback kode.
 
 ## 4. Insiden umum
 
@@ -43,14 +45,13 @@
 | Tamu "acara sudah selesai" padahal belum | `events.expires_at` | Perpanjang `expires_at` (SQL via CLI, bukan DDL) |
 | Upload gagal massal | Log Node app hPanel + log PHP Hostinger | Cek URL/secret media, permission folder, ukuran file, dan magic bytes |
 | Webhook Xendit tidak masuk | Xendit Dashboard → Webhooks log | Pastikan URL `https://temora.site/api/billing/webhook` & token per-env |
-| WA tidak terkirim | `whatsapp_logs` (status/error) | Token Meta expired → refresh; quiet hours menahan sampai pagi |
-| Cron tidak jalan | Riwayat job di cron-job.org / UptimeRobot | Header `Authorization: Bearer $CRON_SECRET` mismatch pemicu paling sering |
 | Preview link WA/FB/X tanpa gambar | `NEXT_PUBLIC_APP_URL` di env hPanel | Wajib `https://…` (og:image http ditolak scraper); cek `/admin/seo` → OG Image URL |
 | Angka GA4/GSC kosong di `/admin/seo` | Kredensial service account + property ID + site URL | Status jujur di tab Analytics; cek JSON valid & scope `readonly`; GSC Site URL harus identik dengan hasil `sites.list`; error tidak di-cache |
 
 ## 5. Checklist go-live (task 015 §4.2)
 
-- [x] Acceptance criteria MVP (001–009 · 015–017)
+- [ ] Acceptance criteria MVP (001–009 · 015–017) — 008/009 masih pending
+- [x] Rollback deploy teruji sukses sekali (owner, 2026-09-12)
 - [ ] `/privacy` & `/terms` live dan terisi
 - [ ] Custom SMTP email verifikasi Supabase terpasang & teruji
 - [ ] Monitoring storage aktif (alert ≥ 80%)
@@ -61,7 +62,6 @@
 - [ ] Terapkan dan verifikasi `20260912090000_atomic_guest_photo_insert.sql`
   melalui MCP Supabase sebelum deploy upload quota atomik.
 - [ ] Webhook Xendit produksi → `https://temora.site/api/billing/webhook`
-- [ ] Template WA produksi terdaftar di Meta (task 009 §7)
 - [ ] Cron TTL & expiry dipicu pinger eksternal (verifikasi hit manual dengan `CRON_SECRET` / log cron-job.org)
 - [ ] Backup: PITR Supabase aktif
 

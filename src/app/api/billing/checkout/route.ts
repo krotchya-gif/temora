@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { allowRequest } from "@/lib/rate-limit";
 import { createXenditInvoice, isXenditConfigured } from "@/lib/xendit";
-import { enqueueWa } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 
@@ -118,12 +117,6 @@ export async function POST(request: Request) {
       .eq("id", subscription.id);
 
     if (updateError) throw new Error(updateError.message);
-
-    void enqueueWa(vendor.id, "invoice", {
-      tier,
-      amountIdr,
-      paymentUrl: invoice.invoice_url,
-    });
 
     return NextResponse.json({ ok: true, paymentUrl: invoice.invoice_url });
   } catch (err) {

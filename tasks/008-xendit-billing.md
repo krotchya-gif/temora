@@ -39,7 +39,7 @@ Xendit POST → verify x-callback-token
   → jika PAID & belum diproses:
       status=paid, period_start=now, period_end=+30d
       vendors.subscription_tier = tier
-      enqueue WA "payment_ok"
+      (notifikasi WA dihapus 2026-09-12)
   → respond 200 cepat (<3s); proses berat async
 ```
 
@@ -55,8 +55,6 @@ Limit event/foto dicek server-side di API events & upload route — baca tier da
 | `src/app/api/billing/webhook/route.ts` | baru |
 | `src/lib/xendit.ts` | baru — client wrapper + signature verify |
 | `src/app/api/cron/subscription-expiry/route.ts` | baru |
-| `src/app/api/cron/wa-reminders/route.ts` | baru — H-3/H-0 |
-| `vercel.json` | cron §12 (referensi; dieksekusi pinger eksternal — architecture.md §12) |
 
 ## 6. Acceptance Criteria
 
@@ -65,8 +63,8 @@ Limit event/foto dicek server-side di API events & upload route — baca tier da
 - [ ] Callback token invalid → 401, tanpa side effect.
 - [ ] Tier free terblokir bikin event kedua; setelah upgrade langsung bisa.
 - [ ] Riwayat invoice tampil rapi di dashboard.
-- [ ] Expiry cron: subscription lewat `period_end` → tier turun ke free + WA notif.
-- [ ] Reminder WA `expiry_reminder` terkirim H-3 dan H-0 sebelum expiry; quiet hours tetap berlaku.
+- [ ] Expiry cron: subscription lewat `period_end` → tier turun ke free.
+- [ ] ~~Reminder WA `expiry_reminder` terkirim H-3 dan H-0~~ — dibatalkan 2026-09-12 (integrasi WA dihapus).
 
 ## 7. Catatan
 

@@ -34,11 +34,11 @@ muncul, tetapi tidak menggagalkan pemeriksaan.
 
 > Task 016 · diperbarui 2026-08-29 · Gate launch: 0 blocker / 0 critical terbuka.
 >
-> **Status lingkungan:** key Supabase/Xendit/WhatsApp di `.env.local` awalnya
+> **Status lingkungan:** key Supabase/Xendit di `.env.local` awalnya
 > sengaja diisi belakangan; sejak ronde verifikasi live (§6b) env Supabase
-> terisi dan seluruh uji live berjalan. Yang masih **PENDING**: E2E Playwright
-> penuh, device lab fisik (props/latar), Xendit sandbox, dan kirim WA nyata —
-> semuanya menunggu jadwal eksekusi (task 016).
+> terisi dan seluruh uji live berjalan. Device lab fisik ✅ terverifikasi
+> owner (2026-09-12). Yang masih **PENDING**: E2E Playwright penuh (billing)
+> dan Xendit sandbox.
 
 ## Ringkasan gate (task 016 §4.1)
 
@@ -46,7 +46,7 @@ muncul, tetapi tidak menggagalkan pemeriksaan.
 |---|---|---|
 | Unit tests | Lulus di CI | ✅ 60/60 lulus lokal; coverage util inti 94.8% stmts (`npm run test:coverage`) |
 | E2E jalur kritis 3/3 | Hijau 2× berturut-turut | ⏳ 3/4 hijau 2× (tamu, vendor, rope — §6h); billing menunggu task 008 |
-| Device lab Android/iOS | Lolos tanpa blocker | ✅ alur inti terverifikasi manual owner (2026-08-28) — detail tasks/003–007 |
+| Device lab Android/iOS | Lolos tanpa blocker | ✅ terverifikasi owner (2026-08-28 & 2026-09-12) — detail tasks/003–007 |
 | Lighthouse ≥ 85 mobile photobooth | Terlampir | ✅ perf 99 / a11y 95 (docs/lighthouse/) |
 | Cross-tenant RLS | Semua ditolak | ✅ manual 2 akun (2026-08-28) |
 | Bug blocker/critical | 0 terbuka | ✅ (semua temuan sudah difix, lihat §6h) |
@@ -94,31 +94,31 @@ Billing spec butuh tambahan `XENDIT_SECRET_KEY` + `E2E_XENDIT_INVOICE_ID`
 
 CI: job `e2e` otomatis jalan bila repo variable `RUN_E2E=true` + secrets terpasang.
 
-## 3. Device lab manual — ⏳ PENDING
+## 3. Device lab manual — ✅ terverifikasi owner (2026-09-12)
 
 > **Catatan 2026-08-28:** alur inti (kamera/capture/simpan di Android + iOS,
 > scan QR → photobooth, cetak A4 1 m, responsive 360px, RLS lintas-vendor
 > 2 akun, cron TTL) **terverifikasi manual oleh owner** — detail per-task di
-> `tasks/003–007, 017`. Checklist granular di bawah tetap sebagai pengingat
-> uji lanjutan (mode pesawat, orientasi landscape, dsb).
+> `tasks/003–007, 017`. Checklist granular di bawah dinyatakan selesai oleh
+> owner pada 2026-09-12 (tanpa blocker).
 
 Checklist (wajib fisik, bukan emulator):
 
 **Android Chrome (mid-range)**
-- [ ] Buka link `/p/...` dari kamera HP (QR kartu cetak) — consent tampil
-- [ ] Izin kamera granted/denied dua-duanya punya layar ramah
-- [ ] Capture → preview develop → Simpan → toast "Momen tersimpan ✨"
-- [ ] Simpan ke HP via Web Share sheet
-- [ ] Mode pesawat saat Simpan → chip "Menyimpan…" → online lagi → terkirim
-- [ ] Orientasi potret & landscape hasil foto benar (tidak rotasi)
+- [x] Buka link `/p/...` dari kamera HP (QR kartu cetak) — consent tampil
+- [x] Izin kamera granted/denied dua-duanya punya layar ramah
+- [x] Capture → preview develop → Simpan → toast "Momen tersimpan ✨"
+- [x] Simpan ke HP via Web Share sheet
+- [x] Mode pesawat saat Simpan → chip "Menyimpan…" → online lagi → terkirim
+- [x] Orientasi potret & landscape hasil foto benar (tidak rotasi)
 
 **iPhone Safari (iOS ≥ 16)**
-- [ ] Sama seperti di atas + khusus: video `playsInline muted`, capture tidak reload
-- [ ] Fallback unduh foto saat Web Share tak tersedia
+- [x] Sama seperti di atas + khusus: video `playsInline muted`, capture tidak reload
+- [x] Fallback unduh foto saat Web Share tak tersedia
 
 **Print kartu QR**
-- [ ] `/print/{eventId}/qr` A4 grid 2×4 rapi di Chrome & Safari
-- [ ] QR terbaca kamera HP dari jarak ±1 m (ECC level M)
+- [x] `/print/{eventId}/qr` A4 grid 2×4 rapi di Chrome & Safari
+- [x] QR terbaca kamera HP dari jarak ±1 m (ECC level M)
 
 ## 4. Performance & Accessibility — ⏳ PENDING
 
@@ -661,5 +661,73 @@ yang gagal hanyalah render setelah refresh; kini aman.
 - Toggle flash kamera sekarang mencoba torch fisik melalui
   `MediaStreamTrack.applyConstraints`; perangkat yang tidak mendukungnya
   memakai fallback flash layar saat capture.
-- Uji capture dengan kamera fisik masih harus dilakukan di device nyata setelah
-  deploy karena browser automation lokal tidak menyediakan input kamera.
+- Uji capture dengan kamera fisik ditindaklanjuti pada Ronde Launch Gate
+  di bawah (2026-09-12); browser automation lokal tidak menyediakan input
+  kamera.
+
+## Ronde Launch Gate — keputusan owner (2026-09-12)
+
+- Device lab fisik (Android Chrome + iPhone Safari): ✅ dinyatakan tuntas owner
+  — checklist §3 selesai tanpa blocker, termasuk uji kamera fisik pasca-deploy
+  (torch/flash fallback).
+- Uji rollback deploy Hostinger via hPanel: ✅ berhasil (runbook §1).
+- Branch protection GitHub (CI memblok merge): dibatalkan — tanpa branch
+  protection; CI tetap wajib hijau sebelum merge (disiplin proses).
+- Uptime monitor eksternal (UptimeRobot): dibatalkan — monitoring uptime
+  mengandalkan probe manual `/api/health` + log hPanel (architecture.md §9).
+
+## Ronde Hapus WhatsApp, vercel.json & Cleanup Data (2026-09-12)
+
+### Keputusan & perubahan
+- Integrasi notifikasi WhatsApp (Cloud API) **dihapus** atas keputusan owner:
+  `src/lib/whatsapp.ts`, cron `wa-queue`/`wa-reminders`, webhook Meta,
+  settings WA (`/api/settings/wa` + `WaSettingsForm`), semua pemanggilan
+  `enqueueWa`, dan statistik/kartu WA di `/admin` + detail vendor dihapus.
+  Aktivasi vendor tetap via deep-link `wa.me` (`NEXT_PUBLIC_WA_ADMIN_NUMBER`;
+  `TrackedWaCta`, `FloatingWhatsApp`, `QrWhatsAppButton` tidak berubah).
+- `vercel.json` dihapus (stale: domain `temora.id` + Vercel Cron/header tidak
+  dipakai di Hostinger; cron dieksekusi pinger cron-job.org).
+- Env `WHATSAPP_*` + `WA_GRAPH_BASE` dihapus dari `.env.example` & `.env.local`.
+
+### Verifikasi lokal
+- Lint ✓ · typecheck ✓ (setelah `.next` dibersihkan dari tipe route lama) ·
+  unit test **55/55** (9 test WA dihapus; `tests/unit/wa-xendit.test.ts` →
+  `tests/unit/xendit.test.ts`) · production build ✓.
+
+### Migrasi (DI-APPLY & DIVERIFIKASI 2026-09-12)
+- `supabase/migrations/20260912120000_remove_whatsapp.sql` — drop policy
+  `w_owner`, drop tabel `whatsapp_logs`, drop kolom `vendors.wa_opt_in`.
+  **Diterapkan via MCP Supabase** (apply migration tercatat di riwayat remote
+  sebagai `20260912004240_20260912120000_remove_whatsapp`).
+- **Verifikasi remote (MCP):** `whatsapp_logs` → `to_regclass` = null (tabel
+  hilang) · kolom `wa_opt_in` = 0 · policy `whatsapp_logs` = 0 · daftar kolom
+  `vendors` kini `id, email, name, company_name, phone, subscription_tier,
+  xendit_customer_id, created_at, updated_at, banned_at` (tanpa `wa_opt_in`).
+- **Advisor (MCP):** security & performance tidak menampilkan temuan baru
+  pasca drop (temuan existing tak terkait: `admin_secrets` no-policy,
+  `rls_auto_enable` SECURITY DEFINER, leaked-password off, unindexed FK,
+  `a_superadmin_read` initplan, unused index, permissive policy ganda
+  `sponsors`).
+- CLI `supabase` sudah kembali login ke organisasi yang benar (project
+  `Temora Photos` linked) dan bisa membaca riwayat; **namun riwayat remote
+  memakai versi timestamp** sementara file lokal `0001…0025`, sehingga CLI
+  melihat semua migrasi lokal sebagai "belum diterapkan". **Dilarang**
+  menjalankan `supabase db push`/`migration up` (akan me-replay seluruh
+  migrasi) — peringatan permanen ditambahkan di database.md §10 & pendoman §2.
+
+### Cleanup data production
+- Dihapus: vendor `dev@temora.test`, `e2e@temora.test` (auth user e2e dihapus;
+  auth user `dev` memang tidak ada sejak seed), event `Pernikahan Dev`,
+  `Mary Caly`, dan 6 event `QA Event *`. Media di-purge via media service
+  (26 prefix ok).
+- Dipertahankan: `admin@temora.com` (akun testing owner), `calysta@temora.com`
+  (superadmin), `infocyber001@gmail.com` (Pro) + event `rumah` & `mari bersama`.
+- Hasil: vendors 5→3 · events 10→2 · tables 40→18 · photos 13→5 (aktif) ·
+  moments 3→1 · whatsapp_logs 14→8 → **tabel di-drop** oleh
+  `20260912120000_remove_whatsapp` (diterapkan 2026-09-12).
+
+### Temuan minor
+- `media-service/delete.php` whitelist prefix tidak memasukkan `covers`
+  (`(photos|thumbs|frames|sponsors|showcase|zips)`) padahal `storage.ts`
+  mendukung area `covers` → purge prefix cover selalu 400. Perlu diselaraskan
+  saat menyentuh media service (deploy manual — media-service/README.md).

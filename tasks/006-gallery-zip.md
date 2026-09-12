@@ -19,7 +19,7 @@ Vendor melihat semua foto tamu real-time dan mengunduh semuanya sebagai satu ZIP
 - Download ZIP: API route stream — fetch semua foto dari Storage → JSZip server-side → upload ke bucket `zips` → return signed URL 15 menit.
 - Progress indicator saat generate ZIP (count foto).
 - Hapus foto individual (dengan konfirmasi) — hapus Storage object + row.
-- TTL cleanup: route `GET /api/cron/photo-ttl` dipicu pinger eksternal (architecture.md §12; schedule di `vercel.json` sebagai referensi native).
+- TTL cleanup: route `GET /api/cron/photo-ttl` dipicu pinger eksternal (architecture.md §12).
 
 ## 3. Non-Scope
 
@@ -53,8 +53,7 @@ Job background wajib **resumable**: state/progress tersimpan persisten (metadata
 | `src/app/api/events/[id]/photos/route.ts` | baru (list paginated) |
 | `src/app/api/events/[id]/photos/zip/route.ts` | baru |
 | `src/app/api/events/[id]/photos/[photoId]/route.ts` | baru (delete) |
-| `src/app/api/cron/photo-ttl/route.ts` | baru — TTL cleanup |
-| `vercel.json` | cron §12 (referensi; dieksekusi pinger eksternal — architecture.md §12) |
+| `src/app/api/cron/photo-ttl/route.ts` | baru — TTL cleanup (dieksekusi pinger eksternal — architecture.md §12) |
 
 ## 6. Acceptance Criteria
 

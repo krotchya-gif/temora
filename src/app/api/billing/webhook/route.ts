@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyCallbackToken } from "@/lib/xendit";
-import { enqueueWa } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 
@@ -81,11 +80,6 @@ export async function POST(request: Request) {
       value: { vendor_id: subscription.vendor_id, tier: subscription.tier },
       status: "sent",
       provider: "xendit",
-    });
-
-    void enqueueWa(subscription.vendor_id, "payment_ok", {
-      tier: subscription.tier,
-      periodEnd: periodEnd.toISOString(),
     });
 
     return NextResponse.json({ ok: true });

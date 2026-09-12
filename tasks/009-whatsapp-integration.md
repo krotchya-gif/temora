@@ -1,6 +1,6 @@
 # Task 009 — WhatsApp Integration
 
-*Status: Kode selesai · webhook kini verifikasi signature x-hub-signature-256 fail-closed (401 tanpa signature, terverifikasi live); kirim WA nyata menunggu WHATSAPP_TOKEN; sisa AC masuk E2E task 016 · Prioritas: High · Phase: MVP*
+*Status: **DIBATALKAN 2026-09-12 (keputusan owner)** — integrasi notifikasi WhatsApp dihapus dari produk; aktivasi vendor tetap via deep-link `wa.me`. Kode (`src/lib/whatsapp.ts`, cron `wa-queue`/`wa-reminders`, webhook Meta, settings WA) dan tabel `whatsapp_logs`/`vendors.wa_opt_in` dihapus. Dokumen ini dipertahankan sebagai arsip desain. · Prioritas: — · Phase: —*
 
 Depends on: 003, 008
 

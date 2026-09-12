@@ -52,7 +52,8 @@ user — konfirmasi ketik email, tidak bisa dibatalkan). Semua aksi tercatat di
 
 ```bash
 npm install                 # dependensi
-supabase db push            # apply migrasi (atau sudah applied via remote)
+# Apply migrasi HANYA via MCP Supabase (jangan `supabase db push` —
+# riwayat remote memakai versi timestamp; lihat database.md §10)
 psql "$DATABASE_URL" -f supabase/seed.sql   # opsional: data dev (1 vendor + 1 event + 2 meja)
 npm run dev                 # http://localhost:3000
 ```
@@ -117,8 +118,8 @@ Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilk
 
 1. **Aktivasi & onboarding vendor** — calon vendor menghubungi via tombol WA di landing/pricing (`wa.me/<NEXT_PUBLIC_WA_ADMIN_NUMBER>`).
 2. **Upgrade paket** — vendor bayar sendiri via `/dashboard/billing` (Xendit); admin hanya menangani kasus khusus. Webhook Xendit otomatis menaikkan tier.
-3. **Perpanjangan** — manual: sistem antre reminder WA H-3 dan H-0 (cron `wa-reminders`), worker kirim tiap 5 menit (`wa-queue`, quiet hours 22:00–07:00 WIB).
-4. **Monitoring** — Log Node app hPanel (error), UptimeRobot (ping `/api/health`); analitik web nonaktif sementara di prototipe (Vercel Analytics no-op di luar Vercel — architecture.md §9).
+3. **Perpanjangan** — manual: vendor bayar sendiri via `/dashboard/billing` saat masa aktif berakhir; **tanpa reminder otomatis** (integrasi WA dihapus 2026-09-12).
+4. **Monitoring** — Log Node app hPanel (error), probe manual `/api/health` (uptime monitor eksternal tidak dipakai — keputusan owner 2026-09-12); analitik web nonaktif sementara di prototipe (Vercel Analytics no-op di luar Vercel — architecture.md §9).
 5. **SEO, tracking & kampanye** (superadmin) — `/admin/seo` (5 tab): meta tag + robots/sitemap, ID GA4/GTM/Clarity/pixel, angka GA4/GSC real, event monitor (`wa_click`/`upgrade_click`/`payment_success`), builder link UTM + laporan konversi. Detail: `docs/research/seo-admin-reference.md`.
 
 ---
@@ -129,13 +130,11 @@ Anti-spam: maks 12 foto/menit per meja; link kadaluarsa/event nonaktif menampilk
 |---|---|---|
 | `/api/cron/photo-ttl` | 02:00 harian | Hapus foto event expired + hard-delete soft-delete >30 hari |
 | `/api/cron/subscription-expiry` | 03:00 harian | Turunkan tier vendor yang periode pembayarannya habis |
-| `/api/cron/wa-queue` | tiap 5 menit | Kirim pesan WA dari antrean (maks 25/kali) |
-| `/api/cron/wa-reminders` | 08:00 harian | Antre reminder renewal H-3/H-0 |
 
 Semua route cron diproteksi `Authorization: Bearer CRON_SECRET`.
 
-> Hostinger shared (prototipe) tidak punya scheduler HTTP bawaan — keempat job
-> dipicu **pinger eksternal gratis** (cron-job.org / UptimeRobot) sesuai jadwal
+> Hostinger shared (prototipe) tidak punya scheduler HTTP bawaan — kedua job
+> dipicu **pinger eksternal gratis** (cron-job.org) sesuai jadwal
 > di atas, dengan header `Authorization: Bearer $CRON_SECRET`. Saat launch
 > (task 015), pindah ke scheduler native (Vercel Cron / systemd timer).
 
@@ -146,7 +145,7 @@ Semua route cron diproteksi `Authorization: Bearer CRON_SECRET`.
 ```bash
 npm run lint          # ESLint
 npm run typecheck     # tsc --noEmit
-npm test              # vitest unit (38 test)
+npm test              # vitest unit (64 test)
 npm run build         # production build
 npm run test:e2e      # Playwright — butuh E2E_ENABLED=1 + env (lihat .env.example)
 ```

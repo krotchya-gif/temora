@@ -23,11 +23,6 @@ function formatDate(iso: string | null): string | null {
   }).format(new Date(iso));
 }
 
-// Dipisah agar lolos aturan purity react-hooks.
-function weekAgoIso(): string {
-  return new Date(Date.now() - 7 * 86_400_000).toISOString();
-}
-
 const SUB_BADGE: Record<string, string> = {
   pending: "bg-warning/15 text-warning",
   paid: "bg-success/15 text-success",
@@ -46,7 +41,7 @@ export default async function AdminVendorDetailPage({
   const { data: vendor } = await admin
     .from("vendors")
     .select(
-      "id, name, email, company_name, phone, subscription_tier, wa_opt_in, banned_at, created_at",
+      "id, name, email, company_name, phone, subscription_tier, banned_at, created_at",
     )
     .eq("id", vendorId)
     .maybeSingle();
@@ -63,7 +58,6 @@ export default async function AdminVendorDetailPage({
 
   const [
     { data: subscriptions },
-    { data: waFailed },
     { data: auditRows },
     { count: totalPhotos },
     { count: savedPhotos },
@@ -74,14 +68,6 @@ export default async function AdminVendorDetailPage({
       .eq("vendor_id", vendorId)
       .order("created_at", { ascending: false })
       .limit(10),
-    admin
-      .from("whatsapp_logs")
-      .select("kind, error, created_at")
-      .eq("vendor_id", vendorId)
-      .eq("status", "failed")
-      .gte("created_at", weekAgoIso())
-      .order("created_at", { ascending: false })
-      .limit(5),
     admin
       .from("admin_audit_logs")
       .select("actor_email, action, target_type, target_id, created_at")
@@ -151,7 +137,6 @@ export default async function AdminVendorDetailPage({
             name: vendor.name,
             companyName: vendor.company_name ?? "",
             phone: vendor.phone ?? "",
-            waOptIn: vendor.wa_opt_in,
           }}
         />
       </Card>
@@ -295,30 +280,8 @@ export default async function AdminVendorDetailPage({
         </div>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="p-5">
-          <h2 className="font-display text-xl text-text-primary">WhatsApp (7 hari)</h2>
-          {(waFailed ?? []).length === 0 ? (
-            <p className="mt-2 text-sm text-text-secondary">
-              Tidak ada pengiriman gagal. ✓
-            </p>
-          ) : (
-            <ul className="mt-2 space-y-2 text-sm">
-              {(waFailed ?? []).map((log, i) => (
-                <li key={i} className="rounded-lg bg-bg-warm px-3 py-2">
-                  <span className="capitalize text-text-primary">{log.kind}</span>{" "}
-                  — <span className="text-danger">{log.error ?? "gagal"}</span>
-                  <span className="block text-xs text-text-secondary">
-                    {formatDate(log.created_at)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card className="p-5">
-          <h2 className="font-display text-xl text-text-primary">Audit terkait</h2>
+      <Card className="p-5">
+        <h2 className="font-display text-xl text-text-primary">Audit terkait</h2>
           {(auditRows ?? []).length === 0 ? (
             <p className="mt-2 text-sm text-text-secondary">Belum ada aksi.</p>
           ) : (
@@ -335,7 +298,6 @@ export default async function AdminVendorDetailPage({
             </ul>
           )}
         </Card>
-      </div>
 
       <Card className="border-danger/30 p-5">
         <h2 className="font-display text-xl text-danger">Danger Zone</h2>

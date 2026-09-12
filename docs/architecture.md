@@ -1,6 +1,6 @@
 # Architecture — TEMORA
 
-*Versi: 1.5 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.11 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
@@ -8,6 +8,8 @@
 *Patch 1.7 (2026-09-10): file media ditulis `0644`, folder `0755` — default `0600` tak ter-serve sebagai statis (thumbnail 404 padahal file ada). Detail §11.1, runbook §3, qa-report.*
 *Patch 1.8 (2026-09-11): setup studio memperbarui preview kamera secara live; konfigurasi kartu QR event (template, judul, subjudul, tagline) disimpan di `events` dan dipakai halaman print A4. Migration cover, camera setup, QR card, dan watermark diverifikasi di production.*
 *Patch 1.9 (2026-09-12): upload foto tamu memakai RPC `insert_guest_photo_atomic` untuk lock row event, validasi kuota, deduplikasi, dan insert atomik (`20260912090000_atomic_guest_photo_insert.sql`). Migration diterapkan dan diverifikasi di production melalui MCP Supabase pada 2026-09-12; advisory yang sudah ada tetap dicatat di qa-report dan bukan akibat migration ini.*
+*Patch 1.10 (2026-09-12): uptime monitor eksternal (UptimeRobot) di-descope oleh owner — monitoring uptime via probe manual `/api/health` + log hPanel; cron tetap dipicu pinger cron-job.org. Device lab & uji rollback dinyatakan terverifikasi owner (qa-report Ronde Launch Gate).*
+*Patch 1.11 (2026-09-12): integrasi notifikasi WhatsApp (Cloud API) dihapus atas keputusan owner — `enqueueWa`, cron `wa-queue`/`wa-reminders`, webhook Meta, settings WA, tabel `whatsapp_logs`, dan kolom `vendors.wa_opt_in` dihapus. Aktivasi vendor tetap via deep-link `wa.me` (`NEXT_PUBLIC_WA_ADMIN_NUMBER`).*
 
 ---
 
@@ -48,10 +50,6 @@
 │  └──────────────────────────────────────────────────────────┘  │
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │              WhatsApp Business Cloud API                 │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
 │  │              Xendit Webhook                              │  │
 │  │          (payment confirmation + tier upgrade)           │  │
 │  └──────────────────────────────────────────────────────────┘  │
@@ -77,7 +75,7 @@
 | Storage | Hostinger media subdomain | File upload persisten di `media.temora.site`; Supabase hanya Database/Auth/Realtime |
 | Hosting | Hostinger shared — Git deploy (tahap prototipe) | Biaya nol tambahan selama MVP belum monetisasi; re-evaluasi Vercel/VPS sebelum launch gate (task 015–017) |
 | Payment | Xendit | Invoice + payment link + webhook, populer di Indonesia |
-| WhatsApp | WhatsApp Business Cloud API | Notifikasi ke vendor + deep-link aktivasi |
+| WhatsApp | Deep-link `wa.me` (tanpa API) | Aktivasi vendor manual; notifikasi otomatis dihapus 2026-09-12 |
 | QR Code | `qrcode` (npm) | Ringan, generate SVG/PNG server-side |
 | ZIP Download | `jszip` (npm) | Server-side streaming untuk volume besar |
 | Camera | WebRTC `getUserMedia` | Universal, tanpa install, mobile-first |
@@ -134,7 +132,7 @@ src/
 ├── lib/
 │   ├── supabase/           # client.ts · server.ts · admin.ts (§2)
 │   ├── ai/                 # segmentation.ts, lut.ts (Phase 2)
-│   ├── xendit.ts · whatsapp.ts · validation/
+│   ├── xendit.ts · validation/
 └── proxy.ts                # proteksi /dashboard/* (task 003; konvensi Next 16, ex-middleware.ts)
 
 supabase/
@@ -185,7 +183,7 @@ supabase/
 > |---|---|
 > | `/admin` | Statistik global platform (subs/WA/audit/storage) |
 > | `/admin/vendors` | Daftar vendor + kelola tier + pagination/search |
-> | `/admin/vendors/[vendorId]` | Detail vendor: edit profil, ban/unban, hapus permanen, subscription, WA health, audit |
+> | `/admin/vendors/[vendorId]` | Detail vendor: edit profil, ban/unban, hapus permanen, subscription, audit |
 > | `/admin/events` | Semua event + moderasi status |
 > | `/admin/events/[eventId]` | Detail event + moderasi foto |
 > | `/admin/showcase` | Kurasi foto Moments: upload/edit/hapus/urutkan |
@@ -220,15 +218,12 @@ supabase/
 | `/api/events/[eventId]/sponsors` | GET | List sponsor aktif (consent/QR card) | No |
 | `/api/events/[eventId]/sponsors` | POST | Tambah sponsor + logo (Pro only) | Yes (tier check) |
 | `/api/events/[eventId]/sponsors/[sponsorId]` | PATCH/DELETE | Edit/hapus/deactivate sponsor | Yes (tier check) |
-| `/api/settings/wa` | PUT | Nomor WhatsApp + opt-in notifikasi | Yes |
-| `/api/health` | GET | Health check (probe CI/UptimeRobot) | No |
+| `/api/health` | GET | Health check (probe CI/manual) | No |
 | `/api/events/[eventId]/photos/[photoId]` | GET | Signed URL resolusi penuh (lightbox) | Yes |
 | `/api/events/[eventId]/photos/zip` | GET | Polling progres job ZIP (`?job=`) | Yes |
-| `/api/whatsapp/webhook` | GET | Handshake verifikasi Meta (`hub.verify_token`) | Verify token |
 | `/api/events/[eventId]/qr/[tableId]` | GET | Get QR code SVG/PNG | No |
 | `/api/billing/checkout` | POST | Create Xendit invoice | Yes |
 | `/api/billing/webhook` | POST | Xendit webhook handler | No (callback token verified) |
-| `/api/whatsapp/webhook` | POST | Delivery status WA | Signature verified |
 | `/api/admin/vendors/[vendorId]/tier` | PUT | Set tier vendor | Superadmin (404 mask) |
 | `/api/admin/vendors/[vendorId]` | PATCH | Edit profil vendor (email tersinkron Admin API) | Superadmin (404 mask) |
 | `/api/admin/vendors/[vendorId]/ban` | POST | Ban/unban vendor (+nonaktif semua event saat ban) | Superadmin (404 mask) |
@@ -300,16 +295,14 @@ supabase/
 4. Vendor bayar → Xendit fire webhook ke /api/billing/webhook
 5. Server: verify callback token (idempotent by xendit_invoice_id)
 6. Update subscriptions.paid + vendors.subscription_tier
-7. Kirim WhatsApp "Pembayaran berhasil, tier Pro aktif 🎉"
+7. Tier baru tampil di /dashboard/billing (tanpa notifikasi WhatsApp)
 ```
 
-### 4.4 WhatsApp Notification Flow
-```
-Trigger (event_created | photo_milestone | invoice | payment_ok | expiry_reminder)
-→ enqueueWa(vendorId, kind, payload) → insert whatsapp_logs (queued)
-→ send async via WhatsApp Business Cloud API
-→ log status sent/failed; retry 1x; quiet hours 22:00–07:00 WIB
-```
+### 4.4 Notifikasi WhatsApp — DIHAPUS (2026-09-12)
+
+Notifikasi otomatis via WhatsApp Cloud API (queue, reminder, webhook, opt-out)
+dihapus atas keputusan owner. Aktivasi vendor tetap manual via deep-link
+`wa.me` (`NEXT_PUBLIC_WA_ADMIN_NUMBER`) — lihat README §Keputusan Terkunci #3.
 
 ---
 
@@ -355,7 +348,7 @@ Detail aturan terkunci: `docs/database.md` §2.7. Ringkas:
 | **Defense in depth** | Validasi limit/tier + table_id ownership + client_upload_id dedup di API route; RLS anon INSERT sebagai guard cadangan |
 | **Rate limit** | ±12 foto/menit per meja (+ fallback per IP) di upload route |
 | **Payment** | Xendit callback token verification + idempotent handler |
-| **WhatsApp** | Tidak kirim data sensitif; throttle & quiet hours |
+| **WhatsApp** | — (Cloud API dihapus 2026-09-12; aktivasi manual via deep-link `wa.me`) |
 | **Photos** | Watermark otomatis saat capture |
 | **Data at rest/in transit** | AES-256 default Supabase + HTTPS via SSL hPanel (auto Let's Encrypt) |
 | **Guest privacy** | Consent screen, TTL auto-delete (30 hari), tanpa facial recognition |
@@ -479,7 +472,7 @@ landmark atau asset props yang dimuat oleh aplikasi.
 |---|---|---|
 | Error tracking | Log Node app di hPanel (Hostinger) | Request, error, deployment |
 | Logs | Supabase Logs | Query lambat, auth events |
-| Uptime | UptimeRobot | Ping `temora.site` tiap 5 menit |
+| Uptime | — (tidak dipakai) | Probe manual `/api/health` (keputusan owner 2026-09-12) |
 | Performance | — (nonaktif sementara) | Vercel Analytics no-op di luar Vercel; aktifkan alternatif (mis. Web Vitals) saat upgrade hosting menjelang launch |
 | Billing alerts | Xendit Dashboard + cron reconciliation harian | Webhook gagal / invoice pending > 24 jam |
 
@@ -496,11 +489,11 @@ Auth:       Supabase Auth (email/password)
 Storage:    Hostinger media subdomain (media.temora.site)
 Hosting:    Hostinger shared, Git deploy (prototipe; build --webpack)
 Payment:    Xendit (invoice, payment link, webhook)
-WhatsApp:   WhatsApp Business Cloud API
+WhatsApp:   — (aktivasi vendor via deep-link wa.me; Cloud API dihapus 2026-09-12)
 Libraries:  qrcode, jszip, sharp, zod, @supabase/ssr
 Phase 2:    @mediapipe/tasks-vision (segmentation) — task 011 tersedia, OFF sementara
 CI/CD:      GitHub Actions (lint/typecheck/build/test) + Hostinger Git auto-deploy; Playwright mencakup viewport admin 360px dan desktop
-Monitoring: UptimeRobot · cron-job.org (pinger cron) · log Node app hPanel
+Monitoring: cron-job.org (pinger cron) · log Node app hPanel · probe manual `/api/health`
 ```
 
 ---
@@ -518,12 +511,7 @@ SSOT daftar env — commit `.env.example` (tanpa nilai asli), runtime pakai `.en
 | `XENDIT_SECRET_KEY` | server | 008 | API key Xendit |
 | `XENDIT_WEBHOOK_TOKEN` | server | 008 | Verifikasi callback webhook |
 | `XENDIT_API_BASE` | server | 008 | Base URL API Xendit (default `https://api.xendit.co`) — override untuk sandbox |
-| `WHATSAPP_TOKEN` | server | 009 | Meta Cloud API access token |
-| `WHATSAPP_PHONE_NUMBER_ID` | server | 009 | ID nomor WA Business |
-| `WHATSAPP_VERIFY_TOKEN` | server | 009 | Verifikasi handshake webhook Meta |
-| `WHATSAPP_APP_SECRET` | server | 009 | App Secret Meta — verifikasi header `x-hub-signature-256` webhook |
-| `WA_GRAPH_BASE` | server | 009 | Base URL Graph API Meta (default `https://graph.facebook.com`) |
-| `NEXT_PUBLIC_WA_ADMIN_NUMBER` | client | 009/017 | Nomor admin aktivasi (format 62…, tanpa +) |
+| `NEXT_PUBLIC_WA_ADMIN_NUMBER` | client | 009/017 | Nomor admin aktivasi vendor via deep-link `wa.me` (format 62…, tanpa +) |
 | `CRON_SECRET` | server | 015 | Bearer token proteksi route `/api/cron/*` (dipanggil pinger eksternal) |
 | `HOSTINGER_MEDIA_URL` | server + public URL builder | storage | Base URL media service (`https://media.temora.site`) |
 | `NEXT_PUBLIC_HOSTINGER_MEDIA_URL` | client + server | storage | Public media base URL untuk thumbnail/frame/logo/showcase |
@@ -548,14 +536,12 @@ di Supabase Storage tidak dimigrasikan.
 
 ## 12. Cron Jobs (Pinger Eksternal — Tahap Prototipe)
 
-Hosting prototipe (Hostinger shared) tidak menyediakan scheduler HTTP bawaan. Semua job dijadwalkan via **pinger eksternal gratis** (cron-job.org / UptimeRobot) yang memanggil endpoint dengan header `Authorization: Bearer ${CRON_SECRET}`.
+Hosting prototipe (Hostinger shared) tidak menyediakan scheduler HTTP bawaan. Semua job dijadwalkan via **pinger eksternal gratis** (cron-job.org) yang memanggil endpoint dengan header `Authorization: Bearer ${CRON_SECRET}`.
 
 | Path | Schedule | Task | Fungsi |
 |------|----------|------|--------|
 | `/api/cron/photo-ttl` | `0 2 * * *` | 006 | Hapus foto event yang `expires_at` lewat |
 | `/api/cron/subscription-expiry` | `0 3 * * *` | 008 | Turunkan tier + tandai subscription expired |
-| `/api/cron/wa-queue` | `*/5 * * * *` | 009 | Retry pesan WA status `queued` |
-| `/api/cron/wa-reminders` | `0 8 * * *` | 008/009 | Reminder H-3/H-0 sebelum `period_end` |
 
 Semua cron route: verifikasi header `Authorization: Bearer ${CRON_SECRET}`.
 

@@ -1,7 +1,8 @@
 # Database — TEMORA (Supabase PostgreSQL)
 
-*Versi: 1.3 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.4 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: skema MVP v1.0 (kanonik) + realtime publication + retention & migration strategy.*
+*Patch 1.4 (2026-09-12): integrasi notifikasi WhatsApp dihapus — tabel `whatsapp_logs` dan kolom `vendors.wa_opt_in` di-drop via `20260912120000_remove_whatsapp.sql` (diterapkan via MCP Supabase, diverifikasi 2026-09-12).*
 
 ---
 
@@ -28,11 +29,10 @@ CREATE TABLE vendors (
   email TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   company_name TEXT,
-  phone TEXT,                          -- E.164, dipakai WhatsApp notif
+  phone TEXT,                          -- E.164, nomor kontak vendor (admin)
   subscription_tier TEXT NOT NULL DEFAULT 'free'
       CHECK (subscription_tier IN ('free','basic','pro')),
   xendit_customer_id TEXT,
-  wa_opt_in BOOLEAN NOT NULL DEFAULT TRUE,
   banned_at TIMESTAMPTZ,               -- task 019: ban admin; NULL = aktif
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -136,18 +136,15 @@ CREATE TABLE subscriptions (
 CREATE INDEX idx_subs_vendor ON subscriptions(vendor_id);
 ```
 
-### 2.6 whatsapp_logs
-```sql
-CREATE TABLE whatsapp_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  vendor_id UUID NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
-  kind TEXT NOT NULL CHECK (kind IN ('welcome','event_created','photo_milestone','invoice','payment_ok','expiry_reminder')),
-  payload JSONB NOT NULL DEFAULT '{}',
-  status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','sent','failed')),
-  error TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
+### 2.6 whatsapp_logs — DIHAPUS (2026-09-12)
+
+Integrasi notifikasi WhatsApp (queue, reminder, webhook) dihapus atas
+keputusan owner. Tabel `whatsapp_logs` dan kolom `vendors.wa_opt_in` di-drop
+melalui migrasi `20260912120000_remove_whatsapp.sql`. **Status penerapan:**
+**diterapkan via MCP Supabase (2026-09-12) & diverifikasi** — `whatsapp_logs`
+tidak lagi ada (table = null), kolom `wa_opt_in` = 0 kolom, policy terkait = 0;
+tidak ada temuan advisor baru (security/performance) pasca drop.
+Aktivasi vendor tetap via deep-link `wa.me` (architecture.md §4.4).
 
 > Fase 2+ sudah aktif (2026-08-28): `moments` (task 012) & `sponsors` (task 013) dibuat di §2.8.
 
@@ -307,7 +304,6 @@ ALTER TABLE events  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tables  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE photos  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE whatsapp_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE moments ENABLE ROW LEVEL SECURITY;   -- task 012
 ALTER TABLE sponsors ENABLE ROW LEVEL SECURITY;  -- task 013
 
@@ -352,10 +348,6 @@ CREATE POLICY p_owner_all ON photos FOR ALL
 CREATE POLICY s_owner ON subscriptions FOR ALL
   USING (auth.uid() = vendor_id);
 
--- Log WhatsApp hanya milik vendor (ditulis service role; tanpa akses anon)
-CREATE POLICY w_owner ON whatsapp_logs FOR ALL
-  USING (auth.uid() = vendor_id);
-
 -- Moments (task 012): tamu tulis (guard cadangan), vendor baca/kelola
 CREATE POLICY m_public_insert ON moments FOR INSERT TO anon
   WITH CHECK (private.can_guest_upload(event_id));
@@ -375,7 +367,7 @@ CREATE POLICY sp_owner_all ON sponsors FOR ALL
 
 > Catatan `p_guest_insert` (revisi 0012/0013): fungsi `private.can_guest_upload` berjalan sebagai SECURITY DEFINER sehingga menghitung kuota foto riil (bukan advisory) — event aktif + belum expired + limit terhormat (`NULL` = unlimited/Pro). Validasi otoritatif tetap juga di API route service role (§2.7) sesuai prinsip defense in depth.
 
-> Catatan policy owner (revisi 0013): semua policy owner (`v_self`, `e_owner`, `t_owner_all`, `p_owner_all`, `s_owner`, `w_owner`) dibatasi `TO authenticated` dan membungkus `auth.uid()` sebagai `(select auth.uid())` (initPlan — hindari re-evaluasi per baris; sekaligus hilangkan overlap multiple-permissive dengan policy tamu).
+> Catatan policy owner (revisi 0013): semua policy owner (`v_self`, `e_owner`, `t_owner_all`, `p_owner_all`, `s_owner`) dibatasi `TO authenticated` dan membungkus `auth.uid()` sebagai `(select auth.uid())` (initPlan — hindari re-evaluasi per baris; sekaligus hilangkan overlap multiple-permissive dengan policy tamu).
 
 > ⚠️ Anti-pattern yang sengaja TIDAK diambil dari draft lama: policy `FOR SELECT USING (true)` pada photos (membuat semua foto publik) dan `FOR UPDATE USING (true)` pada guests. Jangan pernah diterapkan.
 
@@ -464,6 +456,7 @@ diekspos sebagai URL langsung.
 ## 10. Migration Strategy
 
 - Buat file dengan Supabase CLI: `supabase migration new <name>` → edit file → gunakan MCP Supabase untuk apply dan verifikasi remote; CLI lokal hanya boleh menjadi alat pendukung iterasi.
+- ⚠️ **JANGAN `supabase db push`/`supabase migration up` di project ini.** Riwayat migrasi remote memakai versi timestamp (hasil apply via MCP), sedangkan file lokal bernama `0001…0025` — CLI menganggap **semua** file lokal belum diterapkan, sehingga push akan me-replay seluruh migrasi dari awal. Apply selalu via MCP Supabase.
 - **Never** edit migration yang sudah applied — selalu buat migration baru.
 - Test lokal dengan `supabase start` + `supabase db reset` sebelum push ke production.
 - RLS policies ditaruh di migration yang sama dengan tabelnya.
@@ -476,6 +469,15 @@ studio. Migration yang relevan dan kolomnya sudah tersedia: `event_cover`,
 `event_camera_setup`, `qr_card_setup`, dan
 `pro_watermark_and_pwa_dismiss_delay`. Kolom custom QR berada di
 `public.events`: `qr_template`, `qr_title`, `qr_subtitle`, dan `qr_tagline`.
+
+### Production verification (2026-09-12)
+
+Migrasi `20260912120000_remove_whatsapp` diterapkan via MCP Supabase dan
+diverifikasi: tabel `public.whatsapp_logs` hilang (`to_regclass` → null),
+kolom `public.vendors.wa_opt_in` hilang (0 kolom), policy `w_owner` dan
+seluruh policy `whatsapp_logs` hilang (0 policy). Security & performance
+advisor tidak menampilkan temuan baru terkait drop ini. Verifikasi tercatat
+di qa-report.md (Ronde Hapus WhatsApp, 2026-09-12).
 
 ## 11. Performance Considerations
 

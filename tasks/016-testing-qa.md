@@ -1,6 +1,6 @@
 # Task 016 — Testing & QA (Pre-Launch Gate)
 
-*Status: Sebagian besar terverifikasi (2026-09-12) — unit 64/64 + coverage lokal 93.26%, E2E tamu/vendor/rope hijau 2×, Lighthouse ≥85 (bukti di docs/lighthouse/), cross-tenant manual 2 akun; sisa: device lab, billing E2E (tergantung task 008), dan WhatsApp production · Prioritas: High · Phase: MVP (wajib sebelum launch)*
+*Status: Sebagian besar terverifikasi (2026-09-12) — unit 64/64 + coverage lokal 93.26%, E2E tamu/vendor/rope hijau 2×, Lighthouse ≥85 (bukti di docs/lighthouse/), cross-tenant manual 2 akun, device lab ✅ terverifikasi owner (2026-09-12); sisa: billing E2E (tergantung task 008). Task 009 (WA) dibatalkan 2026-09-12. · Prioritas: High · Phase: MVP (wajib sebelum launch)*
 
 Depends on: 015 (CI pipeline aktif agar test jalan otomatis)
 
@@ -12,7 +12,7 @@ Semua alur inti teruji end-to-end di device nyata sebelum vendor pertama dipakai
 
 ## 2. Scope
 
-- **Unit tests** (Vitest): util kompresi canvas, validasi zod, helper xendit signature verify, normalisasi nomor WA E.164.
+- **Unit tests** (Vitest): util kompresi canvas, validasi zod, helper xendit signature verify.
 - **E2E tests** (Playwright) — 3 jalur kritis:
   - Tamu: scan QR → consent → capture (mock kamera) → upload → simpan/bagikan.
   - Vendor: signup → buat event → upload frame → generate QR → lihat galeri.

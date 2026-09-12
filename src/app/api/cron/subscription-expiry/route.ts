@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqualStr } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { enqueueWa } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 
@@ -66,11 +65,6 @@ export async function GET(request: Request) {
 
     if (!tierError) {
       downgraded += 1;
-      void enqueueWa(vendorId, "expiry_reminder", {
-        event: "subscription_downgraded",
-        message:
-          "Masa aktif paketmu berakhir dan paket kembali ke Free. Event aktif tetap jalan sampai selesai ya.",
-      });
     }
   }
 

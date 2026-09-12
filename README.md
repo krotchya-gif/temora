@@ -18,10 +18,10 @@ Platform SaaS virtual photobooth untuk vendor event (WO, fotografer, EO): tamu s
 | Auth | Supabase Auth |
 | Storage | Hostinger media subdomain (`media.temora.site`); Supabase hanya Database/Auth/Realtime |
 | Payment | Xendit |
-| Notifikasi | WhatsApp Business Cloud API |
+| Notifikasi | — (aktivasi vendor via deep-link `wa.me`; Cloud API dihapus 2026-09-12) |
 | AI (Phase 2) | MediaPipe Tasks Vision (client-side, lazy-load) |
 | CI/CD | GitHub Actions + Hostinger Git auto-deploy |
-| Monitoring | UptimeRobot · cron-job.org (pinger cron) · log hPanel |
+| Monitoring | cron-job.org (pinger cron) · log hPanel · probe `/api/health` |
 
 ## Struktur
 
@@ -48,7 +48,7 @@ Temora Photos/
     ├── 006-gallery-zip.md          galeri + unduh ZIP              [MVP]
     ├── 007-dashboard-events.md     CRUD events                     [MVP]
     ├── 008-xendit-billing.md       tier + invoice + webhook        [MVP]
-    ├── 009-whatsapp-integration.md notifikasi WA                   [MVP]
+    ├── 009-whatsapp-integration.md notifikasi WA — DIBATALKAN 2026-09-12
     ├── 010-ar-filters.md           AR props                         [dihapus dari scope]
     ├── 011-green-screen.md         background replacement          [Phase 2 ⚠️ OFF sementara, §6o]
     ├── 012-moments-feature.md      caption + guestbook digital     [Phase 2 ✅ 2026-08-28] ⭐
@@ -69,9 +69,11 @@ Temora Photos/
 4. Desain berubah? Update docs dulu, baru kode.
 5. Catatan (2026-08-26): shell UI statis beberapa halaman dashboard (ringkasan event, galeri event) dibuat **mendahului** eksekusi task-nya sebagai keputusan visual — seluruh acceptance criteria task aslinya tetap wajib diverifikasi penuh saat wiring.
 
-> Docs inti saat ini **v1.5** (database/design-system/PRD/architecture diperbarui 2026-09-12 — setup studio live preview, custom QR card, placeholder kamera tamu, dan hardening kuota upload atomik). Patch logika tier/limit/upload: README §Keputusan Terkunci #13–17.
+> Docs inti (database/design-system/PRD/architecture) diperbarui 2026-09-12 — setup studio live preview, custom QR card, placeholder kamera tamu, hardening kuota upload atomik, dan descope monitoring/uptime (architecture v1.10). Patch logika tier/limit/upload: README §Keputusan Terkunci #13–17.
 >
 > **Status fitur AI photobooth:** filter warna 3D LUT **aktif** (7 look kurasi — lihat design-system §3.9; manifest `public/luts/manifest.json`, `node scripts/sync-luts.mjs`). AR props dihapus dari produk. Green screen tetap ada di kode namun OFF sementara melalui `src/lib/ai/feature-flags.ts`.
+>
+> **Launch gate (2026-09-12):** device lab & uji rollback Hostinger ✅ terverifikasi owner; branch protection GitHub & uptime monitor eksternal diputuskan **tidak dipakai** (descope). Task 009 (WA) dibatalkan. Sisa gate: task 008 (Xendit) + E2E billing.
 
 ## Keputusan Terkunci
 
@@ -79,7 +81,7 @@ Temora Photos/
 
 1. Nama project & brand: **TEMORA**
 2. Payment MVP: **Xendit**
-3. WhatsApp API di MVP (aktivasi + notifikasi)
+3. WhatsApp: aktivasi vendor via deep-link `wa.me`; **Cloud API + notifikasi otomatis dihapus** (keputusan owner 2026-09-12)
 4. Fitur Moments: **Phase 2** (differentiator utama vs kompetitor)
 5. Logo: placeholder dulu
 6. Tipografi: **Cormorant Garamond + Plus Jakarta Sans** (+ JetBrains Mono untuk data)
@@ -87,7 +89,7 @@ Temora Photos/
 8. Privasi: tanpa facial recognition; tamu tak bisa baca foto/momen orang lain
 9. Skema DB: tabel fase 2 (`moments`, `sponsors`) **tidak dibuat sebelum waktunya** — *diperbarui 2026-08-28: dibuat saat task 012/013 dieksekusi (migrasi 0022+), bukan lebih awal*
 10. Fitur tamu simpan/bagikan foto sendiri masuk MVP (Web Share API, tracking `guest_saved_at`)
-11. Renewal subscription manual via WA reminder H-3/H-0 — tanpa auto-charge di MVP
+11. Renewal subscription manual (vendor bayar sendiri via billing) — tanpa auto-charge dan tanpa reminder otomatis di MVP (reminder WA ikut dihapus 2026-09-12)
 12. URL photobooth menerima UUID + slug kustom vendor; QR encode UUID sebagai bentuk kanonik
 13. `photo_limit`: NULL = unlimited (Pro); diset saat create event saja, tidak di-sync saat upgrade
 14. Watermark Free/Basic wajib default; Pro boleh tanpa watermark (`watermark_text = NULL`) atau memakai teks/posisi custom

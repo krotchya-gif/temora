@@ -10,7 +10,6 @@ type EditVendorFormProps = {
     name: string;
     companyName: string;
     phone: string;
-    waOptIn: boolean;
   };
 };
 
@@ -19,7 +18,6 @@ export function EditVendorForm({ vendorId, initial }: EditVendorFormProps) {
   const [name, setName] = useState(initial.name);
   const [companyName, setCompanyName] = useState(initial.companyName);
   const [phone, setPhone] = useState(initial.phone);
-  const [waOptIn, setWaOptIn] = useState(initial.waOptIn);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle",
   );
@@ -35,7 +33,6 @@ export function EditVendorForm({ vendorId, initial }: EditVendorFormProps) {
         name,
         company_name: companyName || null,
         phone: phone || null,
-        wa_opt_in: waOptIn,
       }),
     });
 
@@ -77,15 +74,6 @@ export function EditVendorForm({ vendorId, initial }: EditVendorFormProps) {
           placeholder="6281234567890"
           className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 font-mono text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue"
         />
-      </label>
-      <label className="flex items-end gap-2 pb-2 text-sm text-text-secondary">
-        <input
-          type="checkbox"
-          checked={waOptIn}
-          onChange={(e) => setWaOptIn(e.target.checked)}
-          className="h-5 w-5 accent-accent"
-        />
-        Opt-in notifikasi WhatsApp
       </label>
 
       <div className="flex flex-col items-stretch gap-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-center">

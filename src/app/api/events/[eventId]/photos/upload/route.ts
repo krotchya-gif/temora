@@ -3,7 +3,6 @@ import { isSameOrigin } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isJpegBuffer } from "@/lib/security";
 import { allowRequest, getClientIp } from "@/lib/rate-limit";
-import { enqueueWa } from "@/lib/whatsapp";
 import { ulid } from "@/lib/ulid";
 import { deleteStorageFile, uploadStorageFile } from "@/lib/storage";
 import {
@@ -181,20 +180,6 @@ export async function POST(
       photoId: inserted.photo_id,
       captureToken: inserted.capture_token,
       duplicate: true,
-    });
-  }
-
-  // Milestone 50/100 momen (task 009 — throttled by design).
-  const { count: totalPhotos } = await admin
-    .from("photos")
-    .select("id", { count: "exact", head: true })
-    .eq("event_id", event.id)
-    .is("deleted_at", null);
-
-  if (totalPhotos === 50 || totalPhotos === 100) {
-    void enqueueWa(event.vendor_id, "photo_milestone", {
-      count: totalPhotos,
-      eventName: event.name,
     });
   }
 

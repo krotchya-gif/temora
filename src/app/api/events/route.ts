@@ -6,7 +6,6 @@ import {
   TIER_PHOTO_LIMITS,
   DEFAULT_WATERMARK_TEXT,
 } from "@/lib/constants";
-import { enqueueWa } from "@/lib/whatsapp";
 import { SLUG_PATTERN, eventCreateSchema, firstIssueMessage } from "@/lib/validation/event";
 
 export const runtime = "nodejs";
@@ -235,9 +234,6 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-
-  // WA "event_created" masuk antrean (dikirim worker task 009, quiet hours §4.4).
-  void enqueueWa(vendor.id, "event_created", { eventName: input.name });
 
   return NextResponse.json({ ok: true, eventId: created.id });
 }

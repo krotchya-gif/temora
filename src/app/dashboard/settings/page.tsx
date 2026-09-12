@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { WaSettingsForm } from "@/components/dashboard/WaSettingsForm";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -20,7 +19,7 @@ export default async function SettingsPage() {
 
   const { data: vendor } = await supabase
     .from("vendors")
-    .select("name, email, phone, wa_opt_in")
+    .select("name, email")
     .eq("id", user?.id ?? "")
     .single();
 
@@ -29,7 +28,7 @@ export default async function SettingsPage() {
       <div>
         <h1 className="font-display text-3xl text-text-primary">Pengaturan</h1>
         <p className="text-sm text-text-secondary">
-          Profil vendor &amp; notifikasi WhatsApp.
+          Profil vendor.
         </p>
       </div>
 
@@ -44,18 +43,6 @@ export default async function SettingsPage() {
           hint="Email login tidak bisa diubah di versi ini."
           disabled
         />
-      </Card>
-
-      <Card className="space-y-4 p-6">
-        <h2 className="font-display text-lg text-text-primary">Notifikasi WhatsApp</h2>
-        <WaSettingsForm
-          phone={vendor?.phone ?? ""}
-          waOptIn={vendor?.wa_opt_in ?? true}
-        />
-        <p className="text-xs leading-relaxed text-text-secondary">
-          Maksimal 3 pesan per hari, tanpa kirim jam 22.00–07.00 WIB. Info
-          pembayaran tetap terkirim meski notifikasi dimatikan.
-        </p>
       </Card>
     </div>
   );

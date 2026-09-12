@@ -12,7 +12,6 @@ const editSchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),
   company_name: z.string().trim().max(120).nullable().optional(),
   phone: z.string().trim().max(20).nullable().optional(),
-  wa_opt_in: z.boolean().optional(),
 });
 
 // PATCH — edit profil vendor (task 019).
@@ -142,7 +141,7 @@ export async function DELETE(
     }
   }
 
-  // 2. Hapus baris vendors → cascade events/photos/subscriptions/wa_logs.
+  // 2. Hapus baris vendors → cascade events/photos/subscriptions.
   const { error: dbError } = await admin
     .from("vendors")
     .delete()
