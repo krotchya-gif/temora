@@ -1,11 +1,12 @@
 # Design System — TEMORA
 
-*Versi: 1.6 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.7 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: token & microcopy v1.0 (kanonik) + motion, imagery & brand assets dari draft lanjutan.*
 *Brand foundation: [BRAND.md](BRAND.md)*
 
 *Patch 1.5 (2026-09-12): halaman Cara Kerja memakai alur editorial tiga langkah—hero foto bergaya cetak, timeline bernomor, QR valid, visual kamera/galeri berbasis aset lokal, dan CTA penutup. Langkah kamera memakai screenshot UI tamu nyata di dalam frame HP (`guest-camera-ui-mockup.png`); komponen live tetap digunakan untuk dashboard/editor. Halaman tidak memakai tiga kartu fitur simetris atau blok warna palsu.*
 *Patch 1.6 (2026-09-12): microcopy hint cover screen tamu "Ketuk untuk masuk ke photobooth" (§6) dan durasi dismiss install prompt PWA menjadi 3 hari (§6). Fallback gambar momen/placeholder tidak menambah token warna baru — memakai token kanonik yang ada.*
+*Patch 1.7 (2026-09-12): penamaan frame vs cover dipertegas — section setup "02 · Frame & Kartu QR" dan kartu dashboard "Cover tamu"; §3.5a + microcopy §6 diperbarui agar vendor tidak mengira ada dua upload untuk hal yang sama.*
 
 ---
 
@@ -194,12 +195,16 @@ preview perangkat yang memperlihatkan hasilnya secara langsung.
 
 - Layout desktop dua kolom: pengaturan di kiri, preview sticky di kanan; mobile
   berubah menjadi satu kolom dengan preview di bagian atas.
-- Urutan section: identitas & jadwal, cover/frame, tampilan kamera, lalu
+- Urutan section: identitas & jadwal, frame & kartu QR, tampilan kamera, lalu
   watermark dan status. Setiap section punya judul, deskripsi singkat, dan
   whitespace yang cukup — bukan satu form panjang tanpa orientasi.
 - Cover dashboard adalah layar pembuka tamu yang dikonfigurasi terpisah dari
   frame foto. Editor cover menyimpan template, foto opsional, judul, subjudul,
   dan teks tombol; frame foto tetap wajib PNG transparan rasio 3:4 sesuai §3.3.
+  Section setup hanya mengatur frame dan kartu QR — tidak ada upload cover di
+  setup; sebaliknya editor cover tidak mengubah frame. Penamaan UI wajib
+  membedakan keduanya ("Frame & Kartu QR" di setup, "Cover tamu" di dashboard)
+  agar vendor tidak mengira ada dua upload untuk hal yang sama.
 - Tema event mengubah aksen preview memakai token tema §2.2. Tidak boleh ada
   hex baru atau warna pilihan yang hanya tersimpan di client.
 - Form setup menyediakan pilihan preset kamera dan filter default. Preview
@@ -470,6 +475,8 @@ Semua animasi hormati `prefers-reduced-motion` (matikan develop/fade, langsung t
 | Field link kustom (form event) | Label "Link kustom (opsional)" · helper "Kosongkan untuk otomatis dari nama event." |
 | Event berakhir | "Acara ini sudah selesai. Terima kasih sudah jadi bagian dari momennya." |
 | Hint cover screen (tamu) | "Ketuk untuk masuk ke photobooth" — tombol CTA, bukan swipe |
+| Judul section frame (setup event) | "02 · Frame & Kartu QR" — frame = bingkai transparan di kamera; cover diatur terpisah |
+| Kartu cover (detail event) | "Cover tamu" — layar pembuka sebelum kamera, bukan bingkai foto |
 | Photobooth gagal dimuat | "Momennya belum bisa dibuka. Coba muat ulang sebentar lagi, ya." + CTA "Coba lagi" |
 | Consent body (photobooth) | "Foto yang kamu ambil tersimpan ke galeri acara dan hanya bisa dilihat oleh penyelenggara. Foto otomatis terhapus paling lambat 30 hari setelah acara berakhir." |
 | Kamera ditolak | "Izin kamera belum aktif. Izinkan akses kamera lewat pengaturan browser-mu, lalu coba lagi ya." |

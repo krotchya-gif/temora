@@ -89,7 +89,12 @@ export const eventUpdateSchema = z.object({
   watermarkText: optionalWatermarkText,
   watermarkPosition: z.enum(WATERMARK_POSITIONS).optional(),
   coverTemplate: z.enum(["bloom", "rose", "mono", "night", "paper"]).optional(),
-  coverImageUrl: z.string().url("URL foto cover tidak valid.").nullable().optional(),
+  coverImageUrl: z
+    .string()
+    .url("URL foto cover tidak valid.")
+    .refine((value) => /^https?:\/\//i.test(value), "URL foto cover harus http(s).")
+    .nullable()
+    .optional(),
   coverTitle: z.string().trim().max(80, "Judul cover maksimal 80 karakter.").nullable().optional(),
   coverSubtitle: z.string().trim().max(120, "Subjudul cover maksimal 120 karakter.").nullable().optional(),
   coverButtonText: z.string().trim().min(1).max(30, "Teks tombol maksimal 30 karakter.").optional(),

@@ -10,6 +10,7 @@ const MEDIA_AREAS = [
     'photos' => ['private', 15 * 1024 * 1024],
     'thumbs' => ['public', 512 * 1024],
     'frames' => ['public', 5 * 1024 * 1024],
+    'covers' => ['public', 4 * 1024 * 1024],
     'sponsors' => ['public', 2 * 1024 * 1024],
     'showcase' => ['public', 10 * 1024 * 1024],
     'zips' => ['private', 1024 * 1024 * 1024],
@@ -34,7 +35,7 @@ function require_secret(): void {
 
 function media_key(string $key): array {
     $key = trim($key, " /");
-    if (!preg_match('#^(photos|thumbs|frames|sponsors|showcase|zips)/[A-Za-z0-9._/-]+$#', $key) || str_contains($key, '..')) json_response(['ok' => false, 'error' => 'Invalid key'], 400);
+    if (!preg_match('#^(photos|thumbs|frames|covers|sponsors|showcase|zips)/[A-Za-z0-9._/-]+$#', $key) || str_contains($key, '..')) json_response(['ok' => false, 'error' => 'Invalid key'], 400);
     [$area] = explode('/', $key, 2);
     return [$area, $key, __DIR__ . '/' . MEDIA_AREAS[$area][0] . '/' . $key];
 }

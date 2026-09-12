@@ -1,6 +1,6 @@
 # Architecture — TEMORA
 
-*Versi: 1.12 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.14 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: arsitektur MVP v1.0 + referensi implementasi AI (Phase 2) + monitoring.*
 *Patch 1.3 (2026-08-26): tahap prototipe di-deploy ke Hostinger shared (Git deploy), bukan Vercel — biaya nol selama belum monetisasi. Konsekuensi: build wajib `next build --webpack`, config wajib `next.config.mjs` (bukan `.ts`), cron via pinger eksternal. Terverifikasi running 2026-08-26. Detail §2, §9, §10, §12.*
 *Patch 1.5 (2026-09-09): watermark Pro dapat kosong (`NULL`) dan dismiss install prompt ditunda 24 jam. Detail §13.*
@@ -11,6 +11,8 @@
 *Patch 1.10 (2026-09-12): uptime monitor eksternal (UptimeRobot) di-descope oleh owner — monitoring uptime via probe manual `/api/health` + log hPanel; cron tetap dipicu pinger cron-job.org. Device lab & uji rollback dinyatakan terverifikasi owner (qa-report Ronde Launch Gate).*
 *Patch 1.11 (2026-09-12): integrasi notifikasi WhatsApp (Cloud API) dihapus atas keputusan owner — `enqueueWa`, cron `wa-queue`/`wa-reminders`, webhook Meta, settings WA, tabel `whatsapp_logs`, dan kolom `vendors.wa_opt_in` dihapus. Aktivasi vendor tetap via deep-link `wa.me` (`NEXT_PUBLIC_WA_ADMIN_NUMBER`).*
 *Patch 1.12 (2026-09-12): cooldown dismiss install prompt PWA dinaikkan dari 24 jam menjadi 3 hari (keputusan owner); fallback gambar momen memakai placeholder SVG lokal (`/images/moment-placeholder.svg`); viewport RopeMoments memakai `overflow-x-clip` agar tidak memunculkan scrollbar desktop. Detail §13, design-system §6, qa-report Ronde Perbaikan Audit.*
+*Patch 1.13 (2026-09-12): media service menerima area publik `covers` — whitelist `config.php`/`delete.php` diselaraskan dengan `storage.ts` (cover upload sebelumnya selalu ditolak `400 Invalid key`). Detail §11.1, database.md §6, qa-report.*
+*Patch 1.14 (2026-09-12): deploy `config.php`/`delete.php`/`.htaccess` media service selesai & diverifikasi (upload cover 200, delete key/prefix OK, file baru langsung ter-serve, recurse chmod legacy → semua 6 thumb + frame 200, header `Access-Control-Allow-Origin: *` aktif). CORS wajib: frame PNG dimuat `crossOrigin="anonymous"` untuk canvas compositing — tanpa itu foto tamu tersimpan tanpa frame. Bug client cover `blob:` URL yang tersimpan ke DB diperbaiki (`CoverEditor` + validasi `coverImageUrl` hanya `http(s)`; data lama di-reset). Detail §11.1, design-system patch 1.7, qa-report.*
 
 ---
 
@@ -168,7 +170,7 @@ supabase/
 | `/dashboard/events` | List semua event | Yes |
 | `/dashboard/events/new` | Buat event baru | Yes |
 | `/dashboard/events/[eventId]` | Detail event | Yes |
-| `/dashboard/events/[eventId]/edit` | Workspace setup event: cover/frame, tampilan kamera/filter live preview, watermark, dan copy/template QR | Yes |
+| `/dashboard/events/[eventId]/edit` | Workspace setup event: frame PNG + kartu QR, tampilan kamera/filter live preview, watermark | Yes |
 | `/dashboard/events/[eventId]/cover` | Editor cover visual: template, foto, judul, subjudul, tombol | Yes |
 | `/dashboard/events/[eventId]/gallery` | Galeri foto + download ZIP | Yes |
 | `/dashboard/events/[eventId]/moments` | Feed moments real-time + moderasi (task 012) | Yes |
@@ -526,12 +528,17 @@ Secret **tidak pernah** di-commit. Preview & production pakai nilai berbeda (tas
 Upload baru dikirim server-to-server dari API Next.js ke `media.temora.site`.
 Subdomain memiliki document root terpisah dari project Git deploy utama agar
 file tetap persisten saat aplikasi diperbarui. Area `public` berisi frame,
-thumbnail, sponsor, dan showcase; area `private` berisi foto resolusi penuh dan
-ZIP. File private hanya dibaca melalui API Next.js setelah ownership check.
+thumbnail, cover event, sponsor, dan showcase; area `private` berisi foto
+resolusi penuh dan ZIP. File private hanya dibaca melalui API Next.js setelah
+ownership check.
 Handler PHP memverifikasi `HOSTINGER_STORAGE_SECRET`, whitelist area, path aman,
 MIME/magic bytes, dan batas ukuran. File ditulis `0644` dan folder `0755`
-(patch 1.7 — default `0600` tak terbaca static handler). File development lama
-di Supabase Storage tidak dimigrasikan.
+(patch 1.7 — default `0600` tak terbaca static handler). `.htaccess` media
+service mengirim `Access-Control-Allow-Origin: *` untuk file publik: frame PNG
+dibaca `crossOrigin="anonymous"` agar bisa digambar ke canvas capture — tanpa
+header itu frame gagal dimuat dan foto tamu tersimpan tanpa frame. File lama
+yang dibuat sebelum patch chmod wajib di-recurse sekali (`find`/File Manager,
+README). File development lama di Supabase Storage tidak dimigrasikan.
 
 ---
 

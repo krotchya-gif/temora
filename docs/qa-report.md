@@ -729,10 +729,15 @@ yang gagal hanyalah render setelah refresh; kini aman.
   `20260912120000_remove_whatsapp` (diterapkan 2026-09-12).
 
 ### Temuan minor
-- `media-service/delete.php` whitelist prefix tidak memasukkan `covers`
-  (`(photos|thumbs|frames|sponsors|showcase|zips)`) padahal `storage.ts`
-  mendukung area `covers` → purge prefix cover selalu 400. Perlu diselaraskan
-  saat menyentuh media service (deploy manual — media-service/README.md).
+- `media-service` whitelist tidak mengenal area `covers` padahal `storage.ts`
+  mendukung area `covers` — dampaknya bukan hanya purge: `config.php`
+  (`MEDIA_AREAS` + regex `media_key`) menolak key `covers/...` dengan
+  `400 Invalid key`, sehingga upload foto cover selalu gagal (`500 "Gagal
+  menyimpan foto cover"`), dan `delete.php` menolak purge prefix `covers`.
+  **Selesai 2026-09-12**: `config.php` + `delete.php` (`covers` = public maks
+  4 MB; guard `..` pada prefix delete) di-deploy manual ke `media.temora.site`
+  dan diverifikasi via smoke test production — upload `covers/...` 200, GET
+  publik 200, delete key & prefix ok, file uji dibersihkan.
 
 ## Ronde Perbaikan Audit (2026-09-12)
 
@@ -775,3 +780,55 @@ lokal lint ✓ typecheck ✓ unit 55/55 ✓ build ✓:
     (scroll container) sehingga track yang meluber ke atas memunculkan
     scrollbar vertikal; `clip` menjaga sumbu Y tetap `visible` tanpa scroll
     container. Verifikasi visual di browser owner (pending).
+
+## Ronde Cover/Frame & Thumbnail 404 (2026-09-12)
+
+Konteks: vendor melaporkan frame yang tampil di preview setup menjadi broken
+setelah disimpan, dan mempertanyakan apakah cover dan frame fitur yang sama.
+
+### Diagnosis
+- **Cover ≠ frame**: cover = layar pembuka tamu (`cover_template`,
+  `cover_image_url`, copy tombol); frame = PNG transparan 3:4 overlay kamera
+  (`frame_url`). Section setup dulu berjudul "02 · Cover & QR" padahal isinya
+  upload frame — sumber kebingungan; label diperbaiki (design-system patch 1.7).
+- **Frame `Mabar ff` 404**: `frames/{vendor}/{event}/frame.png` tidak ter-serve
+  — file/folder ditulis oleh `upload.php` sebelum patch chmod (folder `0750`,
+  file `0600`). Upload ulang saja tidak cukup selama folder 0750 → butuh
+  recurse chmod sekali.
+- **CORS media service hilang**: file publik `media.temora.site` tidak mengirim
+  `Access-Control-Allow-Origin`; `CameraStage` memuat frame dengan
+  `crossOrigin="anonymous"` (compositing canvas) — tanpa CORS frame gagal
+  dimuat dan foto tamu tersimpan **tanpa frame secara senyap**
+  (`CameraStage.tsx` catch canvas-tainted). Warisan Supabase Storage yang
+  otomatis CORS, hilang saat migrasi Hostinger.
+- **Cover `blob:` tersimpan ke DB**: `CoverEditor` menyimpan `imageUrl` state
+  tetap `blob:` setelah save pertama; save kedua (ubah judul/subjudul/tombol)
+  menulis `blob:https://temora.site/...` ke `cover_image_url`. Terjadi nyata di
+  event `Mabar ff`; `z.string().url()` zod menerima skema `blob:`.
+- **Thumbnail 404 (audit production)**: 2 dari 6 thumb aktif 404 —
+  `thumbs/136e6ded-.../01M2A4BR..._320.jpg` (event `Mabar ff`) dan
+  `thumbs/9bae80ee-.../01M29ETP..._320.jpg` (event `mari bersama`), keduanya
+  upload 2026-09-12 pagi sebelum perbaikan server. 4 thumb lama 200.
+
+### Perbaikan repo
+- `CoverEditor.tsx`: set `imageUrl` ke URL remote setelah upload sukses,
+  fallback defensif `blob:` → `null`, revoke object URL.
+- `src/lib/validation/event.ts`: `coverImageUrl` hanya `http(s)`.
+- `src/app/dashboard/events/[eventId]/cover/page.tsx`: data `blob:` lama
+  dianggap kosong saat dibaca + metadata "Cover Tamu".
+- `media-service/.htaccess`: `Access-Control-Allow-Origin: *` (deploy manual).
+- Label: section setup "02 · Frame & Kartu QR", kartu dashboard "Cover tamu",
+  cross-link Setup ⇄ Cover tamu, copy halaman edit (design-system patch 1.7).
+
+### Verifikasi & sisa
+- Smoke test media service (2026-09-12, production): upload cover 200 + GET
+  publik langsung 200; delete key/prefix ok; file uji dibersihkan.
+- Recurse chmod `public`/`private` dijalankan owner (2026-09-12) →
+  **semua 6 thumb aktif 200** (2 yang 404 pulih), **frame `Mabar ff` 200**.
+- `.htaccess` CORS di-deploy → `Access-Control-Allow-Origin: *` terverifikasi
+  pada file publik (thumb + frame).
+- `cover_image_url` `blob:` event `Mabar ff` di-reset ke `NULL` (data
+  correction; UI kini juga defensif menolak `blob:`).
+- **Pending**: verifikasi visual owner — guest camera menampilkan frame,
+  label baru "Cover tamu" / "Frame & Kartu QR", dan upload cover dari UI
+  (memvalidasi fix blob end-to-end).

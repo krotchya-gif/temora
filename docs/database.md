@@ -1,8 +1,9 @@
 # Database — TEMORA (Supabase PostgreSQL)
 
-*Versi: 1.4 · Tanggal: 2026-09-12 · Status: Approved*
+*Versi: 1.5 · Tanggal: 2026-09-12 · Status: Approved*
 *Konsolidasi: skema MVP v1.0 (kanonik) + realtime publication + retention & migration strategy.*
 *Patch 1.4 (2026-09-12): integrasi notifikasi WhatsApp dihapus — tabel `whatsapp_logs` dan kolom `vendors.wa_opt_in` di-drop via `20260912120000_remove_whatsapp.sql` (diterapkan via MCP Supabase, diverifikasi 2026-09-12).*
+*Patch 1.5 (2026-09-12): area media service `covers` didokumentasikan sebagai area publik (§6) — whitelist `media-service` (config/upload/delete) diselaraskan dengan `storage.ts`; deploy selesai & diverifikasi via smoke test production (upload 200). `cover_image_url` hanya boleh URL `http(s)` — URL `blob:` (artefak preview client) ditolak validasi API dan dianggap kosong saat dibaca.*
 
 ---
 
@@ -57,7 +58,7 @@ CREATE TABLE events (
   frame_url TEXT,                      -- PNG transparan di Storage
   cover_template TEXT NOT NULL DEFAULT 'bloom'
     CHECK (cover_template IN ('bloom','rose','mono','night','paper')),
-  cover_image_url TEXT,                -- JPG/PNG cover publik, opsional
+  cover_image_url TEXT,                -- JPG/PNG cover publik, opsional; hanya http(s)
   cover_title TEXT,                    -- NULL = pakai nama event
   cover_subtitle TEXT,
   cover_button_text TEXT NOT NULL DEFAULT 'Mulai motret',
@@ -397,6 +398,7 @@ supabase.channel(`photos:${eventId}`)
 | `private/photos` | **Private** — dibaca lewat API Next.js setelah ownership check | Foto tamu JPEG |
 | `public/thumbs` | Public read | Thumbnail 320px |
 | `public/frames` | Public read | Frame PNG vendor |
+| `public/covers` | Public read | Foto cover event (halaman photobooth) |
 | `private/zips` | Private — dibaca lewat API Next.js | Hasil export ZIP |
 | `public/showcase` | Public read | Foto kurasi platform |
 | `public/sponsors` | Public read | Logo sponsor |
@@ -406,6 +408,7 @@ Path convention:
 photos/{event_id}/{table_id}/{ulid}.jpg
 thumbs/{event_id}/{ulid}_320.jpg
 frames/{vendor_id}/{event_id}/frame.png
+covers/{vendor_id}/{event_id}/cover.{jpg|png}
 zips/{event_id}/{job_id}.zip
 sponsors/{event_id}/{ulid}.png
 showcase/{ulid}.jpg

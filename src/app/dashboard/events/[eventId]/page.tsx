@@ -119,9 +119,9 @@ export default async function EventDetailPage({ params }: EventDetailProps) {
         <div className="grid gap-3 sm:grid-cols-3">
           <Link href={`/dashboard/events/${eventId}/cover`} className="group rounded-xl border border-border bg-bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none motion-reduce:hover:translate-y-0">
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-muted-mauve/15 text-muted-mauve"><Palette className="h-4 w-4" aria-hidden /></span>
-            <p className="mt-4 text-sm font-medium text-text-primary">Edit cover</p>
-            <p className="mt-1 text-xs leading-relaxed text-text-secondary">Template, foto, judul, subjudul, dan tombol.</p>
-            <span className="mt-3 inline-block text-xs font-medium text-accent group-hover:underline">Edit cover →</span>
+            <p className="mt-4 text-sm font-medium text-text-primary">Cover tamu</p>
+            <p className="mt-1 text-xs leading-relaxed text-text-secondary">Layar pembuka sebelum kamera: template, foto, judul, dan tombol.</p>
+            <span className="mt-3 inline-block text-xs font-medium text-accent group-hover:underline">Atur cover →</span>
           </Link>
           <Link href={`/dashboard/events/${eventId}/qr`} className="group rounded-xl border border-border bg-bg-card p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dusty-blue motion-reduce:transition-none motion-reduce:hover:translate-y-0">
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-secondary/15 text-accent"><QrCode className="h-4 w-4" aria-hidden /></span>

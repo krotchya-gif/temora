@@ -9,7 +9,7 @@ if (isset($payload['key'])) {
 }
 if (isset($payload['prefix'])) {
     $prefix = trim((string) $payload['prefix'], " /");
-    if (!preg_match('#^(photos|thumbs|frames|sponsors|showcase|zips)(/[A-Za-z0-9._-]+)*$#', $prefix)) json_response(['ok' => false, 'error' => 'Invalid prefix'], 400);
+    if (!preg_match('#^(photos|thumbs|frames|covers|sponsors|showcase|zips)(/[A-Za-z0-9._-]+)*$#', $prefix) || str_contains($prefix, '..')) json_response(['ok' => false, 'error' => 'Invalid prefix'], 400);
     [$area] = explode('/', $prefix, 2);
     $root = __DIR__ . '/' . MEDIA_AREAS[$area][0] . '/' . $prefix;
     if (is_dir($root)) {

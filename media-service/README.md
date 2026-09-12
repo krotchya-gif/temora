@@ -29,6 +29,13 @@ baru ditimpa manual.
 Verifikasi wajib tiap selesai menyentuh folder ini:
 
 1. Upload file yang diubah, timpa yang lama (jangan upload sebagai salinan).
+   `.htaccess` juga manual — perubahan CORS di repo tidak sampai ke server
+   sebelum di-upload ulang.
 2. Ambil 1 foto test dari photobooth → pastikan thumbnail tampil di galeri
    vendor tanpa chmod manual (membuktikan `upload.php` baru yang jalan).
 3. Buka 1 thumb lama yang sudah di-recurse → tetap 200 (tidak regresi).
+4. Frame publik wajib punya CORS (dipakai canvas compositing tamu):
+   `curl -sI -H "Origin: https://temora.site" https://media.temora.site/public/frames/<vendor>/<event>/frame.png`
+   → harus ada `access-control-allow-origin: *` dan status 200. Tanpa header
+   ini, frame gagal dimuat `crossOrigin="anonymous"` dan foto tamu tersimpan
+   tanpa frame (diam-diam).

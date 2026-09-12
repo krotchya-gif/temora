@@ -59,7 +59,10 @@ export function CoverEditor({ eventId, eventName, initial }: CoverEditorProps) {
 
   function selectImage(file: File | null) {
     setImageFile(file);
-    if (file) setImageUrl(URL.createObjectURL(file));
+    if (file) {
+      if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
+      setImageUrl(URL.createObjectURL(file));
+    }
   }
   function moveTemplate(direction: -1 | 1) {
     const next = (templateIndex + direction + templates.length) % templates.length;
@@ -68,13 +71,17 @@ export function CoverEditor({ eventId, eventName, initial }: CoverEditorProps) {
   async function save() {
     setBusy(true); setMessage(null);
     try {
-      let savedImageUrl = imageUrl;
+      // Jangan pernah kirim blob: (hanya valid di sesi browser) ke server —
+      // fallback ke null bila belum ada URL upload yang tersimpan.
+      let savedImageUrl = imageUrl?.startsWith("blob:") ? null : imageUrl;
       if (imageFile) {
         const form = new FormData(); form.set("cover", imageFile);
         const upload = await fetch(`/api/events/${eventId}/cover`, { method: "POST", body: form });
         const data = (await upload.json().catch(() => null)) as { error?: string; coverImageUrl?: string } | null;
         if (!upload.ok || !data?.coverImageUrl) throw new Error(data?.error ?? "Foto cover gagal disimpan.");
         savedImageUrl = data.coverImageUrl;
+        setImageUrl(data.coverImageUrl);
+        if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
       }
       const response = await fetch(`/api/events/${eventId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ coverTemplate: template, coverImageUrl: savedImageUrl, coverTitle: title.trim() || null, coverSubtitle: subtitle.trim() || null, coverButtonText: buttonText.trim() || "Mulai motret" }) });
       const data = (await response.json().catch(() => null)) as { error?: string } | null;

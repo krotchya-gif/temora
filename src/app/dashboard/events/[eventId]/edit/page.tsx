@@ -51,7 +51,17 @@ export default async function EditEventPage({ params }: EditEventProps) {
       <div>
         <h1 className="font-display text-3xl text-text-primary">Setup tampilan event</h1>
         <p className="mt-1 font-mono text-xs text-text-secondary">
-          /p/{event.slug} · cover, kamera, filter, dan watermark
+          /p/{event.slug} · frame, kamera, filter, dan watermark
+        </p>
+        <p className="mt-2 text-sm text-text-secondary">
+          Layar pembuka tamu diatur terpisah di{" "}
+          <Link
+            href={`/dashboard/events/${eventId}/cover`}
+            className="font-medium text-accent transition-colors hover:underline"
+          >
+            Cover tamu
+          </Link>
+          .
         </p>
       </div>
 
