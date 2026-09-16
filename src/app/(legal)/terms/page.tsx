@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import { publicPageMetadata } from "@/lib/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Syarat & Ketentuan",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata({
+    // Deskripsi unik BRAND.md §10 — dilarang duplikat homepage.
+    path: "/terms",
+    title: "Syarat & Ketentuan",
+    description:
+      "Syarat & ketentuan TEMORA: tanggung jawab vendor, batasan paket Free/Basic/Pro, pembayaran via Xendit, dan ketersediaan layanan.",
+  });
+}
 
 const sections = [
   {

@@ -274,6 +274,44 @@ UTM **dikelola superadmin via `/admin/seo`** (KV `platform_settings`, lihat
 `database.md` §8). Nilai di §10 di atas adalah **fallback default** bila key
 kosong. Detail teknis: `architecture.md` §3.2 & `docs/research/seo-admin-reference.md`.
 
+### On-page SEO teknis (2026-09-16, hasil audit temora.site)
+
+Keputusan terkunci untuk seluruh halaman publik (7 URL sitemap):
+
+1. **Canonical self-referencing wajib** — setiap halaman publik emit
+   `<link rel="canonical">` via `alternates.canonical` (layout default `/`,
+   tiap halaman override dengan path-nya). Canonical selalu non-www absolut
+   via `metadataBase` (`NEXT_PUBLIC_APP_URL`).
+2. **`og:url` eksplisit per halaman** — via `openGraph.url` (Next.js tidak
+   auto-emit). `twitter:title/description` mengikuti meta halaman, bukan
+   default homepage.
+3. **OG per halaman, bukan default global** — tiap halaman memakai
+   title/description-nya sendiri untuk `openGraph` + `twitter`; gambar mengikuti
+   `seo_og_image` admin (fallback `/og.png`). Helper tunggal
+   `publicPageMetadata({ path, title, description })` di `src/lib/seo-settings.ts`.
+4. **Deskripsi unik `/privacy` & `/terms`** (Bahasa Indonesia, voice hangat —
+   sebelumnya duplikat homepage):
+   - privacy: "Kebijakan privasi TEMORA: foto tamu hanya dilihat penyelenggara, tanpa akun tamu, tanpa pengenalan wajah, dan otomatis terhapus maksimal 30 hari setelah acara."
+   - terms: "Syarat & ketentuan TEMORA: tanggung jawab vendor, batasan paket Free/Basic/Pro, pembayaran via Xendit, dan ketersediaan layanan."
+5. **FAQPage JSON-LD** di `/faq` — dibangun dari array FAQ yang sama dengan
+   konten render (satu sumber, tidak boleh drift).
+6. **`/llms.txt`** — route statis untuk AI crawler (GEO), sesuai rencana
+   `docs/research/seo-admin-reference.md` §2 (tidak pakai key admin baru —
+   tanpa migration).
+7. **Sitemap fallback** (`PUBLIC_SITEMAP_PATHS`) emit `<loc>` + `<lastmod>` +
+   `<changefreq>` + `<priority>` per URL. `lastmod` = konstanta
+   `SITEMAP_LASTMOD` (bump manual tiap halaman publik berubah — jujur, bukan
+   tanggal dinamis). `changefreq`/`priority` untuk kelengkapan konsumen
+   (Google mengabaikan keduanya).
+8. **`hreflang` sengaja TIDAK dipasang** — site satu bahasa (`lang="id"`,
+   `locale id_ID`); baru relevan saat varian bahasa Inggris rilis.
+9. **`www.temora.site` → 301/308 permanen ke apex** — via `redirects()`
+   `next.config.mjs` (host condition) + aturan redirect level hosting sebagai
+   lapis kedua. Canonical + sitemap selalu non-www.
+10. **`meta robots index,follow` eksplisit** di layout (fungsional = default,
+    tapi menutup audit). `noindex` tetap di halaman privat (`/p/*`, `/print/*`,
+    `/admin/*`, dashboard).
+
 ---
 
 ## 11. Website Structure

@@ -7,12 +7,16 @@ import { MomentsGrid } from "@/components/marketing/MomentsGrid";
 import { getWhatsAppUrl } from "@/lib/constants";
 import { momentImageUrl, type MomentCard } from "@/lib/moments";
 import { createClient } from "@/lib/supabase/server";
+import { publicPageMetadata } from "@/lib/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Moments — TEMORA",
-  description:
-    "Galeri momen terkurasi dari acara-acara yang memakai TEMORA virtual photobooth.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata({
+    path: "/moments",
+    title: "Moments — TEMORA",
+    description:
+      "Galeri momen terkurasi dari acara-acara yang memakai TEMORA virtual photobooth.",
+  });
+}
 
 export default async function MomentsPage() {
   const supabase = await createClient();

@@ -5,13 +5,17 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { getWhatsAppUrl, PRICING_TIERS } from "@/lib/constants";
 import { cn, formatIdr } from "@/lib/utils";
+import { publicPageMetadata } from "@/lib/seo-settings";
 
-export const metadata: Metadata = {
-  // Category keyword BRAND.md §9 di title.
-  title: "Paket & Harga — Virtual Photobooth",
-  description:
-    "Paket TEMORA virtual photobooth untuk wedding, birthday, dan corporate event: mulai gratis 100 foto, Basic Rp 49K, Pro Rp 299K tanpa kontrak.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata({
+    // Category keyword BRAND.md §9 di title.
+    path: "/pricing",
+    title: "Paket & Harga — Virtual Photobooth",
+    description:
+      "Paket TEMORA virtual photobooth untuk wedding, birthday, dan corporate event: mulai gratis 100 foto, Basic Rp 49K, Pro Rp 299K tanpa kontrak.",
+  });
+}
 
 export default function PricingPage() {
   return (

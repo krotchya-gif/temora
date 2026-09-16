@@ -9,12 +9,16 @@ import { Card } from "@/components/ui/Card";
 import { HOW_IT_WORKS_STEPS } from "@/lib/constants";
 import { momentImageUrl, type MomentCard } from "@/lib/moments";
 import { createClient } from "@/lib/supabase/server";
+import { publicPageMetadata } from "@/lib/seo-settings";
 
-export const metadata: Metadata = {
-  title: "TEMORA — Virtual Photobooth for Every Moment",
-  description:
-    "Capture the moments that matter with TEMORA, a virtual photobooth experience for weddings, birthdays, gatherings, and special events.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata({
+    path: "/",
+    title: "TEMORA — Virtual Photobooth for Every Moment",
+    description:
+      "Capture the moments that matter with TEMORA, a virtual photobooth experience for weddings, birthdays, gatherings, and special events.",
+  });
+}
 
 const stepIcons = {
   qr: QrCode,

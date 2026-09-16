@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import { publicPageMetadata } from "@/lib/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Kebijakan Privasi",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata({
+    // Deskripsi unik BRAND.md §10 — dilarang duplikat homepage.
+    path: "/privacy",
+    title: "Kebijakan Privasi",
+    description:
+      "Kebijakan privasi TEMORA: foto tamu hanya dilihat penyelenggara, tanpa akun tamu, tanpa pengenalan wajah, dan otomatis terhapus maksimal 30 hari setelah acara.",
+  });
+}
 
 const sections = [
   {

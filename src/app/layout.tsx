@@ -56,10 +56,16 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     keywords,
     other,
+    // BRAND.md §10: canonical self-referencing + robots eksplisit.
+    // Halaman publik meng-override canonical/og:url via publicPageMetadata;
+    // halaman privat meng-override robots dengan noindex.
+    alternates: { canonical: "/" },
+    robots: { index: true, follow: true },
     openGraph: {
       type: "website",
       locale: "id_ID",
       siteName: "TEMORA",
+      url: "/",
       title,
       description,
       images: [{ url: ogImage, width: 1200, height: 630, alt: "TEMORA" }],

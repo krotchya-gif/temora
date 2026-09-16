@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { Button } from "@/components/ui/Button";
 import { getWhatsAppUrl } from "@/lib/constants";
+import { publicPageMetadata } from "@/lib/seo-settings";
 
-export const metadata: Metadata = {
-  title: "FAQ — TEMORA",
-  description:
-    "Pertanyaan yang sering diajukan soal TEMORA virtual photobooth: privasi foto, cara pakai, harga, perangkat, dan unduhan ZIP.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata({
+    path: "/faq",
+    title: "FAQ — TEMORA",
+    description:
+      "Pertanyaan yang sering diajukan soal TEMORA virtual photobooth: privasi foto, cara pakai, harga, perangkat, dan unduhan ZIP.",
+  });
+}
 
 const faqs = [
   {
@@ -41,8 +45,24 @@ const faqs = [
 ];
 
 export default function FaqPage() {
+  // JSON-LD FAQPage (BRAND.md §10) — dibangun dari array yang sama dengan
+  // konten render agar tidak drift.
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+
   return (
     <MarketingLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div className="space-y-2">
           <h1 className="font-display text-4xl leading-tight text-text-primary sm:text-5xl">

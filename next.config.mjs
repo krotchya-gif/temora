@@ -9,6 +9,18 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    // BRAND.md §10: www → apex permanen (canonical/sitemap selalu non-www).
+    // Aturan redirect level hosting (hPanel) tetap disarankan lapis kedua.
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.temora.site" }],
+        destination: "https://temora.site/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

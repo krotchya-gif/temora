@@ -15,12 +15,16 @@ import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { GUEST_PLACEHOLDER_PHOTO } from "@/components/photobooth/GuestPhoneMockup";
 import { Button } from "@/components/ui/Button";
 import { getWhatsAppUrl, HOW_IT_WORKS_STEPS, TOKEN_HEX } from "@/lib/constants";
+import { publicPageMetadata } from "@/lib/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Cara Kerja TEMORA Virtual Photobooth",
-  description:
-    "Dari scan QR di meja sampai galeri foto bersama—TEMORA membuat tamu bisa menyimpan momen langsung dari browser, tanpa aplikasi.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return publicPageMetadata({
+    path: "/how-it-works",
+    title: "Cara Kerja TEMORA Virtual Photobooth",
+    description:
+      "Dari scan QR di meja sampai galeri foto bersama—TEMORA membuat tamu bisa menyimpan momen langsung dari browser, tanpa aplikasi.",
+  });
+}
 
 const stepIcons = {
   qr: QrCode,

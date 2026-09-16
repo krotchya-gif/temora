@@ -163,6 +163,15 @@ supabase/
 | `/terms` | Syarat & ketentuan (statis) | No |
 | `/print/[eventId]/qr` | Print kartu meja A4 (owner session) | Yes |
 | `/print/[eventId]/moments` | Print laporan momen A4 (owner session, task 012) | Yes |
+| `/robots.txt` | Route dinamis (override admin `robots_content`, fallback template + blokir bot AI + baris Sitemap) | No |
+| `/sitemap.xml` | Route dinamis (override admin `sitemap_content`, fallback 7 URL publik + lastmod/changefreq/priority) | No |
+| `/llms.txt` | Route statis untuk AI crawler (GEO) — 2026-09-16 | No |
+
+> **Redirect www → apex (2026-09-16, BRAND.md §10)**: `next.config.mjs`
+> `redirects()` — request dengan host `www.temora.site` mendapat redirect
+> permanen ke `https://temora.site/:path*`. Aturan redirect level hosting
+> (hPanel) tetap disarankan sebagai lapis kedua; canonical/sitemap selalu
+> non-www.
 
 ### 3.2 Dashboard Pages (Vendor)
 

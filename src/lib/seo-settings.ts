@@ -5,14 +5,17 @@
 // komponen "use client".
 
 import { cache } from "react";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import {
   AI_CRAWLERS,
   blockedAiBots,
   PUBLIC_SITEMAP_PATHS,
+  SITEMAP_LASTMOD,
+  SITEMAP_META,
 } from "@/lib/seo-constants";
 
-export { AI_CRAWLERS, blockedAiBots, PUBLIC_SITEMAP_PATHS };
+export { AI_CRAWLERS, blockedAiBots, PUBLIC_SITEMAP_PATHS, SITEMAP_LASTMOD, SITEMAP_META };
 
 export type PublicSettings = Record<string, string>;
 
@@ -37,4 +40,36 @@ export function appUrl(): URL {
     url.protocol = "https:";
   }
   return url;
+}
+
+/**
+ * Metadata on-page standar halaman publik (BRAND.md §10): canonical
+ * self-referencing + og:url eksplisit + OG/Twitter memakai title/description
+ * halaman sendiri (bukan default homepage). Gambar mengikuti seo_og_image
+ * admin (fallback /og.png) agar override /admin/seo tetap berlaku.
+ */
+export async function publicPageMetadata(opts: {
+  path: string;
+  title: string;
+  description: string;
+}): Promise<Metadata> {
+  const settings = await getPublicSettings();
+  const ogImage = settings.seo_og_image?.trim() || "/og.png";
+  return {
+    title: opts.title,
+    description: opts.description,
+    alternates: { canonical: opts.path },
+    openGraph: {
+      url: opts.path,
+      title: opts.title,
+      description: opts.description,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: "TEMORA" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: opts.title,
+      description: opts.description,
+      images: [ogImage],
+    },
+  };
 }

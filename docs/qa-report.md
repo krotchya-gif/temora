@@ -906,3 +906,37 @@ menyimpang.
   `E2E_ENABLED`/kredensial seed tidak tersedia; skenario vendor sudah diperbarui
   agar saat gate aktif mencakup feed API, format ZIP invalid, ownership 404,
   redirect legacy, lima tab mobile, dan section Sponsor.
+
+## Ronde SEO On-Page (2026-09-16) — audit temora.site
+
+Keputusan: `docs/BRAND.md` §10 (subsection On-page SEO teknis), route:
+`docs/architecture.md` §3.1. `hreflang` sengaja tidak dipasang (single-language).
+
+### Perubahan
+
+- Helper `publicPageMetadata({ path, title, description })`
+  (`src/lib/seo-settings.ts`) — canonical self-referencing + `og:url` eksplisit
+  + OG/Twitter per halaman; gambar ikut `seo_og_image` admin (fallback `/og.png`).
+- Layout root: `alternates.canonical "/"`, `openGraph.url "/"`,
+  `robots index,follow` eksplisit. 7 halaman sitemap (`/`, `/how-it-works`,
+  `/moments`, `/pricing`, `/faq`, `/privacy`, `/terms`) memakai helper.
+- Deskripsi unik `/privacy` & `/terms` (ID, voice hangat — sebelumnya duplikat homepage).
+- FAQPage JSON-LD di `/faq` dari array FAQ yang sama dengan konten render.
+- Route baru `/llms.txt` (statis, tanpa key admin/migration).
+- Sitemap fallback: `<lastmod>` (`SITEMAP_LASTMOD`, bump manual) +
+  `<changefreq>` + `<priority>` per URL (`SITEMAP_META`).
+- `www.temora.site` → permanen ke apex via `redirects()` `next.config.mjs`
+  (terverifikasi 308; aturan hPanel tetap disarankan lapis kedua).
+
+### Verifikasi (runtime `next start` lokal)
+
+- 7/7 halaman: canonical ✅ · og:url ✅ · og:title unik ✅ · robots index,follow ✅.
+- `/faq` memuat `@type FAQPage` ✅; `/llms.txt` 200 ✅; sitemap berisi
+  lastmod/changefreq/priority ✅.
+- Host `www.temora.site` → `308 Location: https://temora.site/faq` ✅.
+- Override noindex anak terbukti utuh (route uji sementara
+  `robots:{index:false}` → `<meta name="robots" content="noindex">`,
+  lalu route dihapus).
+- Gate: lint ✅ · typecheck ✅ · vitest 66/66 ✅ · build ✅ (EXIT=0).
+- Tanpa migration/RLS baru; tanpa visual change (hanya `<head>` + route teks —
+  Visual Review Gate tidak berlaku).
